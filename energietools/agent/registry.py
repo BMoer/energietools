@@ -58,20 +58,44 @@ class ToolRegistry:
             for defn in self._definitions.values()
         ]
 
-    def execute(self, name: str, input_data: dict[str, Any]) -> str:
-        """Tool ausführen und Ergebnis als String zurückgeben."""
+    def execute(
+        self, name: str, input_data: dict[str, Any], *, timeout: int = 120,
+    ) -> str:
+        """Tool ausführen und Ergebnis als String zurückgeben.
+
+        Validates input against the registered JSON Schema (requires optional
+        ``jsonschema`` package) and enforces a per-call execution timeout.
+        """
         handler = self._handlers.get(name)
         if handler is None:
             log.warning("Unbekanntes Tool aufgerufen: %s", name)
             return "Fehler: Unbekanntes Tool aufgerufen."
 
+        # Validate input against JSON Schema (if defined)
+        defn = self._definitions.get(name)
+        if defn and defn.input_schema:
+            try:
+                import jsonschema
+                jsonschema.validate(input_data, defn.input_schema)
+            except ImportError:
+                log.debug("jsonschema not installed — skipping validation")
+            except jsonschema.ValidationError as ve:
+                log.warning("Schema-Validierung fehlgeschlagen für %s: %s", name, ve.message)
+                return f"Fehler bei {name}: Ungültige Eingabe — {ve.message}"
+
         log.info("Tool ausführen: %s", name)
         try:
-            result = handler(**input_data)
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(handler, **input_data)
+                result = future.result(timeout=timeout)
             # Pydantic-Models automatisch serialisieren
             if hasattr(result, "model_dump_json"):
                 return result.model_dump_json(indent=2)
             return str(result)
+        except concurrent.futures.TimeoutError:
+            log.error("Tool %s hat Timeout überschritten (%ds)", name, timeout)
+            return f"Fehler bei {name}: Zeitüberschreitung nach {timeout}s."
         except Exception as e:
             log.exception("Tool %s fehlgeschlagen: %s", name, e)
             return f"Fehler bei {name}: Das Tool konnte nicht ausgeführt werden."

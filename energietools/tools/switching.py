@@ -190,7 +190,7 @@ def generate_switching_pdf(
     pdf.set_font("Helvetica", "I", 8)
     pdf.set_text_color(100, 116, 139)
     pdf.multi_cell(0, 4.5,
-        "ENTWURF — Dieses Dokument dient der Dokumentation des Wechselauftrags. "
+        "ENTWURF - Dieses Dokument dient der Dokumentation des Wechselauftrags. "
         "Eine juristisch geprufte Version wird nachgereicht."
     )
     pdf.ln(12)
@@ -240,7 +240,7 @@ def generate_beg_joining_pdf(
     _add_field(pdf, "Name:", profile.get("name", "____________________________"))
     _add_field(pdf, "PLZ / Ort:", invoice.plz or profile.get("plz", "________"))
     _add_field(pdf, "Zaehlpunkt:", invoice.zaehlpunkt or "AT00____________________________")
-    _add_field(pdf, "Netzbetreiber:", netzbetreiber or profile.get("netzbetreiber", "—"))
+    _add_field(pdf, "Netzbetreiber:", netzbetreiber or profile.get("netzbetreiber", "-"))
     _add_field(pdf, "Akt. Lieferant:", invoice.lieferant)
     pdf.ln(4)
 

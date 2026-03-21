@@ -13,10 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
-try:
-    import defusedxml.ElementTree as ET
-except ImportError:
-    import xml.etree.ElementTree as ET  # fallback if defusedxml not installed
+import defusedxml.ElementTree as ET
 from datetime import date, datetime, timezone
 from pathlib import Path
 

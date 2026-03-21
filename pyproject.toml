@@ -13,6 +13,8 @@ dependencies = [
     "httpx>=0.27",
     "numpy>=1.24",
     "pandas>=2.0",
+    "defusedxml>=0.7",
+    "jsonschema>=4.0",
 ]
 
 [project.optional-dependencies]

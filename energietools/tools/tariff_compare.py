@@ -64,26 +64,36 @@ def _request_with_retry(
 class _EControlResult:
     """Ergebnis der E-Control Abfrage inkl. Metadaten."""
 
-    __slots__ = ("tarife", "netzbetreiber", "netzkosten_eur_jahr")
+    __slots__ = (
+        "tarife", "netzbetreiber", "netzkosten_eur_jahr",
+        "gebrauchsabgabe_rate", "baseline_total_eur",
+    )
 
     def __init__(
         self,
         tarife: list[dict],
         netzbetreiber: str,
         netzkosten_eur_jahr: float,
+        gebrauchsabgabe_rate: float = 0.0,
+        baseline_total_eur: float = 0.0,
     ) -> None:
         self.tarife = tarife
         self.netzbetreiber = netzbetreiber
         self.netzkosten_eur_jahr = netzkosten_eur_jahr
+        self.gebrauchsabgabe_rate = gebrauchsabgabe_rate
+        self.baseline_total_eur = baseline_total_eur
 
 
 def _fetch_tariffs_econtrol(
     plz: str,
     jahresverbrauch_kwh: float,
-    aktueller_energiepreis_ct: float,
-    aktuelle_grundgebuehr_eur_monat: float,
+    aktueller_energiepreis_netto_ct: float,
+    aktuelle_grundgebuehr_netto_eur_monat: float,
 ) -> _EControlResult:
-    """Tarife vom E-Control Tarifkalkulator holen (neue API)."""
+    """Tarife vom E-Control Tarifkalkulator holen (neue API).
+
+    Alle Eingabewerte sind NETTO (ohne USt) — so wie E-Control sie erwartet.
+    """
     with httpx.Client(timeout=_TIMEOUT, follow_redirects=True) as client:
         # Session-Cookie holen (Liferay braucht das)
         client.get(_PAGE_URL)
@@ -129,8 +139,8 @@ def _fetch_tariffs_econtrol(
             },
             "comparisonOptions": {
                 "manualEntry": True,
-                "mainBaseRate": aktuelle_grundgebuehr_eur_monat,
-                "mainEnergyRate": aktueller_energiepreis_ct,
+                "mainBaseRate": aktuelle_grundgebuehr_netto_eur_monat,
+                "mainEnergyRate": aktueller_energiepreis_netto_ct,
             },
             "priceView": "EUR_PER_YEAR",
             "referencePeriod": "ONE_YEAR",
@@ -147,14 +157,36 @@ def _fetch_tariffs_econtrol(
 
         # Netzkosten aus erstem Tarif extrahieren (für alle Anbieter gleich)
         netzkosten = 0.0
+        gebrauchsabgabe_rate = 0.0
         if raw_tarife:
             grid_costs = raw_tarife[0].get("calculatedGridCosts", {})
             netzkosten = grid_costs.get("totalGrossSum", 0.0) / 100.0
+
+            # Gebrauchsabgabe-Satz aus den Gebühren extrahieren
+            # (z.B. Wien: 7%, variiert je nach Gemeinde)
+            energy_costs = raw_tarife[0].get("calculatedProductEnergyCosts", {})
+            for fee in energy_costs.get("calculatedFees", []):
+                if fee.get("appliedToEnergyRate"):
+                    gebrauchsabgabe_rate = fee.get("proportionalRate", 0.0)
+                    break
+
+        # Baseline-Gesamtkosten von E-Control berechnen lassen
+        # annualRateRange.to minus annualRateRange.from = Spread;
+        # Ein Tarif mit annualSaving > 0 → Baseline = annualGrossRate + annualSaving
+        baseline_total = 0.0
+        for raw in raw_tarife:
+            saving_cent = raw.get("annualSaving", 0.0)
+            if saving_cent > 0:
+                gross_cent = raw.get("annualGrossRate", 0.0)
+                baseline_total = (gross_cent + saving_cent) / 100.0
+                break
 
         return _EControlResult(
             tarife=raw_tarife,
             netzbetreiber=netzbetreiber_name,
             netzkosten_eur_jahr=round(netzkosten, 2),
+            gebrauchsabgabe_rate=gebrauchsabgabe_rate,
+            baseline_total_eur=round(baseline_total, 2),
         )
 
 
@@ -249,34 +281,70 @@ def compare_tariffs(
     aktuelle_grundgebuehr: float,
     top_n: int = 20,
 ) -> TariffComparison:
-    """Vergleiche aktuellen Tarif gegen E-Control Alternativen."""
+    """Vergleiche aktuellen Tarif gegen E-Control Alternativen.
 
-    # Aktuellen Tarif als Referenz aufbauen
-    aktuelle_jahreskosten = (
-        jahresverbrauch_kwh * aktueller_energiepreis / 100
-        + aktuelle_grundgebuehr * 12
-    )
-    aktueller_tarif = Tariff(
-        lieferant=aktueller_lieferant,
-        tarif_name="Aktueller Tarif",
-        energiepreis_ct_kwh=aktueller_energiepreis,
-        grundgebuehr_eur_monat=aktuelle_grundgebuehr,
-        jahreskosten_eur=aktuelle_jahreskosten,
-        quelle="rechnung",
-    )
+    Alle Preise sind BRUTTO (inkl. 20% USt).
+    - aktueller_energiepreis: Brutto ct/kWh
+    - aktuelle_grundgebuehr: Brutto EUR/Monat
+    """
+
+    # Netto-Werte für E-Control API (erwartet netto)
+    energiepreis_netto_ct = aktueller_energiepreis / 1.2
+    grundgebuehr_netto_eur = aktuelle_grundgebuehr / 1.2
 
     try:
         result = _fetch_tariffs_econtrol(
             plz, jahresverbrauch_kwh,
-            aktueller_energiepreis, aktuelle_grundgebuehr,
+            energiepreis_netto_ct, grundgebuehr_netto_eur,
         )
     except Exception as e:
         log.error("E-Control Abfrage fehlgeschlagen: %s", e)
+        # Fallback: simple calculation without Gebrauchsabgabe
+        aktuelle_jahreskosten = (
+            jahresverbrauch_kwh * aktueller_energiepreis / 100
+            + aktuelle_grundgebuehr * 12
+        )
+        aktueller_tarif = Tariff(
+            lieferant=aktueller_lieferant,
+            tarif_name="Aktueller Tarif",
+            energiepreis_ct_kwh=aktueller_energiepreis,
+            grundgebuehr_eur_monat=aktuelle_grundgebuehr,
+            jahreskosten_eur=aktuelle_jahreskosten,
+            quelle="rechnung",
+        )
         return TariffComparison(
             aktueller_tarif=aktueller_tarif,
             plz=plz,
             jahresverbrauch_kwh=jahresverbrauch_kwh,
         )
+
+    # Aktuellen Tarif berechnen — inkl. Gebrauchsabgabe (wie E-Control)
+    # Formel: (Netto-Energie + Netto-Grundgebühr) × (1 + Gebrauchsabgabe) × (1 + USt)
+    gab = result.gebrauchsabgabe_rate  # z.B. 0.07 für Wien
+    netto_energie = jahresverbrauch_kwh * energiepreis_netto_ct / 100.0
+    netto_grund = grundgebuehr_netto_eur * 12.0
+    netto_gesamt = netto_energie + netto_grund
+    aktuelle_jahreskosten = netto_gesamt * (1.0 + gab) * 1.2
+
+    # Wenn E-Control eine Baseline berechnet hat (aus annualSaving), bevorzuge diese
+    # weil sie auch Gebrauchsabgabe auf Grundgebühr korrekt berücksichtigt
+    if result.baseline_total_eur > 0:
+        baseline_energy = result.baseline_total_eur - result.netzkosten_eur_jahr
+        if baseline_energy > 0:
+            log.info(
+                "Verwende E-Control Baseline: %.2f EUR (energy: %.2f, netz: %.2f)",
+                result.baseline_total_eur, baseline_energy, result.netzkosten_eur_jahr,
+            )
+            aktuelle_jahreskosten = baseline_energy
+
+    aktueller_tarif = Tariff(
+        lieferant=aktueller_lieferant,
+        tarif_name="Aktueller Tarif",
+        energiepreis_ct_kwh=aktueller_energiepreis,
+        grundgebuehr_eur_monat=aktuelle_grundgebuehr,
+        jahreskosten_eur=round(aktuelle_jahreskosten, 2),
+        quelle="rechnung",
+    )
 
     alternativen: list[Tariff] = []
     for raw in result.tarife:

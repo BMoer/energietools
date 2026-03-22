@@ -98,20 +98,20 @@ def generate_switching_pdf(
     _add_field(pdf, "E-Mail:", email or "____________________________")
     pdf.ln(4)
 
-    # Bevollmaechtigter
-    _add_section(pdf, "Bevollmaechtigter")
+    # Bevollmächtigter
+    _add_section(pdf, "Bevollmächtigter")
     pdf.set_font("Helvetica", "B", 10)
     pdf.set_text_color(30, 41, 59)
-    pdf.cell(0, 7, "Ben Moerzinger / Gridbert")
+    pdf.cell(0, 7, "Ben Mörzinger / Gridbert")
     pdf.ln(7)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(100, 116, 139)
     pdf.cell(0, 6, "E-Mail: ben@moerzinger.eu | Web: www.gridbert.at")
     pdf.ln(10)
 
-    # Zaehlpunkt + Verbrauch
+    # Zählpunkt + Verbrauch
     _add_section(pdf, "Anschlussdaten")
-    _add_field(pdf, "Zaehlpunkt:", zaehlpunkt or "AT00____________________________")
+    _add_field(pdf, "Zählpunkt:", zaehlpunkt or "AT00____________________________")
     _add_field(pdf, "Jahresverbrauch:", f"{jahresverbrauch_kwh:.0f} kWh" if jahresverbrauch_kwh else "________")
     _add_field(pdf, "IBAN:", iban or "____________________________")
     _add_field(pdf, "Akt. Lieferant:", current_lieferant or "____________________________")
@@ -124,17 +124,17 @@ def generate_switching_pdf(
     if target_energiepreis > 0:
         _add_field(pdf, "Energiepreis:", f"{target_energiepreis:.2f} ct/kWh")
     if target_grundgebuehr > 0:
-        _add_field(pdf, "Grundgebuehr:", f"{target_grundgebuehr:.2f} EUR/Monat")
+        _add_field(pdf, "Grundgebühr:", f"{target_grundgebuehr:.2f} EUR/Monat")
     if target_jahreskosten > 0:
         _add_field(pdf, "Jahreskosten:", f"{target_jahreskosten:.2f} EUR/Jahr")
     oeko = "Ja" if target_ist_oekostrom else "Nein"
-    _add_field(pdf, "Oekostrom:", oeko)
+    _add_field(pdf, "Ökostrom:", oeko)
 
     if savings_eur > 0:
         pdf.ln(2)
         pdf.set_font("Helvetica", "B", 11)
         pdf.set_text_color(22, 163, 74)
-        pdf.cell(0, 8, f"Geschaetzte Ersparnis: {savings_eur:.2f} EUR/Jahr")
+        pdf.cell(0, 8, f"Geschätzte Ersparnis: {savings_eur:.2f} EUR/Jahr")
         pdf.ln(10)
     else:
         pdf.ln(6)
@@ -144,19 +144,19 @@ def generate_switching_pdf(
     pdf.set_font("Helvetica", "", 8.5)
     pdf.set_text_color(30, 41, 59)
     pdf.multi_cell(0, 4.5,
-        "Der Bevollmaechtigte wird ermaechtigt, in meinem Namen und auf meine Rechnung:\n\n"
-        "a) Strom- und/oder Gastarife am oesterreichischen Energiemarkt zu vergleichen "
-        "und den fuer mich wirtschaftlich guenstigsten Tarif zu ermitteln;\n\n"
-        "b) Vertragserklaerungen, die fuer einen Strom- und/oder Gasanbieterwechsel "
-        "erforderlich sind, rechtsverbindlich fuer mich abzugeben, insbesondere:\n"
-        "   - den Abschluss eines neuen Energieliefervertrags beim guenstigsten Anbieter;\n"
-        "   - die Kuendigung des bestehenden Energieliefervertrags, sofern keine "
+        "Der Bevollmächtigte wird ermächtigt, in meinem Namen und auf meine Rechnung:\n\n"
+        "a) Strom- und/oder Gastarife am österreichischen Energiemarkt zu vergleichen "
+        "und den für mich wirtschaftlich günstigsten Tarif zu ermitteln;\n\n"
+        "b) Vertragserklärungen, die für einen Strom- und/oder Gasanbieterwechsel "
+        "erforderlich sind, rechtsverbindlich für mich abzugeben, insbesondere:\n"
+        "   - den Abschluss eines neuen Energieliefervertrags beim günstigsten Anbieter;\n"
+        "   - die Kündigung des bestehenden Energieliefervertrags, sofern keine "
         "Bindungsfrist entgegensteht;\n"
-        "   - das Ausfuellen und Absenden von Online-Formularen, internetbasierten "
-        "Eingabemasken und vergleichbaren elektronischen Wechselvorgaengen beim "
+        "   - das Ausfüllen und Absenden von Online-Formularen, internetbasierten "
+        "Eingabemasken und vergleichbaren elektronischen Wechselvorgängen beim "
         "Netzbetreiber und/oder Energieanbieter;\n\n"
-        "c) Erklaerungen und Informationen im Zusammenhang mit dem Anbieterwechsel "
-        "fuer mich entgegenzunehmen."
+        "c) Erklärungen und Informationen im Zusammenhang mit dem Anbieterwechsel "
+        "für mich entgegenzunehmen."
     )
     pdf.ln(6)
 
@@ -167,47 +167,44 @@ def generate_switching_pdf(
     pdf.set_font("Helvetica", "", 8.5)
     pdf.set_text_color(30, 41, 59)
     pdf.multi_cell(0, 4.5,
-        "Diese Vollmacht ist auf die oben genannten Handlungen beschraenkt. "
-        "Sie berechtigt insbesondere NICHT zur Aenderung meiner Netzanschluss-Bedingungen, "
-        "zur Stilllegung oder Aenderung meines Zaehlers, oder zur Weitergabe meiner "
+        "Diese Vollmacht ist auf die oben genannten Handlungen beschränkt. "
+        "Sie berechtigt insbesondere NICHT zur Änderung meiner Netzanschluss-Bedingungen, "
+        "zur Stilllegung oder Änderung meines Zählers, oder zur Weitergabe meiner "
         "Daten an Dritte.\n\n"
         "Diese Vollmacht gilt bis auf Widerruf. Der Widerruf ist jederzeit schriftlich "
-        "(auch per E-Mail an ben@moerzinger.eu) moeglich und wird unverzueglich wirksam."
+        "(auch per E-Mail an ben@moerzinger.eu) möglich und wird unverzüglich wirksam."
     )
     pdf.ln(6)
 
     _add_section(pdf, "3. Datenschutz")
     pdf.set_font("Helvetica", "", 8.5)
     pdf.multi_cell(0, 4.5,
-        "Der Bevollmaechtigte verpflichtet sich, meine personenbezogenen Daten "
-        "(einschliesslich Zugangsdaten und Verbrauchsdaten) ausschliesslich zum Zweck "
-        "der Tarifoptimierung zu verwenden, verschluesselt zu speichern und bei "
-        "Widerruf der Vollmacht unverzueglich zu loeschen."
+        "Der Bevollmächtigte verpflichtet sich, meine personenbezogenen Daten "
+        "(einschließlich Zugangsdaten und Verbrauchsdaten) ausschließlich zum Zweck "
+        "der Tarifoptimierung zu verwenden, verschlüsselt zu speichern und bei "
+        "Widerruf der Vollmacht unverzüglich zu löschen."
     )
-    pdf.ln(10)
+    pdf.ln(6)
 
-    # Hinweis
-    pdf.set_font("Helvetica", "I", 8)
-    pdf.set_text_color(100, 116, 139)
-    pdf.multi_cell(0, 4.5,
-        "ENTWURF - Dieses Dokument dient der Dokumentation des Wechselauftrags. "
-        "Eine juristisch geprufte Version wird nachgereicht."
-    )
-    pdf.ln(12)
-
-    # Unterschrift
-    pdf.set_font("Helvetica", "", 10)
+    # Digitale Bestätigung
+    now = datetime.now(tz=timezone.utc)
+    _add_section(pdf, "Digitale Bestätigung")
+    pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(30, 41, 59)
-    pdf.cell(55, 7, "Ort, Datum:")
-    pdf.cell(0, 7, "____________________________")
-    pdf.ln(14)
-    pdf.cell(55, 7, "Unterschrift:")
-    pdf.cell(0, 7, "____________________________")
-    pdf.ln(10)
+    pdf.multi_cell(0, 5,
+        f"Diese Vollmacht wurde am {now.strftime('%d.%m.%Y')} um {now.strftime('%H:%M')} Uhr (UTC) "
+        f"von {user_name or '[Name]'} über die Gridbert-Plattform digital erteilt und bestätigt. "
+        f"Die Erteilung erfolgte in Textform gemäß § 886a ABGB."
+    )
+    pdf.ln(4)
+    pdf.set_font("Helvetica", "B", 10)
+    pdf.cell(55, 7, "Vollmachtgeber:")
+    pdf.cell(0, 7, user_name or "____________________________")
+    pdf.ln(7)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(100, 116, 139)
     pdf.cell(55, 7, "")
-    pdf.cell(0, 7, f"({user_name or 'Name in Druckbuchstaben'})")
+    pdf.cell(0, 7, f"E-Mail: {email}" if email else "")
 
     # Speichern
     tmpdir = tempfile.mkdtemp(prefix="gridbert_pdf_")
@@ -239,7 +236,7 @@ def generate_beg_joining_pdf(
     _add_section(pdf, "Deine Daten")
     _add_field(pdf, "Name:", profile.get("name", "____________________________"))
     _add_field(pdf, "PLZ / Ort:", invoice.plz or profile.get("plz", "________"))
-    _add_field(pdf, "Zaehlpunkt:", invoice.zaehlpunkt or "AT00____________________________")
+    _add_field(pdf, "Zählpunkt:", invoice.zaehlpunkt or "AT00____________________________")
     _add_field(pdf, "Netzbetreiber:", netzbetreiber or profile.get("netzbetreiber", "-"))
     _add_field(pdf, "Akt. Lieferant:", invoice.lieferant)
     pdf.ln(4)
@@ -270,8 +267,8 @@ def generate_beg_joining_pdf(
     steps = [
         f"[ ] Online-Registrierung auf {beg.beg_url}",
         f"[ ] Datenfreigabe beim Netzbetreiber ({netzbetreiber or '?'}) aktivieren",
-        f"[ ] Zaehlpunkt {invoice.zaehlpunkt or 'AT00...'} bei {beg.beg_name} hinterlegen",
-        "[ ] Bestaetigung der Zuweisung abwarten (kann einige Wochen dauern)",
+        f"[ ] Zählpunkt {invoice.zaehlpunkt or 'AT00...'} bei {beg.beg_name} hinterlegen",
+        "[ ] Bestätigung der Zuweisung abwarten (kann einige Wochen dauern)",
         "[ ] Bisherigen Stromlieferant als Reststromlieferant beibehalten",
     ]
     for step in steps:
@@ -284,8 +281,8 @@ def generate_beg_joining_pdf(
     pdf.set_text_color(100, 116, 139)
     pdf.multi_cell(0, 5,
         "Hinweis: Der Beitritt zu einer Energiegemeinschaft ersetzt NICHT deinen "
-        "Stromlieferanten. Du behaeltst deinen bisherigen Vertrag und beziehst "
-        "zusaetzlich guenstigeren Strom aus der BEG. Der BEG-Anteil wird direkt "
+        "Stromlieferanten. Du behältst deinen bisherigen Vertrag und beziehst "
+        "zusätzlich günstigeren Strom aus der BEG. Der BEG-Anteil wird direkt "
         "mit deinem Verbrauch verrechnet."
     )
     if beg.notiz:

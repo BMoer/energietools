@@ -19,6 +19,9 @@ _RETRY_DELAYS = (5, 15, 45)  # seconds — exponential backoff for 429s
 
 _MISTRAL_BASE_URL = "https://api.mistral.ai/v1"
 
+# Models with vision (multimodal) support
+_VISION_MODELS = {"pixtral-large-latest", "pixtral-12b-2409", "mistral-small-latest"}
+
 
 class MistralProvider:
     """Mistral AI provider — OpenAI-compatible API."""
@@ -30,6 +33,7 @@ class MistralProvider:
             api_key=api_key,
             base_url=_MISTRAL_BASE_URL,
         )
+        self._api_key = api_key
         self._model = model
 
     @property
@@ -65,13 +69,32 @@ class MistralProvider:
             else None
         )
 
+        # Auto-detect if messages contain image content → need vision model
+        effective_model = self._model
+        if self._model not in _VISION_MODELS:
+            for msg in oai_messages:
+                content = msg.get("content", "")
+                if isinstance(content, list):
+                    for block in content:
+                        if isinstance(block, dict) and block.get("type") == "image_url":
+                            effective_model = "pixtral-large-latest"
+                            log.info("Auto-switching to %s for vision request", effective_model)
+                            break
+                if effective_model != self._model:
+                    break
+
         kwargs: dict[str, Any] = {
-            "model": self._model,
+            "model": effective_model,
             "messages": oai_messages,
             "max_tokens": max_tokens,
         }
         if oai_tools:
             kwargs["tools"] = oai_tools
+        elif not oai_tools and any(
+            kw in system.lower() for kw in ("json", "extrahiere", "extract")
+        ):
+            # Enable JSON mode for structured extraction tasks (no tools)
+            kwargs["response_format"] = {"type": "json_object"}
 
         response = self._completions_with_retry(**kwargs)
         choice = response.choices[0]

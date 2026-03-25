@@ -6,6 +6,26 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 
+class Rechenweg(BaseModel):
+    """Transparenter Berechnungsweg für einen Tarif — ermöglicht Nachvollziehbarkeit."""
+
+    energiepreis_netto_ct_kwh: float = Field(description="Netto-Energiepreis ct/kWh (ohne USt)")
+    grundgebuehr_netto_eur_monat: float = Field(description="Netto-Grundgebühr EUR/Monat")
+    netto_energie_eur: float = Field(description="Verbrauch × Netto-Energiepreis")
+    netto_grund_eur: float = Field(description="Netto-Grundgebühr × 12 Monate")
+    netto_gesamt_eur: float = Field(description="Netto-Energie + Netto-Grund")
+    gebrauchsabgabe_rate: float = Field(description="Gebrauchsabgabe-Satz (z.B. 0.07 für Wien)")
+    gebrauchsabgabe_eur: float = Field(description="Gebrauchsabgabe in EUR")
+    netto_inkl_gab_eur: float = Field(description="Netto inkl. Gebrauchsabgabe")
+    ust_eur: float = Field(description="Umsatzsteuer 20%")
+    brutto_jahreskosten_eur: float = Field(description="Endwert: Brutto-Jahreskosten Energie")
+    quelle: str = Field(default="berechnet", description="'e-control-api' oder 'berechnet'")
+    hinweis: str = Field(
+        default="",
+        description="Zusätzliche Info (z.B. 'Gebrauchsabgabe nicht verfügbar')",
+    )
+
+
 class Tariff(BaseModel):
     """Ein Stromtarif aus dem E-Control Vergleich."""
 
@@ -20,6 +40,7 @@ class Tariff(BaseModel):
     tariftyp: str = Field(default="Fixpreis", description="Fixpreis, Monatsfloater oder Stundenfloater")
     kategorie: str = Field(default="fix", description="Kategorie: fix, floater, gruen")
     quelle: str = Field(default="e-control", description="Datenquelle")
+    rechenweg: Rechenweg | None = Field(default=None, description="Transparenter Berechnungsweg")
 
 
 def _categorize(tariff: Tariff) -> str:
@@ -39,6 +60,10 @@ class TariffComparison(BaseModel):
     jahresverbrauch_kwh: float = 0.0
     netzkosten_eur_jahr: float = Field(default=0.0, description="Behördlich festgelegte Netzkosten €/Jahr brutto")
     netzbetreiber: str = Field(default="", description="Name des Netzbetreibers")
+    gebrauchsabgabe_rate: float = Field(
+        default=0.0,
+        description="Gebrauchsabgabe-Satz für diese PLZ (z.B. 0.07 für Wien)",
+    )
 
     # Pre-sorted category lists (computed by enrich())
     beste_fix: list[Tariff] = Field(default_factory=list)
@@ -102,6 +127,7 @@ class TariffComparison(BaseModel):
             jahresverbrauch_kwh=self.jahresverbrauch_kwh,
             netzkosten_eur_jahr=netz,
             netzbetreiber=self.netzbetreiber,
+            gebrauchsabgabe_rate=self.gebrauchsabgabe_rate,
             beste_fix=fix_tarife,
             beste_floater=floater_tarife,
             beste_gruen=gruen_tarife,

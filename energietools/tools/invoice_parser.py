@@ -236,6 +236,7 @@ def _extract_via_llm(
         mistral_key = os.environ.get('MISTRAL_API_KEY', '')
         anthropic_key = os.environ.get('ANTHROPIC_API_KEY', '')
         if mistral_key:
+            # MistralProvider auto-switches to pixtral for vision requests
             llm_provider = create_provider("mistral", mistral_key, os.environ.get('MISTRAL_MODEL', 'mistral-large-latest'))
         elif anthropic_key:
             llm_provider = create_provider("claude", anthropic_key, os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-20250514'))

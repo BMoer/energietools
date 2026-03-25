@@ -10,7 +10,7 @@ import time
 
 import httpx
 
-from energietools.models import Tariff, TariffComparison
+from energietools.models import Rechenweg, Tariff, TariffComparison
 
 log = logging.getLogger(__name__)
 
@@ -204,7 +204,9 @@ def _detect_tariftyp(tarif_name: str) -> str:
     return "Fixpreis"
 
 
-def _parse_tariff(raw: dict, jahresverbrauch_kwh: float) -> Tariff | None:
+def _parse_tariff(
+    raw: dict, jahresverbrauch_kwh: float, gebrauchsabgabe_rate: float = 0.0,
+) -> Tariff | None:
     """Einen einzelnen Tarif aus der neuen E-Control API parsen.
 
     Die API liefert Netto-Cent-Werte. energietools arbeitet mit Brutto (inkl. 20% MwSt).
@@ -226,26 +228,57 @@ def _parse_tariff(raw: dict, jahresverbrauch_kwh: float) -> Tariff | None:
         # baseRate = Netto-Grundgebühr in Cent/Jahr
         base_netto_cent_year = energy_costs.get("baseRate", 0.0)
 
+        # Netto-Werte für Rechenweg
+        netto_ep_ct = energy_netto_cent / jahresverbrauch_kwh if jahresverbrauch_kwh > 0 else 0.0
+        netto_gg_eur_monat = base_netto_cent_year / 100.0 / 12.0
+        netto_energie_eur = energy_netto_cent / 100.0
+        netto_grund_eur = base_netto_cent_year / 100.0
+        netto_gesamt = netto_energie_eur + netto_grund_eur
+
         # → Brutto-Energiepreis ct/kWh (for display)
-        if jahresverbrauch_kwh > 0 and energy_netto_cent > 0:
-            energiepreis = energy_netto_cent / jahresverbrauch_kwh * 1.2
-        else:
-            energiepreis = 0.0
+        energiepreis = netto_ep_ct * 1.2 if netto_ep_ct > 0 else 0.0
 
         # → Brutto-Grundgebühr EUR/Monat (for display)
-        grundgebuehr_monat = base_netto_cent_year / 100.0 / 12.0 * 1.2
+        grundgebuehr_monat = netto_gg_eur_monat * 1.2
 
         # Jahreskosten: prefer totalGrossSum (includes Gebrauchsabgabe + USt)
         # to match E-Control's displayed numbers exactly.
         total_gross_cent = energy_costs.get("totalGrossSum", 0.0)
+        hinweis = ""
         if total_gross_cent > 0:
             jahreskosten = total_gross_cent / 100.0
+            rw_quelle = "e-control-api"
         else:
-            # Fallback: manual calculation (misses Gebrauchsabgabe)
-            jahreskosten = (
-                jahresverbrauch_kwh * energiepreis / 100.0
-                + grundgebuehr_monat * 12.0
-            )
+            # Fallback: Berechnung mit GAB (wenn bekannt)
+            if gebrauchsabgabe_rate > 0:
+                jahreskosten = netto_gesamt * (1.0 + gebrauchsabgabe_rate) * 1.2
+                rw_quelle = "berechnet"
+                hinweis = "totalGrossSum nicht verfügbar, mit GAB-Formel berechnet"
+            else:
+                # Letzter Fallback: ohne GAB
+                jahreskosten = netto_gesamt * 1.2
+                rw_quelle = "berechnet"
+                hinweis = "totalGrossSum und Gebrauchsabgabe nicht verfügbar"
+
+        # Gebrauchsabgabe aus Jahreskosten rückrechnen
+        gab_eur = netto_gesamt * gebrauchsabgabe_rate
+        netto_inkl_gab = netto_gesamt + gab_eur
+        ust_eur = netto_inkl_gab * 0.2
+
+        rechenweg = Rechenweg(
+            energiepreis_netto_ct_kwh=round(netto_ep_ct, 4),
+            grundgebuehr_netto_eur_monat=round(netto_gg_eur_monat, 2),
+            netto_energie_eur=round(netto_energie_eur, 2),
+            netto_grund_eur=round(netto_grund_eur, 2),
+            netto_gesamt_eur=round(netto_gesamt, 2),
+            gebrauchsabgabe_rate=gebrauchsabgabe_rate,
+            gebrauchsabgabe_eur=round(gab_eur, 2),
+            netto_inkl_gab_eur=round(netto_inkl_gab, 2),
+            ust_eur=round(ust_eur, 2),
+            brutto_jahreskosten_eur=round(jahreskosten, 2),
+            quelle=rw_quelle,
+            hinweis=hinweis,
+        )
 
         # Ökostrom
         oekostrom = any(
@@ -267,6 +300,7 @@ def _parse_tariff(raw: dict, jahresverbrauch_kwh: float) -> Tariff | None:
             ist_oekostrom=oekostrom,
             tariftyp=tariftyp,
             quelle="e-control",
+            rechenweg=rechenweg,
         )
     except (KeyError, TypeError, ZeroDivisionError) as e:
         log.warning("Tarif konnte nicht geparst werden: %s — %s", e, raw.get("productName", "?"))
@@ -299,18 +333,33 @@ def compare_tariffs(
         )
     except Exception as e:
         log.error("E-Control Abfrage fehlgeschlagen: %s", e)
-        # Fallback: simple calculation without Gebrauchsabgabe
-        aktuelle_jahreskosten = (
-            jahresverbrauch_kwh * aktueller_energiepreis / 100
-            + aktuelle_grundgebuehr * 12
+        # Fallback: simple calculation without Gebrauchsabgabe (GAB unknown)
+        netto_e = jahresverbrauch_kwh * energiepreis_netto_ct / 100.0
+        netto_g = grundgebuehr_netto_eur * 12.0
+        netto_ges = netto_e + netto_g
+        aktuelle_jahreskosten = netto_ges * 1.2  # ohne GAB — kein API-Zugriff
+        fallback_rw = Rechenweg(
+            energiepreis_netto_ct_kwh=round(energiepreis_netto_ct, 4),
+            grundgebuehr_netto_eur_monat=round(grundgebuehr_netto_eur, 2),
+            netto_energie_eur=round(netto_e, 2),
+            netto_grund_eur=round(netto_g, 2),
+            netto_gesamt_eur=round(netto_ges, 2),
+            gebrauchsabgabe_rate=0.0,
+            gebrauchsabgabe_eur=0.0,
+            netto_inkl_gab_eur=round(netto_ges, 2),
+            ust_eur=round(netto_ges * 0.2, 2),
+            brutto_jahreskosten_eur=round(aktuelle_jahreskosten, 2),
+            quelle="berechnet",
+            hinweis="E-Control nicht erreichbar — Gebrauchsabgabe unbekannt, nicht enthalten",
         )
         aktueller_tarif = Tariff(
             lieferant=aktueller_lieferant,
             tarif_name="Aktueller Tarif",
             energiepreis_ct_kwh=aktueller_energiepreis,
             grundgebuehr_eur_monat=aktuelle_grundgebuehr,
-            jahreskosten_eur=aktuelle_jahreskosten,
+            jahreskosten_eur=round(aktuelle_jahreskosten, 2),
             quelle="rechnung",
+            rechenweg=fallback_rw,
         )
         return TariffComparison(
             aktueller_tarif=aktueller_tarif,
@@ -324,18 +373,40 @@ def compare_tariffs(
     netto_energie = jahresverbrauch_kwh * energiepreis_netto_ct / 100.0
     netto_grund = grundgebuehr_netto_eur * 12.0
     netto_gesamt = netto_energie + netto_grund
-    aktuelle_jahreskosten = netto_gesamt * (1.0 + gab) * 1.2
+    gab_eur = netto_gesamt * gab
+    netto_inkl_gab = netto_gesamt + gab_eur
+    ust_eur = netto_inkl_gab * 0.2
+    aktuelle_jahreskosten = netto_inkl_gab * 1.2
 
-    # Wenn E-Control eine Baseline berechnet hat (aus annualSaving), bevorzuge diese
-    # weil sie auch Gebrauchsabgabe auf Grundgebühr korrekt berücksichtigt
+    # Log baseline comparison for debugging (but NEVER override our calculation)
     if result.baseline_total_eur > 0:
         baseline_energy = result.baseline_total_eur - result.netzkosten_eur_jahr
-        if baseline_energy > 0:
-            log.info(
-                "Verwende E-Control Baseline: %.2f EUR (energy: %.2f, netz: %.2f)",
-                result.baseline_total_eur, baseline_energy, result.netzkosten_eur_jahr,
+        diff = abs(aktuelle_jahreskosten - baseline_energy)
+        if diff > 5.0:
+            log.warning(
+                "Baseline-Abweichung: GAB-Formel=%.2f EUR, E-Control-Baseline=%.2f EUR "
+                "(Diff=%.2f EUR). Verwende GAB-Formel (konsistent mit Alternativ-Tarifen).",
+                aktuelle_jahreskosten, baseline_energy, diff,
             )
-            aktuelle_jahreskosten = baseline_energy
+        else:
+            log.info(
+                "Baseline verifiziert: GAB-Formel=%.2f EUR ≈ E-Control=%.2f EUR (Diff=%.2f)",
+                aktuelle_jahreskosten, baseline_energy, diff,
+            )
+
+    aktuell_rechenweg = Rechenweg(
+        energiepreis_netto_ct_kwh=round(energiepreis_netto_ct, 4),
+        grundgebuehr_netto_eur_monat=round(grundgebuehr_netto_eur, 2),
+        netto_energie_eur=round(netto_energie, 2),
+        netto_grund_eur=round(netto_grund, 2),
+        netto_gesamt_eur=round(netto_gesamt, 2),
+        gebrauchsabgabe_rate=gab,
+        gebrauchsabgabe_eur=round(gab_eur, 2),
+        netto_inkl_gab_eur=round(netto_inkl_gab, 2),
+        ust_eur=round(ust_eur, 2),
+        brutto_jahreskosten_eur=round(aktuelle_jahreskosten, 2),
+        quelle="berechnet",
+    )
 
     aktueller_tarif = Tariff(
         lieferant=aktueller_lieferant,
@@ -344,11 +415,12 @@ def compare_tariffs(
         grundgebuehr_eur_monat=aktuelle_grundgebuehr,
         jahreskosten_eur=round(aktuelle_jahreskosten, 2),
         quelle="rechnung",
+        rechenweg=aktuell_rechenweg,
     )
 
     alternativen: list[Tariff] = []
     for raw in result.tarife:
-        tarif = _parse_tariff(raw, jahresverbrauch_kwh)
+        tarif = _parse_tariff(raw, jahresverbrauch_kwh, gab)
         if tarif and tarif.jahreskosten_eur > 0:
             alternativen.append(tarif)
 
@@ -364,5 +436,6 @@ def compare_tariffs(
         jahresverbrauch_kwh=jahresverbrauch_kwh,
         netzkosten_eur_jahr=result.netzkosten_eur_jahr,
         netzbetreiber=result.netzbetreiber,
+        gebrauchsabgabe_rate=gab,
     )
     return comparison.enrich()

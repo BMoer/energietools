@@ -184,8 +184,8 @@ class MistralProvider:
         has_docs = len(content) > 0
         if has_docs:
             text = (
-                f"{text}\n\n[Die angehängten Dateien sind direkt in dieser Nachricht sichtbar. "
-                "Du kannst sie direkt lesen und analysieren — du musst KEIN Tool aufrufen um sie zu öffnen.]"
+                f"{text}\n\n[Die angehängten Dateien sind in dieser Nachricht eingebettet. "
+                "Verwende das passende Tool (z.B. parse_invoice) um sie strukturiert zu analysieren.]"
             )
 
         content.append({"type": "text", "text": text})

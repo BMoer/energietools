@@ -221,8 +221,13 @@ def _convert_messages_to_openai(messages: list[dict[str, Any]]) -> list[dict[str
                     result.append({"role": "user", "content": oai_content})
 
         elif role == "assistant":
-            if isinstance(content, str):
-                result.append({"role": "assistant", "content": content})
+            if isinstance(content, str) or content is None:
+                # String content OR None (e.g. Mistral tool-only response)
+                assistant_msg_simple: dict[str, Any] = {"role": "assistant", "content": content or ""}
+                # Preserve tool_calls if present (Mistral/OpenAI format from response_to_history)
+                if "tool_calls" in msg:
+                    assistant_msg_simple["tool_calls"] = msg["tool_calls"]
+                result.append(assistant_msg_simple)
             elif isinstance(content, list):
                 assistant_msg: dict[str, Any] = {"role": "assistant"}
                 texts = []

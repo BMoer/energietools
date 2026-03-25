@@ -253,12 +253,18 @@ def _convert_messages_to_openai(messages: list[dict[str, Any]]) -> list[dict[str
 
 
 def _convert_content_blocks(blocks: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Convert Claude content blocks (image, document, text) to OpenAI format."""
+    """Convert Claude content blocks (image, document, text) to OpenAI format.
+
+    Also passes through blocks that are already in OpenAI format (e.g. image_url).
+    """
     result: list[dict[str, Any]] = []
     for block in blocks:
         block_type = block.get("type", "")
         if block_type == "text":
             result.append({"type": "text", "text": block.get("text", "")})
+        elif block_type == "image_url":
+            # Already in OpenAI format — pass through (from Mistral/OpenAI build_user_content)
+            result.append(block)
         elif block_type == "image":
             source = block.get("source", {})
             media_type = source.get("media_type", "image/png")

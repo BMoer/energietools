@@ -229,11 +229,18 @@ def _extract_via_llm(
 ) -> dict:
     """Extrahiere Rechnungsdaten via LLM Provider (Claude Vision, OpenAI, etc.)."""
     if llm_provider is None:
-        # Fallback: create Claude provider from server config
-        import os; ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', ''); CLAUDE_MODEL = os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-20250514')
+        # Fallback: create provider from server config
+        import os
         from energietools.llm import create_provider
 
-        llm_provider = create_provider("claude", ANTHROPIC_API_KEY, CLAUDE_MODEL)
+        mistral_key = os.environ.get('MISTRAL_API_KEY', '')
+        anthropic_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        if mistral_key:
+            llm_provider = create_provider("mistral", mistral_key, os.environ.get('MISTRAL_MODEL', 'mistral-large-latest'))
+        elif anthropic_key:
+            llm_provider = create_provider("claude", anthropic_key, os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-20250514'))
+        else:
+            raise ValueError("Kein LLM-Provider konfiguriert (MISTRAL_API_KEY oder ANTHROPIC_API_KEY setzen)")
 
     if image_b64:
         media_type = _detect_image_media_type(image_b64)
@@ -313,7 +320,7 @@ def parse_invoice(file_path: str | Path, llm_provider: Any = None) -> Invoice:
         raise FileNotFoundError(f"Datei nicht gefunden: {path}")
 
     # Determine extraction backend
-    import os; _server_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    import os; _server_key = os.environ.get('MISTRAL_API_KEY', '') or os.environ.get('ANTHROPIC_API_KEY', '')
 
     if llm_provider is not None or _server_key:
         def extract_fn(text: str = "", image_b64: str = "") -> dict:

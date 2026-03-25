@@ -62,6 +62,11 @@ def create_provider(provider_name: str, api_key: str, model: str) -> LLMProvider
 
         return OpenAIProvider(api_key=api_key, model=model)
 
+    if provider_name == "mistral":
+        from energietools.llm.mistral_provider import MistralProvider
+
+        return MistralProvider(api_key=api_key, model=model)
+
     # Default: Claude
     from energietools.llm.claude_provider import ClaudeProvider
 

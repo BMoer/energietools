@@ -23,6 +23,10 @@ _DEFAULT_MAX_TOKENS = 4096
 # Pattern für Vorschläge am Ende einer Antwort
 _SUGGESTION_RE = re.compile(r"^>> (.+)$", re.MULTILINE)
 
+# Pattern für Text-basierte Tool-Calls (z.B. von Mistral/schwächeren Modellen)
+# Matches: tool_name {"key": "val"} or tool_name({"key": "val"})
+_TEXT_TOOL_CALL_RE = re.compile(r"(\w+)\s*\(?\s*(\{.*?\})\s*\)?", re.DOTALL)
+
 # Type alias for system prompt builder callable
 SystemPromptBuilder = Callable[[], str]
 
@@ -59,6 +63,30 @@ class GridbertAgent:
         # Usage tracking — populated after run()
         self.total_input_tokens: int = 0
         self.total_output_tokens: int = 0
+
+    def _extract_text_tool_calls(self, text: str) -> list[tuple[str, dict]]:
+        """Extrahiere Tool-Calls, die als Text ausgegeben wurden (Fallback für Mistral etc.).
+
+        Sucht nach Mustern wie `tool_name {"arg": "val"}` oder `tool_name({"arg": "val"})`,
+        aber nur für tatsächlich registrierte Tool-Namen.
+        """
+        import json
+
+        registered = {defn["name"] for defn in self._tools.definitions()}
+        results: list[tuple[str, dict]] = []
+
+        for match in _TEXT_TOOL_CALL_RE.finditer(text):
+            name, json_str = match.group(1), match.group(2)
+            if name not in registered:
+                continue
+            try:
+                args = json.loads(json_str)
+                if isinstance(args, dict):
+                    results.append((name, args))
+            except json.JSONDecodeError:
+                log.debug("Text-Tool-Call JSON ungültig für '%s': %s", name, json_str[:100])
+
+        return results
 
     @staticmethod
     def _default_system_prompt() -> str:
@@ -169,13 +197,32 @@ class GridbertAgent:
             for block in response.content:
                 if isinstance(block, LLMTextBlock):
                     text_parts.append(block.text)
-                    if on_event:
-                        on_event(AgentEvent(
-                            type=EventType.TEXT_DELTA,
-                            data={"text": block.text},
-                        ))
                 elif isinstance(block, LLMToolUseBlock):
                     tool_uses.append(block)
+
+            # Fallback: Tool-Calls die als Text ausgegeben wurden (z.B. Mistral)
+            if not tool_uses and text_parts:
+                raw = "\n".join(text_parts)
+                extracted = self._extract_text_tool_calls(raw)
+                if extracted:
+                    log.warning(
+                        "LLM output tool call as text — extracting: %s",
+                        [name for name, _ in extracted],
+                    )
+                    for name, args in extracted:
+                        tool_uses.append(
+                            LLMToolUseBlock(id=f"text_extract_{name}", name=name, input=args)
+                        )
+                    # Raw tool-call text nicht an den User senden
+                    text_parts.clear()
+
+            # Text-Deltas emittieren (nur wenn kein Text-Tool-Call erkannt)
+            if text_parts and on_event:
+                for part in text_parts:
+                    on_event(AgentEvent(
+                        type=EventType.TEXT_DELTA,
+                        data={"text": part},
+                    ))
 
             # Assistant-Antwort in History speichern
             messages.append(self._llm.response_to_history(response))

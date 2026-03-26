@@ -25,7 +25,8 @@ _SUGGESTION_RE = re.compile(r"^>> (.+)$", re.MULTILINE)
 
 # Pattern für Text-basierte Tool-Calls (z.B. von Mistral/schwächeren Modellen)
 # Matches: tool_name {"key": "val"} or tool_name({"key": "val"})
-_TEXT_TOOL_CALL_RE = re.compile(r"(\w+)\s*\(?\s*(\{.*?\})\s*\)?", re.DOTALL)
+# Also handles garbled text between name and JSON (e.g. "tool_name esfur{...}")
+_TEXT_TOOL_CALL_RE = re.compile(r"(\w+)\s*\(?\s*\w*\s*(\{.*\})\s*\)?", re.DOTALL)
 
 # Type alias for system prompt builder callable
 SystemPromptBuilder = Callable[[], str]
@@ -228,7 +229,9 @@ class GridbertAgent:
             messages.append(self._llm.response_to_history(response))
 
             # Keine Tool-Calls → Finale Antwort
-            if response.stop_reason == "end_turn" or not tool_uses:
+            # Note: check tool_uses (not stop_reason) because text-based tool call
+            # extraction may have populated tool_uses even with stop_reason="end_turn"
+            if not tool_uses:
                 raw_text = "\n".join(text_parts)
 
                 # Vorschläge aus dem Text extrahieren

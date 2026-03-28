@@ -418,10 +418,20 @@ def compare_tariffs(
         rechenweg=aktuell_rechenweg,
     )
 
+    # Placeholder/test tariffs in E-Control database to filter out
+    _BLOCKED_TARIF_NAMES = {"Ihr Produkt"}
+    _BLOCKED_LIEFERANTEN = {"Ihre Marke"}
+
     alternativen: list[Tariff] = []
     for raw in result.tarife:
         tarif = _parse_tariff(raw, jahresverbrauch_kwh, gab)
         if tarif and tarif.jahreskosten_eur > 0:
+            if tarif.tarif_name in _BLOCKED_TARIF_NAMES:
+                log.info("Filtered test tariff: %s — %s", tarif.lieferant, tarif.tarif_name)
+                continue
+            if tarif.lieferant.strip() in _BLOCKED_LIEFERANTEN:
+                log.info("Filtered test provider: %s — %s", tarif.lieferant, tarif.tarif_name)
+                continue
             alternativen.append(tarif)
 
     # Sortiere nach Jahreskosten, Top N

@@ -37,6 +37,7 @@ class OpenAIProvider:
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         max_tokens: int,
+        temperature: float | None = None,
     ) -> LLMResponse:
         """Send request to OpenAI Chat Completions API."""
         oai_messages: list[dict[str, Any]] = [{"role": "system", "content": system}]
@@ -63,6 +64,8 @@ class OpenAIProvider:
             "messages": oai_messages,
             "max_tokens": max_tokens,
         }
+        if temperature is not None:
+            kwargs["temperature"] = temperature
         if oai_tools:
             kwargs["tools"] = oai_tools
 

@@ -24,6 +24,7 @@ class LLMProvider(Protocol):
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         max_tokens: int,
+        temperature: float | None = None,
     ) -> LLMResponse:
         """Send a chat completion request and return a normalized response."""
         ...

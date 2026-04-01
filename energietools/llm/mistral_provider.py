@@ -46,6 +46,7 @@ class MistralProvider:
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         max_tokens: int,
+        temperature: float | None = None,
     ) -> LLMResponse:
         """Send request to Mistral Chat Completions API."""
         from energietools.llm.openai_provider import _convert_messages_to_openai
@@ -88,6 +89,8 @@ class MistralProvider:
             "messages": oai_messages,
             "max_tokens": max_tokens,
         }
+        if temperature is not None:
+            kwargs["temperature"] = temperature
         if oai_tools:
             kwargs["tools"] = oai_tools
         elif not oai_tools and any(

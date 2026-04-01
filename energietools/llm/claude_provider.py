@@ -36,9 +36,10 @@ class ClaudeProvider:
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         max_tokens: int,
+        temperature: float | None = None,
     ) -> LLMResponse:
         """Send request to Claude Messages API and return normalized response."""
-        response = self._chat_with_retry(system, messages, tools, max_tokens)
+        response = self._chat_with_retry(system, messages, tools, max_tokens, temperature)
 
         blocks: list[LLMContentBlock] = []
         for block in response.content:
@@ -64,17 +65,21 @@ class ClaudeProvider:
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         max_tokens: int,
+        temperature: float | None = None,
     ) -> Any:
         """Call Claude API with exponential backoff on 429 rate limit errors."""
         for attempt, delay in enumerate((*_RETRY_DELAYS, 0)):
             try:
-                return self._client.messages.create(
+                kwargs: dict[str, Any] = dict(
                     model=self._model,
                     system=system,
                     messages=messages,
                     tools=tools,
                     max_tokens=max_tokens,
                 )
+                if temperature is not None:
+                    kwargs["temperature"] = temperature
+                return self._client.messages.create(**kwargs)
             except anthropic.RateLimitError:
                 if delay == 0:
                     raise

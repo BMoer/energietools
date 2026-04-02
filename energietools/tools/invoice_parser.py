@@ -370,7 +370,7 @@ def _extract_via_llm(
         ),
         messages=[{"role": "user", "content": user_content}],
         tools=[],
-        max_tokens=1024,
+        max_tokens=2048,
         temperature=0.0,
     )
 

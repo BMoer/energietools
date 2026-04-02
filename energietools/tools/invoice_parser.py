@@ -390,12 +390,99 @@ def _extract_via_llm(
         ),
         messages=[{"role": "user", "content": user_content}],
         tools=[],
-        max_tokens=2048,
+        max_tokens=4096,
         temperature=0.0,
     )
 
     response_text = "\n".join(response.text_parts)
-    return _parse_json_response(response_text)
+    try:
+        return _parse_json_response(response_text)
+    except ValueError:
+        # JSON parse failed (likely truncated due to too many preiszeilen).
+        # Retry with a compact fallback prompt that skips preiszeilen.
+        log.warning("JSON parse failed — retrying with compact fallback prompt (no preiszeilen)")
+        return _extract_via_llm_compact(
+            llm_provider=llm_provider, text=text, image_b64=image_b64, images_b64=images_b64,
+        )
+
+
+# Compact fallback prompt without preiszeilen (fits in 1024 tokens output)
+_COMPACT_PROMPT = """\
+Lies diese österreichische Strom- oder Gasrechnung. \
+Antworte AUSSCHLIESSLICH mit einem JSON-Objekt. Kein Text davor oder danach.
+
+```json
+{
+  "lieferant": "",
+  "tarif_name": "",
+  "arbeitspreis_ct_kwh": 0.0,
+  "arbeitspreis_ist_netto": true,
+  "grundgebuehr_eur": 0.0,
+  "grundgebuehr_zeitraum": "monat",
+  "grundgebuehr_ist_netto": true,
+  "summe_energieentgelte_eur": 0.0,
+  "summe_energieentgelte_ist_netto": true,
+  "summe_netzentgelte_eur": 0.0,
+  "summe_netzentgelte_ist_netto": true,
+  "rechnungsbetrag_brutto_eur": 0.0,
+  "verbrauch_kwh": 0.0,
+  "zeitraum_von": "",
+  "zeitraum_bis": "",
+  "plz": "",
+  "zaehlpunkt": "",
+  "kunde_name": "",
+  "adresse": ""
+}
+```
+
+REGELN: Lies EXAKT ab, rechne NICHTS um. \
+arbeitspreis_ct_kwh = Energiepreis in ct/kWh (bei mehreren Perioden: 0). \
+summe_energieentgelte_eur = Summenzeile Energiekosten (NUR Energie, OHNE Netz). \
+verbrauch_kwh = Gesamtverbrauch. Bei HT/NT: Summe. \
+Alle Zahlen mit Punkt als Dezimalzeichen.
+"""
+
+
+def _extract_via_llm_compact(
+    llm_provider: Any = None,
+    text: str = "",
+    image_b64: str = "",
+    images_b64: list[str] | None = None,
+) -> dict:
+    """Compact LLM extraction without preiszeilen (fallback for truncated JSON)."""
+    if llm_provider is None:
+        import os
+        from energietools.llm import create_provider
+        mistral_key = os.environ.get('MISTRAL_API_KEY', '')
+        anthropic_key = os.environ.get('ANTHROPIC_API_KEY', '')
+        if mistral_key:
+            llm_provider = create_provider("mistral", mistral_key, os.environ.get('MISTRAL_MODEL', 'mistral-large-latest'))
+        elif anthropic_key:
+            llm_provider = create_provider("claude", anthropic_key, os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-20250514'))
+        else:
+            raise ValueError("Kein LLM-Provider konfiguriert")
+
+    if images_b64:
+        attachments = []
+        for i, img_b64 in enumerate(images_b64):
+            media_type = _detect_image_media_type(img_b64)
+            attachments.append({"media_type": media_type, "data": img_b64, "file_name": f"seite_{i+1}"})
+        user_content = llm_provider.build_user_content(_COMPACT_PROMPT, attachments)
+    elif image_b64:
+        media_type = _detect_image_media_type(image_b64)
+        user_content = llm_provider.build_user_content(
+            _COMPACT_PROMPT, [{"media_type": media_type, "data": image_b64, "file_name": "rechnung"}])
+    else:
+        user_content = f"<invoice_text>\n{text}\n</invoice_text>\n\n{_COMPACT_PROMPT}"
+
+    response = llm_provider.chat(
+        system="Extrahiere strukturierte Rechnungsdaten. Antworte NUR mit JSON.",
+        messages=[{"role": "user", "content": user_content}],
+        tools=[],
+        max_tokens=1024,
+        temperature=0.0,
+    )
+    return _parse_json_response("\n".join(response.text_parts))
 
 
 # --- Ollama Fallback (für self-hosted) ----------------------------------------

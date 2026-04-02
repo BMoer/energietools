@@ -27,8 +27,11 @@ Antworte AUSSCHLIESSLICH mit einem JSON-Objekt. Kein Text davor, kein Text danac
 {
   "lieferant": "Name des Energielieferanten (z.B. Wien Energie, Energie Steiermark)",
   "tarif_name": "Name des Tarifs",
-  "arbeitspreis_ct_kwh": 0.0,
-  "arbeitspreis_ist_netto": true,
+  "preiszeilen": [
+    {"label": "exakte Bezeichnung von der Rechnung", "wert": 0.0, "einheit": "ct/kWh", "ist_netto": true, "kategorie": "energie"},
+    {"label": "...", "wert": 0.0, "einheit": "EUR/Monat", "ist_netto": true, "kategorie": "grundgebuehr"},
+    {"label": "...", "wert": 0.0, "einheit": "ct/kWh", "ist_netto": true, "kategorie": "netz"}
+  ],
   "grundgebuehr_eur": 0.0,
   "grundgebuehr_zeitraum": "monat",
   "grundgebuehr_ist_netto": true,
@@ -50,15 +53,29 @@ Antworte AUSSCHLIESSLICH mit einem JSON-Objekt. Kein Text davor, kein Text danac
 ```
 
 REGELN — lies GENAU ab, RECHNE NICHTS:
-- arbeitspreis_ct_kwh = Energiepreis/Arbeitspreis/Verbrauchspreis in Cent pro kWh. \
-Genau den Wert von der Rechnung ablesen (z.B. "27,00 ct/kWh" → 27.0). \
-Bei MEHREREN Preisperioden (z.B. monatlich wechselnde Preise): 0 eintragen — wir rechnen später. \
-Bei HT/NT-Tarif: den Haupttarif (HT) nehmen.
-- arbeitspreis_ist_netto = true wenn der Preis netto/exkl. USt ist, false wenn brutto/inkl. USt. \
-In der Detailtabelle stehen Preise fast immer NETTO.
+
+## preiszeilen — ALLE Preiszeilen mit ct/kWh oder EUR/kWh extrahieren
+Lies JEDE Zeile ab die einen Preis pro kWh enthält (Arbeitspreis, Energiepreis, \
+Netznutzungsentgelt, Netzverlustentgelt, Messentgelt, etc.). Für jede Zeile:
+- label = EXAKT die Bezeichnung von der Rechnung (z.B. "Arbeitspreis Energie", "Netznutzungsentgelt")
+- wert = Zahlenwert exakt ablesen
+- einheit = "ct/kWh" oder "EUR/kWh" oder "EUR" (bei Pauschalbeträgen)
+- ist_netto = true/false
+- kategorie = "energie" (Arbeitspreis/Energiepreis/Verbrauchspreis des Lieferanten), \
+"grundgebuehr" (Grundpauschale/Grundgebühr/Grundpreis des Lieferanten), \
+"netz" (Netznutzung, Netzverlust, Messentgelt), \
+"abgabe" (Gebrauchsabgabe, Ökostromförderung, Elektrizitätsabgabe, etc.), \
+"sonstig" (alles andere). \
+WICHTIG: Nur Preise die zum ENERGIELIEFERANTEN gehören sind "energie". \
+Netzentgelte sind IMMER "netz", auch wenn sie in der gleichen Tabelle stehen.
+
+Bei MEHREREN Preisperioden (z.B. monatlich wechselnde Preise): ALLE Perioden als separate Zeilen eintragen.
+Bei HT/NT-Tarif: BEIDE eintragen mit entsprechendem Label.
+
+## Weitere Felder
 - grundgebuehr_eur = Grundpauschale/Grundgebühr/Grundpreis. Den EINZELWERT ablesen, NICHT umrechnen.
 - grundgebuehr_zeitraum = "monat" wenn €/Monat, "jahr" wenn €/Jahr, "zeitraum" wenn für den ganzen Abrechnungszeitraum.
-- grundgebuehr_ist_netto = true/false wie oben.
+- grundgebuehr_ist_netto = true/false.
 - summe_energieentgelte_eur = "Summe Energieentgelte" oder "Energiekosten" — NUR den Energieteil, \
 OHNE Netzkosten. Steht auf der Rechnung als eigene Summenzeile. Exakt ablesen.
 - summe_netzentgelte_eur = "Summe Netzentgelte" / "Netzkosten" — exakt ablesen.
@@ -399,12 +416,272 @@ def _extract_via_ollama(text: str = "", image_b64: str = "") -> dict:
     return _parse_json_response(response.message.content)
 
 
+# --- Deterministic PDF table extraction (Option 3) ---------------------------
+
+import re as _re_module
+
+
+def _parse_austrian_number(s: str, expect_large: bool = False) -> float:
+    """Parse Austrian number format: '1.234,56' or '1234,56' or '1234.56'.
+
+    Austrian convention: dot=thousands, comma=decimal.
+
+    Args:
+        s: Number string to parse.
+        expect_large: If True, ambiguous dot-only numbers like '3.240' are
+            treated as thousands separators (=3240). If False, treated as
+            decimal points (=3.240). Callers should set this based on context
+            (e.g. kWh values are large, ct/kWh prices are small).
+    """
+    s = s.strip().replace('\xa0', '').replace(' ', '')
+    # If comma AND dot: '1.234,56' → remove dots, comma=decimal
+    if ',' in s and '.' in s:
+        s = s.replace('.', '').replace(',', '.')
+    elif ',' in s:
+        s = s.replace(',', '.')
+    elif '.' in s and expect_large:
+        # Treat dots as thousands separators when we expect large numbers
+        parts = s.split('.')
+        if all(p.isdigit() for p in parts) and all(len(p) == 3 for p in parts[1:]):
+            if 1 <= len(parts[0]) <= 3:
+                s = s.replace('.', '')  # e.g. '3.240' → 3240, '12.145' → 12145
+    # If not expect_large or doesn't match pattern, keep dot as decimal point
+    try:
+        return float(s)
+    except ValueError:
+        return 0.0
+
+
+def _extract_deterministic_from_text(text: str) -> dict | None:
+    """Try to extract invoice data deterministically from PDF text using regex.
+
+    Returns a partial dict with reliably extracted fields, or None if the
+    text doesn't match any known provider pattern. Fields that can't be
+    reliably extracted are omitted (LLM fills them in).
+
+    This function extracts the MOST RELIABLE fields:
+    - summe_energieentgelte_eur (from "Energiekosten" / "Summe Energieentgelte" lines)
+    - summe_netzentgelte_eur
+    - verbrauch_kwh
+    - grundgebuehr
+    - arbeitspreis (only if a single, unambiguous price line exists)
+    - plz, zaehlpunkt
+    - zeitraum_von/bis
+    """
+    if not text or len(text) < 200:
+        return None
+
+    result: dict = {}
+    found_anything = False
+
+    # --- Verbrauch (kWh) ---
+    # Pattern: "aktuell 3.240 kWh in 365 Tagen" or "aktuell3.240kWh in365 Tagen" (Wien Energie)
+    m = _re_module.search(r'aktuell\s*([\d.,]+)\s*kWh\s+in\s*(\d+)\s*Tagen', text)
+    if m:
+        result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
+        result['_verbrauch_tage'] = int(m.group(2))
+        found_anything = True
+    else:
+        # Pattern: "ET 5.064,68 5.215,71 1 151,03 kWh" (Energie Steiermark monthly)
+        # Pattern: "Gesamtverbrauch: 3.200 kWh"
+        m = _re_module.search(r'Gesamtverbrauch[:\s]+([\d.,]+)\s*kWh', text)
+        if m:
+            result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
+            found_anything = True
+        else:
+            # Generic: look for "NNNN kWh" preceded by consumption context
+            # "Verbrauch ... NNNN kWh" on same line
+            for m in _re_module.finditer(r'(?:Verbrauch|Bezug)\D{0,40}?([\d.,]+)\s*kWh', text):
+                val = _parse_austrian_number(m.group(1), expect_large=True)
+                if 10 < val < 200_000:
+                    result.setdefault('verbrauch_kwh', val)
+                    found_anything = True
+                    break
+
+    # --- Summe Energieentgelte / Energiekosten ---
+    # Wien Energie: "Energiekosten 359,83"
+    # Energie Steiermark: "Summe Energieentgelte 23,80"
+    # MAXENERGY/oekostrom: "Summe Energielieferung 123,45"
+    for pattern in [
+        r'Energiekosten\s+([\d.,]+)',
+        r'Summe\s+Energieentgelte\s+([\d.,]+)',
+        r'Summe\s+Energielieferung\s+([\d.,]+)',
+        r'Summe\s+Energie\s+([\d.,]+)',
+    ]:
+        matches = _re_module.findall(pattern, text)
+        if matches:
+            # Take the LAST match (in multi-section invoices, Strom comes after Gas)
+            val = _parse_austrian_number(matches[-1], expect_large=True)
+            if val > 0:
+                result['summe_energieentgelte_eur'] = val
+                result['summe_energieentgelte_ist_netto'] = True  # these are always netto
+                found_anything = True
+                break
+
+    # --- Summe Netzentgelte ---
+    for pattern in [
+        r'Summe\s+Netzentgelte\s+([\d.,]+)',
+        r'Summe\s+Netzkosten\s+([\d.,]+)',
+        r'Summe\s+Netz\s+([\d.,]+)',
+    ]:
+        m = _re_module.search(pattern, text)
+        if m:
+            val = _parse_austrian_number(m.group(1), expect_large=True)
+            if val > 0:
+                result['summe_netzentgelte_eur'] = val
+                result['summe_netzentgelte_ist_netto'] = True
+                found_anything = True
+                break
+
+    # --- Summe Steuern und Abgaben ---
+    for pattern in [
+        r'Summe\s+Steuern\s+und\s+Abgaben\s+([\d.,]+)',
+        r'Steuern\s+und\s+Abgaben\s+([\d.,]+)',
+    ]:
+        m = _re_module.search(pattern, text)
+        if m:
+            val = _parse_austrian_number(m.group(1), expect_large=True)
+            if val > 0:
+                result['summe_steuern_abgaben_eur'] = val
+                result['summe_steuern_abgaben_ist_netto'] = True
+                found_anything = True
+                break
+
+    # --- Summe exkl. USt ---
+    # Wien Energie has multiple "Summe exkl. USt" (per Strom/Gas section)
+    # We want the one from the Strom section
+    for pattern in [
+        r'Summe\s+exkl\.\s*USt\.?\s+([\d.,]+)',
+        r'Gesamtbetrag\s+netto\s+([\d.,]+)',
+    ]:
+        matches = _re_module.findall(pattern, text)
+        if matches:
+            val = _parse_austrian_number(matches[-1], expect_large=True)
+            if val > 0:
+                result['_summe_exkl_ust'] = val
+                found_anything = True
+                break
+
+    # --- Rechnungsbetrag brutto ---
+    for pattern in [
+        r'Rechnungsbetrag.*?inkl.*?USt.*?([\d.,]+)',
+        r'Gesamtbetrag.*?brutto.*?([\d.,]+)',
+        r'Gesamtbetrag.*?inkl.*?USt.*?([\d.,]+)',
+        r'Endbetrag.*?([\d.,]+)\s*EUR',
+    ]:
+        m = _re_module.search(pattern, text)
+        if m:
+            val = _parse_austrian_number(m.group(1), expect_large=True)
+            if val > 0:
+                result['rechnungsbetrag_brutto_eur'] = val
+                found_anything = True
+                break
+
+    # --- Grundpreis / Grundgebühr ---
+    # Wien Energie: "Energie-Grundpreis ... 40,000000 EUR/Jahr"
+    # Energie Steiermark: "Grundpreis 01.12.25-31.12.25 ... 4,16 EUR/Monat  3,47"
+    # Generic: "Grundpauschale ... 3,50 EUR/Monat"
+    for pattern in [
+        r'Energie-Grundpreis.*?([\d.,]+)\s*EUR/Jahr',
+        r'Grundpreis.*?([\d.,]+)\s*EUR/Monat',
+        r'Grundpreis.*?([\d.,]+)\s*EUR/Jahr',
+        r'Grundpauschale.*?([\d.,]+)\s*EUR/Monat',
+        r'Grundpauschale.*?([\d.,]+)\s*EUR/Jahr',
+        r'Grundgeb.*?hr.*?([\d.,]+)\s*EUR/Monat',
+        r'Grundgeb.*?hr.*?([\d.,]+)\s*EUR/Jahr',
+    ]:
+        m = _re_module.search(pattern, text)
+        if m:
+            val = _parse_austrian_number(m.group(1))
+            if val > 0:
+                if 'EUR/Jahr' in pattern:
+                    result['grundgebuehr_eur'] = val
+                    result['grundgebuehr_zeitraum'] = 'jahr'
+                else:
+                    result['grundgebuehr_eur'] = val
+                    result['grundgebuehr_zeitraum'] = 'monat'
+                result['grundgebuehr_ist_netto'] = True
+                found_anything = True
+                break
+
+    # --- Arbeitspreis / Energiepreis (only if SINGLE unambiguous line) ---
+    # Collect all energy price lines
+    energie_preis_lines = []
+    for pattern in [
+        r'(?:Energie-Verbrauchspreis|Energiepreis|Arbeitspreis(?:\s+Energie)?)'
+        r'\s+\d{2}\.\d{2}\.\d{2,4}.\d{2}\.\d{2}\.\d{2,4}'
+        r'\s+[\d.,]+\s+kWh\s+([\d.,]+)\s*(?:Cent|ct)/kWh',
+    ]:
+        for m in _re_module.finditer(pattern, text):
+            val = _parse_austrian_number(m.group(1))
+            if 1 < val < 100:
+                energie_preis_lines.append(val)
+
+    if len(set(energie_preis_lines)) == 1:
+        # All lines have the same price → unambiguous
+        result['arbeitspreis_ct_kwh'] = energie_preis_lines[0]
+        result['arbeitspreis_ist_netto'] = True
+        found_anything = True
+        log.info("Deterministic: Einheitlicher Arbeitspreis %.2f ct/kWh (%d Zeilen)",
+                 energie_preis_lines[0], len(energie_preis_lines))
+    elif len(set(energie_preis_lines)) > 1:
+        # Multiple different prices → DON'T set arbeitspreis, let Plan B handle it
+        log.info("Deterministic: %d verschiedene Arbeitspreise gefunden: %s → verwende Summe",
+                 len(set(energie_preis_lines)), sorted(set(energie_preis_lines)))
+
+    # --- Zählpunkt ---
+    m = _re_module.search(r'(AT\d{30,35})', text.replace(' ', ''))
+    if not m:
+        m = _re_module.search(r'(AT[.\s]?\d[\d.\s]{28,38})', text)
+    if m:
+        zp = _re_module.sub(r'[\s.]', '', m.group(1))
+        if len(zp) >= 33:
+            result['zaehlpunkt'] = zp[:33]
+            found_anything = True
+
+    # --- PLZ (Anlagenadresse) ---
+    # Look near "Anlagenadresse" or "Verbrauchsstelle"
+    for pattern in [
+        r'(?:Anlagenadresse|Verbrauchsstelle)[^\n]{0,100}(\d{4})\s+\w',
+        r'(?:Anlagenadresse|Verbrauchsstelle).*?\n.*?(\d{4})\s+\w',
+    ]:
+        m = _re_module.search(pattern, text)
+        if m:
+            result['plz'] = m.group(1)
+            found_anything = True
+            break
+
+    # --- Abrechnungszeitraum ---
+    # "Abrechnungszeitraum: 01.01.2024 - 31.12.2024"
+    # "19.03.2024–18.03.2025" in Wien Energie
+    for pattern in [
+        r'Abrechnungszeitraum[:\s]+(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
+        r'Verrechnungszeitraum[:\s]+(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
+    ]:
+        m = _re_module.search(pattern, text)
+        if m:
+            result['zeitraum_von'] = m.group(1)
+            result['zeitraum_bis'] = m.group(2)
+            found_anything = True
+            break
+
+    if not found_anything:
+        return None
+
+    log.info("Deterministic extraction: %s", {k: v for k, v in result.items() if not k.startswith('_')})
+    return result
+
+
 # --- Haupt-Funktion -----------------------------------------------------------
 
 def parse_invoice(file_path: str | Path, llm_provider: Any = None) -> Invoice:
     """Extrahiere Rechnungsdaten aus PDF oder Bild.
 
-    Uses the provided LLM provider, falls back to Claude API or Ollama.
+    Strategy:
+    1. For text-PDFs: try deterministic regex extraction first (fast, free, reliable)
+    2. Always run LLM extraction for fields regex can't get (lieferant, tarif, adresse, etc.)
+    3. Merge: deterministic values override LLM values where available
+    4. Deterministic post-processing (netto/brutto, cross-checks, annualization)
     """
     path = Path(file_path)
     if not path.exists():
@@ -421,16 +698,18 @@ def parse_invoice(file_path: str | Path, llm_provider: Any = None) -> Invoice:
         extract_fn = _extract_via_ollama
         backend_name = "Ollama"
 
+    deterministic_data: dict | None = None
+
     if path.suffix.lower() == ".pdf":
         text = _pdf_to_text(path)
         # Filter out garbled/garbage text pages (common in Wien Energie PDFs)
-        # A page with > 30% non-printable or control characters is likely garbled
         if text.strip():
             text = _clean_pdf_text(text)
         if text.strip() and len(text) > 200:
-            # Text-PDF: send extracted text (cheaper, faster)
-            # Limit at 20000 chars — complex invoices (Wien Energie, Energie Steiermark)
-            # have pricing details spread across many pages
+            # --- Option 3: Try deterministic extraction first ---
+            deterministic_data = _extract_deterministic_from_text(text)
+
+            # Text-PDF: send extracted text to LLM (still needed for lieferant, tarif, etc.)
             if len(text) > 20000:
                 text = text[:20000]
                 log.info("PDF-Text auf 20000 Zeichen gekürzt")
@@ -452,6 +731,34 @@ def parse_invoice(file_path: str | Path, llm_provider: Any = None) -> Invoice:
         # Bild (JPG, PNG, etc.)
         log.info("Sende Bild an %s Vision", backend_name)
         raw = extract_fn(image_b64=base64.b64encode(path.read_bytes()).decode())
+
+    # --- Merge deterministic data into LLM output ---
+    # Deterministic values are more reliable for numeric fields.
+    # LLM is better for string fields (lieferant, tarif_name, adresse, etc.)
+    if deterministic_data:
+        for key, val in deterministic_data.items():
+            if key.startswith('_'):
+                continue  # internal fields
+            llm_val = raw.get(key)
+            # Override LLM value if:
+            # - LLM didn't extract it (0, empty, missing)
+            # - OR it's a numeric field where deterministic is more reliable
+            if key in ('summe_energieentgelte_eur', 'summe_netzentgelte_eur',
+                       'summe_steuern_abgaben_eur', 'rechnungsbetrag_brutto_eur',
+                       'summe_energieentgelte_ist_netto', 'summe_netzentgelte_ist_netto',
+                       'summe_steuern_abgaben_ist_netto'):
+                # Always prefer deterministic for sum fields
+                raw[key] = val
+                log.info("Deterministic override: %s = %s (LLM had: %s)", key, val, llm_val)
+            elif key == 'verbrauch_kwh' and val > 0:
+                # Prefer deterministic verbrauch if plausible
+                llm_kwh = _safe_float(llm_val)
+                if llm_kwh <= 0 or abs(val - llm_kwh) / max(val, 1) > 0.05:
+                    raw[key] = val
+                    log.info("Deterministic override: verbrauch_kwh = %.1f (LLM had: %.1f)", val, llm_kwh)
+            elif not llm_val or llm_val in (0, 0.0, "", None):
+                raw[key] = val
+                log.info("Deterministic fill: %s = %s", key, val)
 
     # --- Post-processing: LLM output → deterministic calculation → Invoice ---
     raw = _postprocess_llm_output(raw)
@@ -510,13 +817,73 @@ def _plausibility_check(field: str, value: float) -> bool:
     return ok
 
 
+def _pick_arbeitspreis_from_preiszeilen(preiszeilen: list[dict], verbrauch: float) -> tuple[float, bool, str]:
+    """Deterministically pick the energy Arbeitspreis from extracted price lines.
+
+    Returns (arbeitspreis_value, ist_netto, plan_description).
+    Priority:
+    1. Single "energie" line in ct/kWh → use directly
+    2. Multiple "energie" lines → weighted average if we have kWh, else first
+    3. Fallback to 0.0 (caller should use Plan B)
+    """
+    # Filter for energy price lines with ct/kWh or EUR/kWh
+    energie_lines = [
+        z for z in preiszeilen
+        if z.get("kategorie") == "energie"
+        and _safe_float(z.get("wert")) > 0
+        and z.get("einheit", "").lower() in ("ct/kwh", "eur/kwh", "cent/kwh")
+    ]
+
+    if not energie_lines:
+        return 0.0, True, ""
+
+    if len(energie_lines) == 1:
+        z = energie_lines[0]
+        wert = _safe_float(z["wert"])
+        # Normalize to ct/kWh
+        if z.get("einheit", "").lower() == "eur/kwh":
+            wert *= 100
+        ist_netto = z.get("ist_netto", True)
+        log.info("Preiszeilen Plan A: 1 Energiepreis-Zeile: '%s' = %.2f ct/kWh (%s)",
+                 z.get("label", "?"), wert, "netto" if ist_netto else "brutto")
+        return wert, ist_netto, f"A-preiszeilen ('{z.get('label', '?')}')"
+
+    # Multiple energy lines — could be HT/NT or multi-period
+    # Check for HT/NT pattern
+    ht_lines = [z for z in energie_lines if any(k in z.get("label", "").upper() for k in ("HT", "HOCHTARIF", "TAG"))]
+    if ht_lines:
+        z = ht_lines[0]
+        wert = _safe_float(z["wert"])
+        if z.get("einheit", "").lower() == "eur/kwh":
+            wert *= 100
+        ist_netto = z.get("ist_netto", True)
+        log.info("Preiszeilen Plan A: HT-Zeile: '%s' = %.2f ct/kWh", z.get("label", "?"), wert)
+        return wert, ist_netto, f"A-preiszeilen HT ('{z.get('label', '?')}')"
+
+    # Multi-period: take simple average (all are the Arbeitspreis at different times)
+    werte = []
+    for z in energie_lines:
+        w = _safe_float(z["wert"])
+        if z.get("einheit", "").lower() == "eur/kwh":
+            w *= 100
+        werte.append(w)
+    avg = sum(werte) / len(werte)
+    ist_netto = energie_lines[0].get("ist_netto", True)
+    log.info("Preiszeilen Plan A: %d Energiepreis-Zeilen, Durchschnitt %.2f ct/kWh (Werte: %s)",
+             len(werte), avg, werte)
+    return avg, ist_netto, f"A-preiszeilen avg ({len(werte)} Zeilen)"
+
+
 def _postprocess_llm_output(raw: dict) -> dict:
     """Deterministic post-processing of LLM extraction.
 
     The LLM only reads values from the invoice — all calculation happens here:
+    - Parse preiszeilen to deterministically pick the right Arbeitspreis
     - Netto/Brutto conversion
-    - Plan A: use arbeitspreis_ct_kwh if found
-    - Plan B: derive from (energieentgelte - netzentgelte - abgaben - grundgebuehr) / kWh
+    - Plan A: use Arbeitspreis from preiszeilen (or legacy arbeitspreis_ct_kwh)
+    - Plan B: derive from summe_energieentgelte / kWh
+    - Plan C: derive from rechnungsbetrag
+    - Cross-check: Plan A vs Plan B — if >15% divergence, prefer Plan B
     - Annualization for partial-year invoices
     - Plausibility checks
     """
@@ -550,6 +917,12 @@ def _postprocess_llm_output(raw: dict) -> dict:
     # --- 3. Parse numeric fields from LLM output ---
     verbrauch = _safe_float(raw.get("verbrauch_kwh"))
 
+    # New: extract from preiszeilen
+    preiszeilen = raw.get("preiszeilen", [])
+    if not isinstance(preiszeilen, list):
+        preiszeilen = []
+
+    # Legacy: arbeitspreis_ct_kwh (for backward compat with old prompt)
     arbeitspreis_raw = _safe_float(raw.get("arbeitspreis_ct_kwh"))
     arbeitspreis_netto_flag = raw.get("arbeitspreis_ist_netto", True)
 
@@ -605,48 +978,79 @@ def _postprocess_llm_output(raw: dict) -> dict:
     netz_netto = _to_netto(summe_netz, not summe_netz_netto_flag) if summe_netz > 0 else 0
     steuern_netto = _to_netto(summe_steuern, not summe_steuern_netto_flag) if summe_steuern > 0 else 0
 
-    # --- 6. Determine Arbeitspreis (Plan A / Plan B) ---
+    # --- 6. Determine Arbeitspreis (Plan A / Plan B / Plan C) ---
     energiepreis_ct_kwh_brutto = 0.0
     plan_used = ""
 
-    # Plan A: Direct arbeitspreis from invoice
-    if arbeitspreis_raw > 0 and verbrauch > 0:
-        if arbeitspreis_netto_flag:
-            energiepreis_ct_kwh_brutto = round(arbeitspreis_raw * 1.2, 2)
+    # Plan A1: From preiszeilen (new, preferred)
+    pz_preis, pz_netto, pz_plan = _pick_arbeitspreis_from_preiszeilen(preiszeilen, verbrauch)
+    if pz_preis > 0:
+        if pz_netto:
+            plan_a_brutto = round(pz_preis * 1.2, 2)
         else:
-            energiepreis_ct_kwh_brutto = round(arbeitspreis_raw, 2)
-        plan_used = "A (Arbeitspreis direkt)"
+            plan_a_brutto = round(pz_preis, 2)
+        energiepreis_ct_kwh_brutto = plan_a_brutto
+        plan_used = pz_plan
+    # Plan A2: Legacy arbeitspreis_ct_kwh (backward compat)
+    elif arbeitspreis_raw > 0 and verbrauch > 0:
+        if arbeitspreis_netto_flag:
+            plan_a_brutto = round(arbeitspreis_raw * 1.2, 2)
+        else:
+            plan_a_brutto = round(arbeitspreis_raw, 2)
+        energiepreis_ct_kwh_brutto = plan_a_brutto
+        plan_used = "A (Arbeitspreis legacy)"
+    else:
+        plan_a_brutto = 0.0
 
-    # Plan B: Derive from totals
-    if energiepreis_ct_kwh_brutto <= 0 and verbrauch > 0:
-        # Start with the best available energy total
-        reine_energie_netto = 0.0
-
-        if energie_netto > 0:
-            # summe_energieentgelte includes grundgebuehr — subtract it
-            period_days = _compute_period_days(
-                raw.get("zeitraum_von", ""), raw.get("zeitraum_bis", ""))
-            months = (period_days / 30.44) if period_days and period_days > 0 else 12
-            grundgebuehr_im_zeitraum = grundgebuehr_eur_monat_netto * months
-            reine_energie_netto = energie_netto - grundgebuehr_im_zeitraum
-            log.info("Plan B: Energieentgelte %.2f - Grundgebühr %.2f = %.2f netto",
-                     energie_netto, grundgebuehr_im_zeitraum, reine_energie_netto)
-        elif rechnungsbetrag_brutto > 0:
-            # Last resort: Rechnungsbetrag - Netz - Abgaben - Grundgebühr - USt
-            # rechnungsbetrag_brutto = (energie + netz + steuern) * 1.2 (approx)
-            gesamt_netto = rechnungsbetrag_brutto / 1.2
-            reine_energie_netto = gesamt_netto - netz_netto - steuern_netto
-            period_days = _compute_period_days(
-                raw.get("zeitraum_von", ""), raw.get("zeitraum_bis", ""))
-            months = (period_days / 30.44) if period_days and period_days > 0 else 12
-            reine_energie_netto -= grundgebuehr_eur_monat_netto * months
-            log.info("Plan B (Rechnungsbetrag): Gesamt %.2f - Netz %.2f - Abgaben %.2f - Grundgebühr %.2f = %.2f netto",
-                     gesamt_netto, netz_netto, steuern_netto,
-                     grundgebuehr_eur_monat_netto * months, reine_energie_netto)
-
+    # Plan B: Derive from summe_energieentgelte
+    plan_b_brutto = 0.0
+    if energie_netto > 0 and verbrauch > 0:
+        period_days = _compute_period_days(
+            raw.get("zeitraum_von", ""), raw.get("zeitraum_bis", ""))
+        months = (period_days / 30.44) if period_days and period_days > 0 else 12
+        grundgebuehr_im_zeitraum = grundgebuehr_eur_monat_netto * months
+        reine_energie_netto = energie_netto - grundgebuehr_im_zeitraum
         if reine_energie_netto > 0:
-            energiepreis_ct_kwh_brutto = round(reine_energie_netto / verbrauch * 100 * 1.2, 2)
+            plan_b_brutto = round(reine_energie_netto / verbrauch * 100 * 1.2, 2)
+            log.info("Plan B: Energieentgelte %.2f - Grundgebühr %.2f = %.2f netto → %.2f ct/kWh brutto",
+                     energie_netto, grundgebuehr_im_zeitraum, reine_energie_netto, plan_b_brutto)
+
+    # Plan C: Derive from Rechnungsbetrag
+    plan_c_brutto = 0.0
+    if rechnungsbetrag_brutto > 0 and verbrauch > 0:
+        gesamt_netto = rechnungsbetrag_brutto / 1.2
+        reine_energie_netto = gesamt_netto - netz_netto - steuern_netto
+        period_days = _compute_period_days(
+            raw.get("zeitraum_von", ""), raw.get("zeitraum_bis", ""))
+        months = (period_days / 30.44) if period_days and period_days > 0 else 12
+        reine_energie_netto -= grundgebuehr_eur_monat_netto * months
+        if reine_energie_netto > 0:
+            plan_c_brutto = round(reine_energie_netto / verbrauch * 100 * 1.2, 2)
+            log.info("Plan C: Rechnungsbetrag → %.2f ct/kWh brutto", plan_c_brutto)
+
+    # --- 6b. Cross-check & fallback (Option 6) ---
+    # If Plan A and Plan B both exist, cross-check. If >15% divergence,
+    # prefer Plan B (derived from totals = more reliable than single price line).
+    if plan_a_brutto > 0 and plan_b_brutto > 0:
+        diff_pct = abs(plan_a_brutto - plan_b_brutto) / plan_b_brutto * 100
+        if diff_pct > 15:
+            log.warning(
+                "Cross-check FAILED: Plan A %.2f vs Plan B %.2f ct/kWh (%.1f%% Differenz) "
+                "→ verwende Plan B (abgeleitet aus Summe Energieentgelte)",
+                plan_a_brutto, plan_b_brutto, diff_pct)
+            energiepreis_ct_kwh_brutto = plan_b_brutto
+            plan_used = "B (cross-check fallback)"
+        else:
+            log.info("Cross-check OK: Plan A %.2f vs Plan B %.2f ct/kWh (%.1f%%)",
+                     plan_a_brutto, plan_b_brutto, diff_pct)
+    elif energiepreis_ct_kwh_brutto <= 0:
+        # No Plan A → use Plan B or C
+        if plan_b_brutto > 0:
+            energiepreis_ct_kwh_brutto = plan_b_brutto
             plan_used = "B (abgeleitet)"
+        elif plan_c_brutto > 0:
+            energiepreis_ct_kwh_brutto = plan_c_brutto
+            plan_used = "C (Rechnungsbetrag)"
 
     if plan_used:
         log.info("Arbeitspreis: %.2f ct/kWh brutto (Plan %s)", energiepreis_ct_kwh_brutto, plan_used)
@@ -666,22 +1070,19 @@ def _postprocess_llm_output(raw: dict) -> dict:
 
     # --- 8. Plausibility checks ---
     if energiepreis_ct_kwh_brutto > 0 and not _plausibility_check("arbeitspreis_ct_kwh", energiepreis_ct_kwh_brutto):
-        log.warning("Arbeitspreis %.2f ct/kWh außerhalb Plausibilitätsgrenzen — verwende trotzdem",
-                    energiepreis_ct_kwh_brutto)
+        # Outside bounds — if Plan B is available and plausible, use it
+        if plan_b_brutto > 0 and _plausibility_check("arbeitspreis_ct_kwh", plan_b_brutto):
+            log.warning("Arbeitspreis %.2f implausibel → Fallback auf Plan B %.2f ct/kWh",
+                        energiepreis_ct_kwh_brutto, plan_b_brutto)
+            energiepreis_ct_kwh_brutto = plan_b_brutto
+            plan_used = "B (plausibility fallback)"
+        else:
+            log.warning("Arbeitspreis %.2f ct/kWh außerhalb Plausibilitätsgrenzen — verwende trotzdem",
+                        energiepreis_ct_kwh_brutto)
     if grundgebuehr_eur_monat_brutto > 0 and not _plausibility_check("grundgebuehr_eur_monat", grundgebuehr_eur_monat_brutto):
         log.warning("Grundgebühr %.2f EUR/Monat außerhalb Plausibilitätsgrenzen", grundgebuehr_eur_monat_brutto)
     if verbrauch > 0 and not _plausibility_check("verbrauch_kwh", verbrauch):
         log.warning("Verbrauch %.0f kWh außerhalb Plausibilitätsgrenzen", verbrauch)
-
-    # Cross-check: if we have both arbeitspreis and energiekosten, verify
-    if energiepreis_ct_kwh_brutto > 0 and energiekosten_eur_brutto > 0 and verbrauch > 0:
-        expected = energiepreis_ct_kwh_brutto * verbrauch / 100 + grundgebuehr_eur_monat_brutto * 12
-        diff_pct = abs(expected - energiekosten_eur_brutto) / energiekosten_eur_brutto * 100
-        if diff_pct > 15:
-            log.warning(
-                "Cross-check: berechnete Kosten %.2f vs. Rechnungsbetrag %.2f (Differenz %.1f%%) "
-                "— möglicherweise Rabatte/Freimonate auf der Rechnung",
-                expected, energiekosten_eur_brutto, diff_pct)
 
     # --- 9. Build output dict in Invoice-compatible format ---
     result = {

@@ -205,6 +205,26 @@ def _parse_json_response(text: str) -> dict:
         except json.JSONDecodeError:
             pass
 
+    # Truncated JSON repair: if we have '{' but no matching '}',
+    # the LLM response was cut off by max_tokens. Try to repair by
+    # closing open brackets/braces.
+    if start != -1:
+        fragment = text[start:]
+        # Close open arrays and objects
+        open_braces = fragment.count('{') - fragment.count('}')
+        open_brackets = fragment.count('[') - fragment.count(']')
+        # Remove trailing comma if present
+        repaired = fragment.rstrip().rstrip(',')
+        repaired += ']' * max(open_brackets, 0)
+        repaired += '}' * max(open_braces, 0)
+        try:
+            result = json.loads(repaired)
+            log.warning("JSON was truncated — repaired by closing %d braces, %d brackets",
+                        open_braces, open_brackets)
+            return result
+        except json.JSONDecodeError:
+            pass
+
     raise ValueError(f"Konnte kein JSON aus LLM-Antwort extrahieren: {text[:200]}")
 
 

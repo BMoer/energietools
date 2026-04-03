@@ -582,28 +582,34 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
     found_anything = False
 
     # --- Verbrauch (kWh) ---
-    # Pattern: "aktuell 3.240 kWh in 365 Tagen" or "aktuell3.240kWh in365 Tagen" (Wien Energie)
-    m = _re_module.search(r'aktuell\s*([\d.,]+)\s*kWh\s+in\s*(\d+)\s*Tagen', text)
+    # Pattern: "wurden 13.666,99 kWh verbraucht" (Sturm Energie, many Austrian providers)
+    m = _re_module.search(r'wurden\s+([\d.,]+)\s*kWh\s+verbraucht', text)
     if m:
         result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
-        result['_verbrauch_tage'] = int(m.group(2))
         found_anything = True
-    else:
-        # Pattern: "ET 5.064,68 5.215,71 1 151,03 kWh" (Energie Steiermark monthly)
+    # Pattern: "aktuell 3.240 kWh in 365 Tagen" or "aktuell3.240kWh in365 Tagen" (Wien Energie)
+    if 'verbrauch_kwh' not in result:
+        m = _re_module.search(r'aktuell\s*([\d.,]+)\s*kWh\s+in\s*(\d+)\s*Tagen', text)
+        if m:
+            result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
+            result['_verbrauch_tage'] = int(m.group(2))
+            found_anything = True
+    if 'verbrauch_kwh' not in result:
         # Pattern: "Gesamtverbrauch: 3.200 kWh"
         m = _re_module.search(r'Gesamtverbrauch[:\s]+([\d.,]+)\s*kWh', text)
         if m:
             result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
             found_anything = True
-        else:
-            # Generic: look for "NNNN kWh" preceded by consumption context
-            # "Verbrauch ... NNNN kWh" on same line
-            for m in _re_module.finditer(r'(?:Verbrauch|Bezug)\D{0,40}?([\d.,]+)\s*kWh', text):
-                val = _parse_austrian_number(m.group(1), expect_large=True)
-                if 10 < val < 200_000:
-                    result.setdefault('verbrauch_kwh', val)
-                    found_anything = True
-                    break
+    if 'verbrauch_kwh' not in result:
+        # Generic: look for "NNNN kWh" preceded by consumption context
+        # "Verbrauch ... NNNN kWh" on same line
+        # EXCLUDE "kWh/Tag" matches (those are daily rates, not total consumption)
+        for m in _re_module.finditer(r'(?:Verbrauch|Bezug)\D{0,40}?([\d.,]+)\s*kWh(?!/Tag)', text):
+            val = _parse_austrian_number(m.group(1), expect_large=True)
+            if 10 < val < 200_000:
+                result.setdefault('verbrauch_kwh', val)
+                found_anything = True
+                break
 
     # --- Summe Energieentgelte / Energiekosten ---
     # Wien Energie: "Energiekosten 359,83"
@@ -760,10 +766,12 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
 
     # --- Abrechnungszeitraum ---
     # "Abrechnungszeitraum: 01.01.2024 - 31.12.2024"
+    # "Rechnungszeitraum 01.07.2024 -04.07.2025" (Sturm Energie)
     # "19.03.2024–18.03.2025" in Wien Energie
     for pattern in [
         r'Abrechnungszeitraum[:\s]+(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
         r'Verrechnungszeitraum[:\s]+(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
+        r'Rechnungszeitraum[:\s]+(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
     ]:
         m = _re_module.search(pattern, text)
         if m:

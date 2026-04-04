@@ -1253,6 +1253,8 @@ def _postprocess_llm_output(raw: dict) -> dict:
         "netzkosten_eur": netzkosten_brutto,
         "kunde_name": raw.get("kunde_name", ""),
         "adresse": raw.get("adresse", ""),
+        "energieart": raw.get("energieart", "strom"),
+        "gas": raw.get("gas"),
     }
 
     # --- 10. Annualize partial-year invoices ---

@@ -107,3 +107,55 @@ class TestZeitraumExtraction:
         assert result is not None
         assert result.get("zeitraum_von") == "01.01.2024"
         assert result.get("zeitraum_bis") == "31.12.2024"
+
+
+class TestEnergieartDetection:
+    """Tests for Invoice.energieart field set by _postprocess_llm_output."""
+
+    def _postprocess(self, raw: dict) -> dict:
+        from energietools.tools.invoice_parser import _postprocess_llm_output
+        return _postprocess_llm_output(raw)
+
+    def test_plain_strom_invoice(self):
+        raw = {"lieferant": "Wien Energie", "tarif_name": "Optima", "verbrauch_kwh": 3240, "plz": "1090"}
+        result = self._postprocess(raw)
+        assert result.get("energieart") == "strom"
+        assert result.get("gas") is None
+
+    def test_plain_gas_invoice_via_section(self):
+        raw = {"gas": {"lieferant": "Wien Energie", "tarif_name": "Gas Optima", "verbrauch_kwh": 12000}, "plz": "1090"}
+        result = self._postprocess(raw)
+        assert result.get("energieart") == "gas"
+
+    def test_gas_detected_by_tarif_heuristic(self):
+        raw = {"lieferant": "Wien Energie", "tarif_name": "Erdgas Classic", "verbrauch_kwh": 12000, "plz": "1090"}
+        result = self._postprocess(raw)
+        assert result.get("energieart") == "gas"
+
+    def test_kombi_invoice(self):
+        raw = {
+            "strom": {"lieferant": "Wien Energie", "tarif_name": "Optima", "verbrauch_kwh": 3240},
+            "gas": {"lieferant": "Wien Energie", "tarif_name": "Gas Optima", "verbrauch_kwh": 12000},
+            "plz": "1090",
+        }
+        result = self._postprocess(raw)
+        assert result.get("energieart") == "kombi"
+        assert result.get("gas") is not None
+        assert result["gas"].jahresverbrauch_kwh == 12000.0
+
+    def test_kombi_preserves_strom_as_main(self):
+        raw = {
+            "strom": {"lieferant": "WE Strom", "verbrauch_kwh": 3000, "arbeitspreis_ct_kwh": 15.0},
+            "gas": {"lieferant": "WE Gas", "verbrauch_kwh": 10000, "arbeitspreis_ct_kwh": 8.0},
+            "plz": "1060",
+        }
+        result = self._postprocess(raw)
+        assert result.get("energieart") == "kombi"
+        # Main fields should be from strom
+        assert result.get("lieferant") == "WE Strom"
+
+    def test_strom_gas_in_tarif_name_is_not_gas(self):
+        """'Strom & Gas' in tarif name should not be classified as gas."""
+        raw = {"lieferant": "Wien Energie", "tarif_name": "Strom & Gas Kombi", "verbrauch_kwh": 3240, "plz": "1090"}
+        result = self._postprocess(raw)
+        assert result.get("energieart") == "strom"

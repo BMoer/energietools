@@ -7,7 +7,7 @@ from energietools.models.battery import BatteryScenario, BatterySimulation
 from energietools.models.beg import BEGCalculation, BEGComparison
 from energietools.models.energy_news import EnergyMonitorResult, EnergyNewsItem, Foerderung
 from energietools.models.gas import GasTariff, GasTariffComparison
-from energietools.models.invoice import Invoice
+from energietools.models.invoice import EnergieBlock, Invoice
 from energietools.models.load_profile import (
     AnomalyResult,
     ClusterInfo,
@@ -34,6 +34,7 @@ __all__ = [
     "Foerderung",
     "GasTariff",
     "GasTariffComparison",
+    "EnergieBlock",
     "Invoice",
     "LoadProfileAnalysis",
     "LoadProfileMetrics",

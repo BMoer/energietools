@@ -1005,21 +1005,60 @@ def _postprocess_llm_output(raw: dict) -> dict:
     import re as _re
 
     # --- 1. Handle combined Strom+Gas invoices ---
-    if "strom" in raw and isinstance(raw["strom"], dict):
+    from energietools.models.invoice import EnergieBlock
+
+    has_strom = "strom" in raw and isinstance(raw["strom"], dict)
+    has_gas = "gas" in raw and isinstance(raw["gas"], dict)
+
+    if has_strom and has_gas:
+        # Kombi-Rechnung: Strom als Hauptdaten, Gas als separater Block
         strom_data = raw.pop("strom")
-        raw.pop("gas", None)
+        gas_data = raw.pop("gas")
+        raw["energieart"] = "kombi"
+        raw["gas"] = EnergieBlock(
+            lieferant=_safe_str(gas_data.get("lieferant", "")),
+            tarif_name=_safe_str(gas_data.get("tarif_name", "")),
+            energiepreis_ct_kwh=_safe_float(gas_data.get("arbeitspreis_ct_kwh") or gas_data.get("energiepreis_ct_kwh")),
+            grundgebuehr_eur_monat=_safe_float(gas_data.get("grundgebuehr_eur_monat") or gas_data.get("grundgebuehr_eur")),
+            jahresverbrauch_kwh=_safe_float(gas_data.get("verbrauch_kwh") or gas_data.get("jahresverbrauch_kwh")),
+            zaehlpunkt=_safe_str(gas_data.get("zaehlpunkt", "")),
+        )
+        for key, val in strom_data.items():
+            if key not in raw or raw.get(key) in (0, 0.0, "", "Unbekannt", None):
+                raw[key] = val
+            elif isinstance(raw.get(key), dict) and key != "gas":
+                raw[key] = val
+        log.info("Kombi-Rechnung erkannt — Strom als Hauptdaten, Gas-Block extrahiert")
+    elif has_strom and not has_gas:
+        # Nur Strom-Sektion im LLM-Output (trotzdem reine Strom-Rechnung)
+        strom_data = raw.pop("strom")
+        raw["energieart"] = "strom"
         for key, val in strom_data.items():
             if key not in raw or raw.get(key) in (0, 0.0, "", "Unbekannt", None):
                 raw[key] = val
             elif isinstance(raw.get(key), dict):
                 raw[key] = val
-        log.info("Kombi-Rechnung erkannt — verwende Strom-Daten")
-    elif "gas" in raw and isinstance(raw["gas"], dict) and "strom" not in raw:
+        log.info("Strom-Rechnung erkannt (strom-Sektion im LLM-Output)")
+    elif has_gas and not has_strom:
+        # Reine Gas-Rechnung
         gas_data = raw.pop("gas")
+        raw["energieart"] = "gas"
         for key, val in gas_data.items():
             if key not in raw or raw.get(key) in (0, 0.0, "", "Unbekannt", None):
                 raw[key] = val
-        log.info("Gas-Rechnung erkannt — verwende Gas-Daten")
+        log.info("Gas-Rechnung erkannt")
+    else:
+        # Kein strom/gas dict → Heuristik anhand Tarif/Lieferant
+        tarif = _safe_str(raw.get("tarif_name", "")).lower()
+        lieferant = _safe_str(raw.get("lieferant", "")).lower()
+        if any(kw in tarif for kw in ("gas", "erdgas", "biogas")) and "strom" not in tarif:
+            raw["energieart"] = "gas"
+            log.info("Gas-Rechnung erkannt (Heuristik: Tarif enthält 'gas')")
+        elif any(kw in lieferant for kw in ("gas",)) and "strom" not in lieferant and lieferant.strip().endswith("gas"):
+            raw["energieart"] = "gas"
+            log.info("Gas-Rechnung erkannt (Heuristik: Lieferant endet auf 'gas')")
+        else:
+            raw["energieart"] = "strom"
 
     # --- 2. Sanitize string fields ---
     for str_field in ("lieferant", "tarif_name", "kunde_name", "adresse", "zaehlpunkt"):

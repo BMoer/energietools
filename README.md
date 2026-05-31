@@ -144,7 +144,7 @@ The repo is on the capability spine.
 
 - **Done (Phase 1):** capability spine, Open-Data tariff catalog, auditable offline `tariff_compare`, E-Control electricity client removed.
 - **Done (Phase 2):** `tariff_advice` (invoice → catalog comparison, the auditable pillar); `community_metrics` (EEG/BEG SSR/SCR/Reststrom/Überschuss); existing deterministic tools bridged onto the spine via `FunctionCapability`.
-- **Next:** migrate `gas_compare` off E-Control; spine adapters for `smartmeter`/`switching` (credentials / file side-effects); deeper EEG analysis (temporal, EPEX correlation, AT extrapolation); finalize the data license.
+- **Next:** migrate `gas_compare` off E-Control; spine adapters for `smartmeter`/`switching` (credentials / file side-effects); deeper EEG analysis (temporal, EPEX correlation, AT extrapolation).
 
 The boundary: the **auditable business logic** (tariff data, invoice scanning, comparison) is open here; the machinery that produces the data (scrapers, hosting, UI) stays proprietary.
 
@@ -152,4 +152,4 @@ The boundary: the **auditable business logic** (tariff data, invoice scanning, c
 
 MIT — see [LICENSE](LICENSE).
 
-> **Note:** the bundled tariff **data** (`energietools/data/tariffs/`) carries its own license field in `MANIFEST.json`, currently `TBD`. The data license is being finalized separately from the code license.
+The bundled tariff **data** (`energietools/data/tariffs/`) is licensed **MIT**, same as the code (see the `license` field in `MANIFEST.json`).

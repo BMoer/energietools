@@ -46,7 +46,7 @@ where = ["."]
 include = ["energietools*"]
 
 [tool.setuptools.package-data]
-energietools = ["data/*.json"]
+energietools = ["data/*.json", "data/tariffs/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

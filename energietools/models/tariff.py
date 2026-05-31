@@ -14,12 +14,18 @@ class Rechenweg(BaseModel):
     netto_energie_eur: float = Field(description="Verbrauch × Netto-Energiepreis")
     netto_grund_eur: float = Field(description="Netto-Grundgebühr × 12 Monate")
     netto_gesamt_eur: float = Field(description="Netto-Energie + Netto-Grund")
+    neukundenrabatt_netto_eur: float = Field(
+        default=0.0, description="Neukundenrabatt netto EUR (Jahr 1, vor Steuer)",
+    )
+    netto_nach_rabatt_eur: float = Field(
+        default=0.0, description="Netto-Gesamt nach Abzug Neukundenrabatt (= netto_gesamt, wenn kein Rabatt)",
+    )
     gebrauchsabgabe_rate: float = Field(description="Gebrauchsabgabe-Satz (z.B. 0.07 für Wien)")
     gebrauchsabgabe_eur: float = Field(description="Gebrauchsabgabe in EUR")
     netto_inkl_gab_eur: float = Field(description="Netto inkl. Gebrauchsabgabe")
     ust_eur: float = Field(description="Umsatzsteuer 20%")
     brutto_jahreskosten_eur: float = Field(description="Endwert: Brutto-Jahreskosten Energie")
-    quelle: str = Field(default="berechnet", description="'e-control-api' oder 'berechnet'")
+    quelle: str = Field(default="berechnet", description="Datenquelle des Rechenwegs (z.B. 'katalog', 'berechnet')")
     hinweis: str = Field(
         default="",
         description="Zusätzliche Info (z.B. 'Gebrauchsabgabe nicht verfügbar')",
@@ -27,19 +33,23 @@ class Rechenweg(BaseModel):
 
 
 class Tariff(BaseModel):
-    """Ein Stromtarif aus dem E-Control Vergleich."""
+    """Ein Stromtarif im Vergleich (Quelle: Open-Data-Katalog oder eigene Rechnung)."""
 
     lieferant: str
     tarif_name: str
     energiepreis_ct_kwh: float
     grundgebuehr_eur_monat: float
-    jahreskosten_eur: float = Field(description="Energiekosten €/Jahr (Energie + Grundgebühr, ohne Netz)")
+    jahreskosten_eur: float = Field(description="Energiekosten €/Jahr Jahr 1 inkl. Rabatt (Energie + Grundgebühr, ohne Netz)")
+    jahreskosten_ohne_rabatt_eur: float = Field(default=0.0, description="Energiekosten €/Jahr ab Jahr 2 (ohne Neukundenrabatt)")
     gesamtkosten_eur: float = Field(default=0.0, description="Gesamtkosten €/Jahr inkl. Netzkosten")
     ersparnis_eur: float = Field(default=0.0, description="Ersparnis vs. aktueller Tarif in €/Jahr")
     ist_oekostrom: bool = False
     tariftyp: str = Field(default="Fixpreis", description="Fixpreis, Monatsfloater oder Stundenfloater")
+    preismodell: str = Field(default="", description="Festpreis | Festpreis mit Garantie | Floater")
+    hat_bindung: bool = Field(default=False, description="True = Mindestvertragsdauer")
     kategorie: str = Field(default="fix", description="Kategorie: fix, floater, gruen")
-    quelle: str = Field(default="e-control", description="Datenquelle")
+    quelle: str = Field(default="katalog", description="Datenquelle")
+    wechsel_link: str = Field(default="", description="Direktlink zur Anbieter-Anmeldung")
     rechenweg: Rechenweg | None = Field(default=None, description="Transparenter Berechnungsweg")
 
 

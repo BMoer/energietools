@@ -2,9 +2,11 @@
 
 ## What is this?
 
-`energietools` is an open-source Python toolkit for analyzing and optimizing energy consumption in Austria. It provides deterministic tools for tariff comparison, load profile analysis, battery/PV simulation, smart meter data access, and more — all powered by official Austrian data sources (E-Control API, PVGIS, ENTSO-E).
+`energietools` is the open-source, **auditable** core of the Austrian energy market: the business logic anyone should be able to reproduce — tariff data, invoice scanning, and the comparison that joins them. Every number it produces carries a transparent `Rechenweg` (netto → discount → Gebrauchsabgabe → USt → brutto), so a result can be re-derived by hand or by an external auditor.
 
-The toolkit also includes a lightweight agent framework with multi-provider LLM support (Claude, OpenAI, Ollama) so you can build conversational energy assistants without depending on heavy frameworks like LangChain.
+At its heart is a versioned **Open-Data tariff catalog** (`energietools/data/tariffs/`) — a normalized, first-party snapshot of Austrian electricity tariffs (net list prices). Tariff comparison runs entirely offline against this catalog; there is no dependency on the E-Control calculator.
+
+The toolkit is organized around a **capability spine** (`energietools/capabilities/`): each capability has one shape (`run(**kwargs) -> CapabilityResult`) and self-registers into both a CLI and a lightweight multi-provider agent framework (Claude, OpenAI, Ollama).
 
 ## Installation
 
@@ -28,25 +30,54 @@ pip install energietools[ollama]    # Local LLM via Ollama
 ## Quick Start
 
 ```python
-from energietools.tools.tariff_compare import compare_tariffs
+from energietools.capabilities.tariffs import compare_against_catalog
 
-# Compare electricity tariffs for a household in Vienna
-result = compare_tariffs(
-    zip_code="1060",
-    annual_kwh=3200,
-    grid_operator="Wiener Netze",
+# Compare your current tariff against the Open-Data catalog — offline, auditable.
+result = compare_against_catalog(
+    verbrauch_kwh=3200,
+    aktueller_lieferant="Wien Energie",
+    aktueller_energiepreis_ct_kwh=25.0,    # brutto, from your invoice
+    aktuelle_grundgebuehr_eur_monat=6.0,    # brutto
+    gebrauchsabgabe_rate=0.07,              # Vienna
+    plz="1060",
 )
 
-for tariff in result.tariffs[:5]:
-    print(f"{tariff.provider}: {tariff.annual_cost_brutto:.2f} € / Jahr")
+print(f"Max Ersparnis: {result.max_ersparnis_eur:.0f} € / Jahr")
+for t in result.beste_fix[:5]:
+    print(f"{t.lieferant} {t.tarif_name}: {t.jahreskosten_eur:.0f} € / Jahr")
+
+# Every tariff carries a full Rechenweg you can audit:
+print(result.beste_fix[0].rechenweg.model_dump())
 ```
+
+### CLI
+
+```bash
+python -m energietools list
+python -m energietools tariff_catalog --json '{"oekostrom": true}'
+python -m energietools tariff_compare --json '{"verbrauch_kwh": 3200,
+  "aktueller_energiepreis_ct_kwh": 25, "aktuelle_grundgebuehr_eur_monat": 6,
+  "gebrauchsabgabe_rate": 0.07}'
+```
+
+## Capabilities
+
+The auditable core, on the capability spine (`energietools/capabilities/`):
+
+| Capability | Description |
+|------------|-------------|
+| `tariff_catalog` | Query the Open-Data catalog of Austrian electricity tariffs (net list prices), filter by type / Ökostrom / provider / contract lock-in |
+| `tariff_compare` | Compare a current tariff (invoice prices) against the catalog — offline, with a full `Rechenweg` per tariff |
+
+The catalog (`energietools/data/tariffs/catalog.json` + `MANIFEST.json`) is a versioned, first-party snapshot. Provenance and license are in the MANIFEST. The scrapers that produce it are **not** part of this repo (they stay proprietary); only the resulting data is published here.
 
 ## Available Tools
 
+> Migrating onto the capability spine (see Roadmap). Today still the legacy `tools/` form:
+
 | Tool | Description |
 |------|-------------|
-| `tariff_compare` | Compare electricity tariffs via E-Control API |
-| `gas_compare` | Compare gas tariffs via E-Control API |
+| `gas_compare` | Compare gas tariffs via E-Control API (not yet migrated) |
 | `load_profile` | Analyze smart meter load profiles (FDA anomaly detection, heatmaps) |
 | `spot_analysis` | Spot tariff analysis using ENTSO-E day-ahead prices |
 | `battery_sim` | Home battery storage simulation (2/5/10/15 kWh scenarios) |
@@ -99,6 +130,17 @@ result = agent.run("Vergleiche Tarife für PLZ 1060 mit 3200 kWh Jahresverbrauch
 print(result)
 ```
 
+## Roadmap
+
+This repo is mid-migration onto the capability spine.
+
+- **Done:** capability spine, Open-Data tariff catalog, auditable offline `tariff_compare`, E-Control electricity client removed.
+- **Next:** join invoice scanning (`invoice_parser`) + tariff comparison into one auditable flow; migrate the remaining tools (spot, pv, battery, beg, gas, smartmeter) onto the spine; bring in the EEG community-analysis metrics (SSR/SCR/Reststrom).
+
+The boundary: the **auditable business logic** (tariff data, invoice scanning, comparison) is open here; the machinery that produces the data (scrapers, hosting, UI) stays proprietary.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+> **Note:** the bundled tariff **data** (`energietools/data/tariffs/`) carries its own license field in `MANIFEST.json`, currently `TBD`. The data license is being finalized separately from the code license.

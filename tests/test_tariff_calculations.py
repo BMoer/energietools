@@ -11,9 +11,8 @@ from __future__ import annotations
 
 import pytest
 
+from energietools.capabilities.tariffs.catalog import detect_tariftyp
 from energietools.models import Rechenweg, Tariff, TariffComparison
-from energietools.tools.tariff_compare import _detect_tariftyp, _parse_tariff
-
 
 # =============================================================================
 # 1. GAB-Formel: netto × (1 + GAB) × 1.2 = brutto
@@ -116,101 +115,6 @@ class TestRechenweg:
 
 
 # =============================================================================
-# 3. _parse_tariff() mit Mock-API-Daten
-# =============================================================================
-
-
-class TestParseTariff:
-    """Testet Parsing von E-Control API Response."""
-
-    MOCK_TARIFF = {
-        "brandName": "TestStrom",
-        "productName": "Test Fix 2025",
-        "rateZoningType": "CLASSIC",
-        "calculatedProductEnergyCosts": {
-            "energyRateTotal": 64000.0,  # 3200 kWh × 20 ct/kWh netto = 640 EUR netto
-            "baseRate": 4800.0,  # 48 EUR/Jahr netto = 4 EUR/Mo netto
-            "totalGrossSum": 88473.6,  # API-computed brutto (inkl. 7% GAB + 20% USt)
-            "calculatedFees": [
-                {
-                    "name": "Gebrauchsabgabe Energie",
-                    "appliedToEnergyRate": True,
-                    "proportionalRate": 0.07,
-                    "value": 4816.0,
-                }
-            ],
-        },
-        "calculatedGridCosts": {"totalGrossSum": 47000.0},
-        "productProperties": [{"propName": "CERTIFIED_GREEN_POWER"}],
-    }
-
-    def test_parse_uses_totalGrossSum(self):
-        """Primärpfad: jahreskosten aus totalGrossSum."""
-        tariff = _parse_tariff(self.MOCK_TARIFF, 3200.0, 0.07)
-        assert tariff is not None
-        assert tariff.jahreskosten_eur == 884.74  # 88473.6 / 100 rounded
-
-    def test_parse_display_values_brutto(self):
-        """Display-Werte sind brutto (netto × 1.2)."""
-        tariff = _parse_tariff(self.MOCK_TARIFF, 3200.0, 0.07)
-        assert tariff is not None
-        assert tariff.energiepreis_ct_kwh == 24.0  # 20 netto × 1.2
-        assert tariff.grundgebuehr_eur_monat == 4.8  # 4 netto × 1.2
-
-    def test_parse_rechenweg_present(self):
-        """Rechenweg muss vorhanden sein."""
-        tariff = _parse_tariff(self.MOCK_TARIFF, 3200.0, 0.07)
-        assert tariff is not None
-        assert tariff.rechenweg is not None
-        assert tariff.rechenweg.quelle == "e-control-api"
-        assert tariff.rechenweg.gebrauchsabgabe_rate == 0.07
-
-    def test_parse_rechenweg_netto_values(self):
-        """Rechenweg-Nettowerte aus API-Daten."""
-        tariff = _parse_tariff(self.MOCK_TARIFF, 3200.0, 0.07)
-        rw = tariff.rechenweg
-        assert rw.netto_energie_eur == 640.0  # 64000 / 100
-        assert rw.netto_grund_eur == 48.0  # 4800 / 100
-
-    def test_parse_oekostrom_detected(self):
-        """Ökostrom-Flag wird korrekt erkannt."""
-        tariff = _parse_tariff(self.MOCK_TARIFF, 3200.0, 0.07)
-        assert tariff.ist_oekostrom is True
-
-    def test_parse_complex_tariff_skipped(self):
-        """Spotmarkt-Tarife (COMPLEX) werden übersprungen."""
-        spot = {**self.MOCK_TARIFF, "rateZoningType": "COMPLEX"}
-        assert _parse_tariff(spot, 3200.0, 0.07) is None
-
-    def test_parse_fallback_with_gab(self):
-        """Wenn totalGrossSum=0, wird GAB-Formel als Fallback verwendet."""
-        no_total = dict(self.MOCK_TARIFF)
-        no_total["calculatedProductEnergyCosts"] = {
-            **self.MOCK_TARIFF["calculatedProductEnergyCosts"],
-            "totalGrossSum": 0.0,
-        }
-        tariff = _parse_tariff(no_total, 3200.0, 0.07)
-        assert tariff is not None
-        # Formel: (640 + 48) × 1.07 × 1.2 = 884.736 → 884.74
-        expected = round((640.0 + 48.0) * 1.07 * 1.2, 2)
-        assert tariff.jahreskosten_eur == expected
-        assert tariff.rechenweg.quelle == "berechnet"
-        assert "GAB-Formel" in tariff.rechenweg.hinweis
-
-    def test_parse_fallback_without_gab(self):
-        """Wenn totalGrossSum=0 UND keine GAB bekannt, einfach netto × 1.2."""
-        no_total = dict(self.MOCK_TARIFF)
-        no_total["calculatedProductEnergyCosts"] = {
-            **self.MOCK_TARIFF["calculatedProductEnergyCosts"],
-            "totalGrossSum": 0.0,
-        }
-        tariff = _parse_tariff(no_total, 3200.0, 0.0)  # keine GAB
-        assert tariff is not None
-        expected = round((640.0 + 48.0) * 1.2, 2)  # 825.60
-        assert tariff.jahreskosten_eur == expected
-
-
-# =============================================================================
 # 4. TariffComparison.enrich()
 # =============================================================================
 
@@ -310,7 +214,7 @@ class TestDetectTariftyp:
         ],
     )
     def test_tariftyp_detection(self, name: str, expected: str):
-        assert _detect_tariftyp(name) == expected
+        assert detect_tariftyp(name) == expected
 
 
 # =============================================================================

@@ -64,20 +64,28 @@ python -m energietools tariff_compare --json '{"verbrauch_kwh": 3200,
 
 The auditable core, on the capability spine (`energietools/capabilities/`):
 
+Every capability has one shape — `run(**kwargs) -> CapabilityResult` — and self-registers into the CLI and agent. List them with `python -m energietools list`.
+
 | Capability | Description |
 |------------|-------------|
 | `tariff_catalog` | Query the Open-Data catalog of Austrian electricity tariffs (net list prices), filter by type / Ökostrom / provider / contract lock-in |
 | `tariff_compare` | Compare a current tariff (invoice prices) against the catalog — offline, with a full `Rechenweg` per tariff |
+| `tariff_advice` | Join scanned invoice data with the catalog into one auditable comparison (the invoice → comparison pillar) |
+| `community_metrics` | Energy-community metrics (SSR/self-sufficiency, SCR/self-consumption, Reststrom, Überschuss) from generation+consumption series |
+| `battery_sim`, `pv_sim`, `beg_advisor`, `spot_analysis`, `load_profile`, `energy_monitor`, `web_search` | Existing deterministic tools, bridged onto the spine via `FunctionCapability` (lazy-imported) |
 
 The catalog (`energietools/data/tariffs/catalog.json` + `MANIFEST.json`) is a versioned, first-party snapshot. Provenance and license are in the MANIFEST. The scrapers that produce it are **not** part of this repo (they stay proprietary); only the resulting data is published here.
 
 ## Available Tools
 
-> Migrating onto the capability spine (see Roadmap). Today still the legacy `tools/` form:
+> The remaining `tools/` not yet on the spine:
 
 | Tool | Description |
 |------|-------------|
-| `gas_compare` | Compare gas tariffs via E-Control API (not yet migrated) |
+| `gas_compare` | Compare gas tariffs via E-Control API (E-Control migration pending, like the electricity pivot) |
+| `smartmeter` | Smart meter data access — needs live credentials (kept off the JSON-callable spine) |
+| `switching` | Generate Vollmacht PDF (file side-effect, kept off the spine) |
+| `invoice_parser` | OCR electricity-bill parsing (LLM/Vision) — feeds `tariff_advice` |
 | `load_profile` | Analyze smart meter load profiles (FDA anomaly detection, heatmaps) |
 | `spot_analysis` | Spot tariff analysis using ENTSO-E day-ahead prices |
 | `battery_sim` | Home battery storage simulation (2/5/10/15 kWh scenarios) |
@@ -132,10 +140,11 @@ print(result)
 
 ## Roadmap
 
-This repo is mid-migration onto the capability spine.
+The repo is on the capability spine.
 
-- **Done:** capability spine, Open-Data tariff catalog, auditable offline `tariff_compare`, E-Control electricity client removed.
-- **Next:** join invoice scanning (`invoice_parser`) + tariff comparison into one auditable flow; migrate the remaining tools (spot, pv, battery, beg, gas, smartmeter) onto the spine; bring in the EEG community-analysis metrics (SSR/SCR/Reststrom).
+- **Done (Phase 1):** capability spine, Open-Data tariff catalog, auditable offline `tariff_compare`, E-Control electricity client removed.
+- **Done (Phase 2):** `tariff_advice` (invoice → catalog comparison, the auditable pillar); `community_metrics` (EEG/BEG SSR/SCR/Reststrom/Überschuss); existing deterministic tools bridged onto the spine via `FunctionCapability`.
+- **Next:** migrate `gas_compare` off E-Control; spine adapters for `smartmeter`/`switching` (credentials / file side-effects); deeper EEG analysis (temporal, EPEX correlation, AT extrapolation); finalize the data license.
 
 The boundary: the **auditable business logic** (tariff data, invoice scanning, comparison) is open here; the machinery that produces the data (scrapers, hosting, UI) stays proprietary.
 

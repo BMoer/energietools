@@ -14,16 +14,25 @@ from __future__ import annotations
 from functools import lru_cache
 
 from energietools.capabilities.base import CapabilityRegistry
+from energietools.capabilities.community.capability import CommunityMetricsCapability
+from energietools.capabilities.tariffs.advice import TariffAdviceCapability
 from energietools.capabilities.tariffs.capability import (
     TariffCatalogCapability,
     TariffCompareCapability,
 )
+from energietools.capabilities.tools_bridge import register_tool_capabilities
 
 
 @lru_cache(maxsize=1)
 def default_registry() -> CapabilityRegistry:
     """Zentrale Registry aller ausgelieferten Capabilities (gecacht)."""
     registry = CapabilityRegistry()
+    # Auditierbarer Kern: Open-Data-Tarife + Rechnungs-Zusammenführung.
     registry.register(TariffCatalogCapability())
     registry.register(TariffCompareCapability())
+    registry.register(TariffAdviceCapability())
+    # Energiegemeinschafts-Kennzahlen (EEG/BEG).
+    registry.register(CommunityMetricsCapability())
+    # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
+    register_tool_capabilities(registry)
     return registry

@@ -5,6 +5,10 @@
 
 from __future__ import annotations
 
+from energietools.capabilities.tariffs.advice import (
+    TariffAdviceCapability,
+    advise_from_invoice,
+)
 from energietools.capabilities.tariffs.capability import (
     TariffCatalogCapability,
     TariffCompareCapability,
@@ -16,9 +20,11 @@ from energietools.capabilities.tariffs.models import CatalogManifest, CatalogTar
 __all__ = [
     "CatalogManifest",
     "CatalogTariff",
+    "TariffAdviceCapability",
     "TariffCatalog",
     "TariffCatalogCapability",
     "TariffCompareCapability",
+    "advise_from_invoice",
     "compare_against_catalog",
     "detect_tariftyp",
 ]

@@ -109,6 +109,67 @@ class Capability(ABC):
         }
 
 
+class FunctionCapability(Capability):
+    """Hängt eine bestehende Funktion als Capability ans Rückgrat.
+
+    Erlaubt, vorhandene ``tools/``-Funktionen ohne Umschreiben einheitlich
+    verfügbar zu machen. ``target`` ist ein Callable **oder** ein
+    ``"modul:funktion"``-Pfad, der **lazy** (erst beim Aufruf) importiert wird —
+    so ziehen optionale Schwer-Abhängigkeiten (numpy, fpdf …) nicht schon beim
+    Registrieren. Pydantic-Rückgaben werden zu JSON-fähigen Dicts normalisiert.
+    """
+
+    name = "function"
+    summary = "Funktions-Wrapper"
+
+    def __init__(
+        self,
+        *,
+        name: str,
+        summary: str,
+        target: str | Any,
+        input_schema: dict[str, Any] | None = None,
+    ) -> None:
+        if not name or not summary:
+            raise ValueError("FunctionCapability braucht name und summary")
+        self.name = name
+        self.summary = summary
+        self.input_schema = input_schema or {"type": "object", "properties": {}}
+        self._target = target
+
+    def _resolve(self) -> Any:
+        if callable(self._target):
+            return self._target
+        module_path, _, func_name = str(self._target).partition(":")
+        if not module_path or not func_name:
+            raise CapabilityError(f"Ungültiges target '{self._target}' (erwartet 'modul:funktion')")
+        try:
+            import importlib
+
+            module = importlib.import_module(module_path)
+            fn = getattr(module, func_name)
+        except (ImportError, AttributeError) as exc:
+            raise CapabilityError(f"target '{self._target}' nicht ladbar: {exc}") from exc
+        if not callable(fn):
+            raise CapabilityError(f"target '{self._target}': '{func_name}' ist nicht aufrufbar")
+        return fn
+
+    @staticmethod
+    def _to_jsonable(value: Any) -> Any:
+        if hasattr(value, "model_dump"):
+            return value.model_dump()
+        if isinstance(value, (list, tuple)):
+            return [FunctionCapability._to_jsonable(v) for v in value]
+        if isinstance(value, (str, int, float, bool, dict)) or value is None:
+            return value
+        # Unbekannter Typ: nicht still verschlucken — sichtbar protokollieren.
+        log.warning("FunctionCapability: unbekannter Rückgabetyp %s — str()-Fallback", type(value))
+        return str(value)
+
+    def _run(self, **kwargs: Any) -> Any:
+        return self._to_jsonable(self._resolve()(**kwargs))
+
+
 class CapabilityRegistry:
     """Sammelt Capabilities und erzeugt daraus Agent-/CLI-Oberflächen."""
 

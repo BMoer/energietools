@@ -15,6 +15,12 @@ from functools import lru_cache
 
 from energietools.capabilities.base import CapabilityRegistry
 from energietools.capabilities.community.capability import CommunityMetricsCapability
+from energietools.capabilities.netz.capability import (
+    GesamtkostenCapability,
+    NetzkostenCapability,
+    TarifvergleichInklNetzCapability,
+    VerfuegbarkeitCapability,
+)
 from energietools.capabilities.tariffs.advice import TariffAdviceCapability
 from energietools.capabilities.tariffs.capability import (
     TariffCatalogCapability,
@@ -33,6 +39,11 @@ def default_registry() -> CapabilityRegistry:
     registry.register(TariffAdviceCapability())
     # Energiegemeinschafts-Kennzahlen (EEG/BEG).
     registry.register(CommunityMetricsCapability())
+    # Netz: regulierte Netzkosten, Gesamtkosten, Verfügbarkeit, Tarifvergleich inkl. Netz.
+    registry.register(NetzkostenCapability())
+    registry.register(GesamtkostenCapability())
+    registry.register(VerfuegbarkeitCapability())
+    registry.register(TarifvergleichInklNetzCapability())
     # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
     register_tool_capabilities(registry)
     return registry

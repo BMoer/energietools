@@ -1,0 +1,34 @@
+{
+ "gueltig_ab": "2026",
+ "federal": {
+  "eag_foerderbeitrag_ap_ct_kwh": 0.583,
+  "eag_foerderbeitrag_verlust_ct_kwh": 0.037,
+  "eag_foerderpauschale_eur_jahr": 19.02,
+  "elektrizitaetsabgabe_haushalt_ct_kwh": 0.1,
+  "quelle": "EAG-Förderbeitrags-/Förderpauschale-Verordnung 2025/2026; Elektrizitätsabgabegesetz (Haushalt 0,1 ct/kWh = temporäre 2026-Senkung von regulär 1,5 ct/kWh)."
+ },
+ "gebrauchsabgabe": {
+  "basis": "energie_netto",
+  "hinweis": "Anteil auf den Energie-Netto (cost_engine-Konvention). Landes-/gemeindespezifisch; nur verifizierte Sätze, sonst 0 (ehrlich, nicht erfunden).",
+  "regeln": [
+   {
+    "match": {
+     "gemeinde": "Wien"
+    },
+    "rate": 0.07,
+    "quelle": "Wiener Gebrauchsabgabegesetz — 7 % ab 01.03.2026"
+   },
+   {
+    "match": {
+     "bundesland": [
+      "Burgenland",
+      "Vorarlberg"
+     ]
+    },
+    "rate": 0.0,
+    "quelle": "kein Landes-Gebrauchsabgabegesetz"
+   }
+  ],
+  "default": 0.0
+ }
+}

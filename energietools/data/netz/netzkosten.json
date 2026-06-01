@@ -1,0 +1,107 @@
+[
+ {
+  "key": "energienetze_steiermark",
+  "name": "Energienetze Steiermark GmbH",
+  "bundesland": "Steiermark",
+  "enclaves": [
+   "Graz"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 8.82,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.336,
+  "gueltig_ab": "2026-04-01",
+  "quelle": "https://www.e-netze.at/downloads-data/pdf.aspx?pdf=EN_Preisblatt_Strom_01042026_barrierefrei.pdf"
+ },
+ {
+  "key": "kaernten_netz",
+  "name": "KNG-Kärnten Netz GmbH",
+  "bundesland": "Kärnten",
+  "enclaves": [],
+  "netznutzung_arbeitspreis_ct_kwh": 9.67,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.368,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://kaerntennetz.at/dokumente/Strom/Preisblatt_Strom.pdf"
+ },
+ {
+  "key": "netz_burgenland",
+  "name": "Netz Burgenland GmbH",
+  "bundesland": "Burgenland",
+  "enclaves": [],
+  "netznutzung_arbeitspreis_ct_kwh": 8.46,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.0,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://assets.netzburgenland.at/Tarifblatt_Strom_gueltig_ab_1_1_2026_ebfae30e42.pdf"
+ },
+ {
+  "key": "netz_noe",
+  "name": "Netz Niederösterreich GmbH",
+  "bundesland": "Niederösterreich",
+  "enclaves": [],
+  "netznutzung_arbeitspreis_ct_kwh": 8.79,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.384,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://netz-noe.at/getContentAsset/514ea02f-7393-40f3-bcd9-dd6f77b47719/0ee16eb8-9692-4f25-b8a4-d007b35915a4/B410_Systemnutzungstarife-Strom.pdf"
+ },
+ {
+  "key": "netz_ooe",
+  "name": "Netz Oberösterreich GmbH",
+  "bundesland": "Oberösterreich",
+  "enclaves": [
+   "Linz"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 6.29,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.528,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.netzooe.at/"
+ },
+ {
+  "key": "salzburg_netz",
+  "name": "Salzburg Netz GmbH",
+  "bundesland": "Salzburg",
+  "enclaves": [],
+  "netznutzung_arbeitspreis_ct_kwh": 6.59,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.357,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.salzburgnetz.at/content/dam/salzburgnetz/dokumente/stromnetz/Strom_Netztarif_NE7_aktuell.pdf"
+ },
+ {
+  "key": "tinetz",
+  "name": "TINETZ-Tiroler Netze GmbH",
+  "bundesland": "Tirol",
+  "enclaves": [
+   "Innsbruck"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 6.81,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.293,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
+ },
+ {
+  "key": "vorarlberg_netz",
+  "name": "Vorarlberger Energienetze GmbH",
+  "bundesland": "Vorarlberg",
+  "enclaves": [],
+  "netznutzung_arbeitspreis_ct_kwh": 4.96,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.393,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.vorarlbergnetz.at/media/Preisblatt_NNE_2026Strom.pdf"
+ },
+ {
+  "key": "wiener_netze",
+  "name": "Wiener Netze GmbH",
+  "bundesland": "Wien",
+  "enclaves": [],
+  "netznutzung_arbeitspreis_ct_kwh": 6.98,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.7,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.wienernetze.at/o/document/wn_ex0105-netznutzungs-und-netzverlustentgelt_2026_geschutzt"
+ }
+]

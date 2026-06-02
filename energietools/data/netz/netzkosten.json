@@ -1,11 +1,26 @@
 [
  {
+  "key": "energie_graz",
+  "name": "Energie Graz GmbH & Co KG",
+  "bundesland": "Steiermark",
+  "enclaves": [],
+  "gemeinden": [
+   "Graz"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 5.17,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.658,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
+ },
+ {
   "key": "energienetze_steiermark",
   "name": "Energienetze Steiermark GmbH",
   "bundesland": "Steiermark",
   "enclaves": [
    "Graz"
   ],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 8.82,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.336,
@@ -13,10 +28,41 @@
   "quelle": "https://www.e-netze.at/downloads-data/pdf.aspx?pdf=EN_Preisblatt_Strom_01042026_barrierefrei.pdf"
  },
  {
+  "key": "evk",
+  "name": "Energieversorgung Kleinwalsertal GmbH (EVK)",
+  "bundesland": "Vorarlberg",
+  "enclaves": [],
+  "gemeinden": [
+   "Mittelberg"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 17.73,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.401,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
+ },
+ {
+  "key": "ikb",
+  "name": "Innsbrucker Kommunalbetriebe AG (IKB)",
+  "bundesland": "Tirol",
+  "enclaves": [],
+  "gemeinden": [
+   "Innsbruck"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 8.03,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.453,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
+ },
+ {
   "key": "kaernten_netz",
   "name": "KNG-Kärnten Netz GmbH",
   "bundesland": "Kärnten",
-  "enclaves": [],
+  "enclaves": [
+   "Klagenfurt am Wörthersee"
+  ],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 9.67,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.368,
@@ -24,10 +70,25 @@
   "quelle": "https://kaerntennetz.at/dokumente/Strom/Preisblatt_Strom.pdf"
  },
  {
+  "key": "linz_netz",
+  "name": "LINZ NETZ GmbH",
+  "bundesland": "Oberösterreich",
+  "enclaves": [],
+  "gemeinden": [
+   "Linz"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 5.57,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.487,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
+ },
+ {
   "key": "netz_burgenland",
   "name": "Netz Burgenland GmbH",
   "bundesland": "Burgenland",
   "enclaves": [],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 8.46,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.0,
@@ -39,6 +100,7 @@
   "name": "Netz Niederösterreich GmbH",
   "bundesland": "Niederösterreich",
   "enclaves": [],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 8.79,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.384,
@@ -52,6 +114,7 @@
   "enclaves": [
    "Linz"
   ],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 6.29,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.528,
@@ -63,11 +126,26 @@
   "name": "Salzburg Netz GmbH",
   "bundesland": "Salzburg",
   "enclaves": [],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 6.59,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.357,
   "gueltig_ab": "2026-01-01",
   "quelle": "https://www.salzburgnetz.at/content/dam/salzburgnetz/dokumente/stromnetz/Strom_Netztarif_NE7_aktuell.pdf"
+ },
+ {
+  "key": "stadtwerke_klagenfurt",
+  "name": "Stadtwerke Klagenfurt",
+  "bundesland": "Kärnten",
+  "enclaves": [],
+  "gemeinden": [
+   "Klagenfurt am Wörthersee"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 6.9,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.578,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
  },
  {
   "key": "tinetz",
@@ -76,6 +154,7 @@
   "enclaves": [
    "Innsbruck"
   ],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 6.81,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.293,
@@ -86,7 +165,10 @@
   "key": "vorarlberg_netz",
   "name": "Vorarlberger Energienetze GmbH",
   "bundesland": "Vorarlberg",
-  "enclaves": [],
+  "enclaves": [
+   "Mittelberg"
+  ],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 4.96,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.393,
@@ -98,6 +180,7 @@
   "name": "Wiener Netze GmbH",
   "bundesland": "Wien",
   "enclaves": [],
+  "gemeinden": [],
   "netznutzung_arbeitspreis_ct_kwh": 6.98,
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.7,

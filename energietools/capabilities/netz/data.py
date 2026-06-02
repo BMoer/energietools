@@ -42,11 +42,36 @@ def _read_data(filename: str) -> str:
 
 @lru_cache(maxsize=1)
 def load_netzkosten() -> tuple[NetzkostenEntry, ...]:
-    """Lädt + parst netzkosten.json (gecacht; Tupel = immutable)."""
+    """Lädt + parst netzkosten.json (gecacht; Tupel = immutable).
+
+    Das sind die **Tarif-Netzbereiche** (die 14 mit eigenem NE7-Tarif).
+    """
     raw = json.loads(_read_data("netzkosten.json"))
     if not isinstance(raw, list):
         raise CapabilityError("netzkosten.json: erwartet eine Liste von Netzbereichen")
     return tuple(NetzkostenEntry(**entry) for entry in raw)
+
+
+@lru_cache(maxsize=1)
+def load_attribution() -> tuple[NetzkostenEntry, ...]:
+    """Lädt vnb_attribution.json (Attributions-VNB: realer Name + tarif_referenz).
+
+    Fail-open: fehlt die Datei (älterer Snapshot), wird ein leeres Tupel
+    zurückgegeben — die Tarif-Auflösung funktioniert dann ohne Namens-Attribution.
+    """
+    try:
+        raw = json.loads(_read_data("vnb_attribution.json"))
+    except CapabilityError:
+        return ()
+    if not isinstance(raw, list):
+        return ()
+    return tuple(NetzkostenEntry(**entry) for entry in raw)
+
+
+@lru_cache(maxsize=1)
+def load_alle_vnb() -> tuple[NetzkostenEntry, ...]:
+    """Alle VNB für die Auflösung: Tarif-Netzbereiche + Attributions-VNB."""
+    return load_netzkosten() + load_attribution()
 
 
 @lru_cache(maxsize=1)

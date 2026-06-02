@@ -147,6 +147,11 @@ The repo is on the capability spine.
 
 The boundary: the **auditable business logic** (tariff data, invoice scanning, comparison) is open here; the machinery that produces the data (scrapers, hosting, UI) stays proprietary.
 
+## Documentation
+
+- **[METHODIK.md](METHODIK.md)** — how the data (tariffs + network costs) is collected & validated: First-Party + statutory sources, the SNE-V cross-check (no external calculator), the 14 NE7-Netzbereiche, the attribution layer, fail-open discipline, and a reviewer checklist.
+- **[NETZKOSTEN_UND_GEBUEHREN.md](NETZKOSTEN_UND_GEBUEHREN.md)** — knowledge reference (LLM-wiki source): how an Austrian household electricity price is composed — network costs, levies, taxes, and how they interact with the competitive energy price — with the full Rechenweg and a worked example.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

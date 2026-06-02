@@ -1,0 +1,29 @@
+[
+ {
+  "key": "stadtwerke_feldkirch",
+  "name": "Stadtwerke Feldkirch",
+  "bundesland": "Vorarlberg",
+  "gemeinden": [
+   "Feldkirch"
+  ],
+  "tarif_referenz": "vorarlberg_netz"
+ },
+ {
+  "key": "stadtwerke_kapfenberg",
+  "name": "Stadtwerke Kapfenberg GmbH",
+  "bundesland": "Steiermark",
+  "gemeinden": [
+   "Kapfenberg"
+  ],
+  "tarif_referenz": "energienetze_steiermark"
+ },
+ {
+  "key": "stadtwerke_kufstein",
+  "name": "Stadtwerke Kufstein GmbH",
+  "bundesland": "Tirol",
+  "gemeinden": [
+   "Kufstein"
+  ],
+  "tarif_referenz": "tinetz"
+ }
+]

@@ -15,6 +15,11 @@
   "bundesland": "Oberösterreich"
  },
  {
+  "plz": "4030",
+  "gemeinde": "Linz",
+  "bundesland": "Oberösterreich"
+ },
+ {
   "plz": "4600",
   "gemeinde": "Wels",
   "bundesland": "Oberösterreich"
@@ -35,8 +40,23 @@
   "bundesland": "Tirol"
  },
  {
+  "plz": "6330",
+  "gemeinde": "Kufstein",
+  "bundesland": "Tirol"
+ },
+ {
+  "plz": "6800",
+  "gemeinde": "Feldkirch",
+  "bundesland": "Vorarlberg"
+ },
+ {
   "plz": "6900",
   "gemeinde": "Bregenz",
+  "bundesland": "Vorarlberg"
+ },
+ {
+  "plz": "6991",
+  "gemeinde": "Mittelberg",
   "bundesland": "Vorarlberg"
  },
  {
@@ -50,6 +70,11 @@
   "bundesland": "Steiermark"
  },
  {
+  "plz": "8020",
+  "gemeinde": "Graz",
+  "bundesland": "Steiermark"
+ },
+ {
   "plz": "8160",
   "gemeinde": "Naas",
   "bundesland": "Steiermark"
@@ -60,6 +85,11 @@
   "bundesland": "Steiermark"
  },
  {
+  "plz": "8605",
+  "gemeinde": "Kapfenberg",
+  "bundesland": "Steiermark"
+ },
+ {
   "plz": "8700",
   "gemeinde": "Leoben",
   "bundesland": "Steiermark"
@@ -67,6 +97,11 @@
  {
   "plz": "9020",
   "gemeinde": "Magdalensberg",
+  "bundesland": "Kärnten"
+ },
+ {
+  "plz": "9073",
+  "gemeinde": "Klagenfurt am Wörthersee",
   "bundesland": "Kärnten"
  }
 ]

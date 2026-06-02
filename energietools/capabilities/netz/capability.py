@@ -25,6 +25,7 @@ from energietools.capabilities.netz.resolve import (
     netzkosten_brutto_eur,
     plz_info,
     resolve_netzbetreiber,
+    tarif_fuer,
 )
 from energietools.capabilities.tariffs.compare import compare_against_catalog
 
@@ -68,8 +69,9 @@ class NetzkostenCapability(Capability):
         verbrauch = _require_positive(kwargs, "verbrauch_kwh")
 
         nb = resolve_netzbetreiber(plz)
-        if nb is None:
-            # Fail-open: kein eindeutiger VNB → keine Netzkosten erfunden.
+        tarif = tarif_fuer(nb) if nb is not None else None
+        if nb is None or tarif is None:
+            # Fail-open: kein eindeutiger VNB/Tarif → keine Netzkosten erfunden.
             return {
                 "netzbetreiber": None,
                 "netzkosten_eur_jahr_brutto": 0.0,
@@ -79,39 +81,41 @@ class NetzkostenCapability(Capability):
             }
 
         abgaben = load_abgaben()
+        # Realer Name (nb.name), Tarif aus dem effektiven Netzbereich (tarif.*).
         brutto, name = netzkosten_brutto_eur(plz, verbrauch)
         arbeitspreis_ct = (
-            nb.netznutzung_arbeitspreis_ct_kwh
-            + nb.netzverlust_ct_kwh
+            tarif.netznutzung_arbeitspreis_ct_kwh
+            + tarif.netzverlust_ct_kwh
             + abgaben.eag_foerderbeitrag_ap_ct_kwh
             + abgaben.eag_foerderbeitrag_verlust_ct_kwh
             + abgaben.elektrizitaetsabgabe_haushalt_ct_kwh
         )
-        pauschale_eur = nb.netznutzung_pauschale_eur_jahr + abgaben.eag_foerderpauschale_eur_jahr
+        pauschale_eur = tarif.netznutzung_pauschale_eur_jahr + abgaben.eag_foerderpauschale_eur_jahr
         netto = arbeitspreis_ct * verbrauch / 100.0 + pauschale_eur
         return {
             "netzbetreiber": name,
+            "netzbereich": tarif.name if tarif.key != nb.key else None,
             "netzkosten_eur_jahr_brutto": brutto,
             "rechenweg": {
                 "komponenten": {
                     "verbrauch_kwh": verbrauch,
-                    "netznutzung_arbeitspreis_ct_kwh": nb.netznutzung_arbeitspreis_ct_kwh,
-                    "netzverlust_ct_kwh": nb.netzverlust_ct_kwh,
+                    "netznutzung_arbeitspreis_ct_kwh": tarif.netznutzung_arbeitspreis_ct_kwh,
+                    "netzverlust_ct_kwh": tarif.netzverlust_ct_kwh,
                     "eag_foerderbeitrag_ap_ct_kwh": abgaben.eag_foerderbeitrag_ap_ct_kwh,
                     "eag_foerderbeitrag_verlust_ct_kwh": abgaben.eag_foerderbeitrag_verlust_ct_kwh,
                     "elektrizitaetsabgabe_haushalt_ct_kwh": (
                         abgaben.elektrizitaetsabgabe_haushalt_ct_kwh
                     ),
                     "arbeitspreis_summe_ct_kwh": round(arbeitspreis_ct, 4),
-                    "netznutzung_pauschale_eur_jahr": nb.netznutzung_pauschale_eur_jahr,
+                    "netznutzung_pauschale_eur_jahr": tarif.netznutzung_pauschale_eur_jahr,
                     "eag_foerderpauschale_eur_jahr": abgaben.eag_foerderpauschale_eur_jahr,
                     "netto_eur_jahr": round(netto, 2),
                     "ust_faktor": _UST,
                     "brutto_eur_jahr": brutto,
                 },
             },
-            "gueltig_ab": nb.gueltig_ab,
-            "quelle": nb.quelle,
+            "gueltig_ab": tarif.gueltig_ab,
+            "quelle": tarif.quelle,
         }
 
 

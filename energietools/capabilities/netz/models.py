@@ -22,8 +22,15 @@ class NetzkostenEntry(BaseModel):
     uniform und kommen als föderale Konstanten aus ``abgaben.json`` (siehe
     :class:`Abgaben`) in die Jahreskosten-Formel.
 
-    ``enclaves`` listet Gemeinde-Namen, die dieser VNB NICHT versorgt
-    (eigene Stadtwerke innerhalb des Bundeslandes).
+    Zwei Gebiets-Modelle:
+    - **Landes-VNB** (``gemeinden`` leer): versorgt sein Bundesland per Exklusion —
+      alles außer ``enclaves`` (eigene Stadtwerke).
+    - **Stadt-/Enklaven-VNB** (``gemeinden`` gesetzt): versorgt per Inklusion genau
+      die gelisteten Gemeinden (Linz/Graz/Innsbruck/Klagenfurt/Kleinwalsertal).
+
+    **Attributions-VNB** tragen zusätzlich ``tarif_referenz`` (key des Netzbereich-
+    VNB, dessen Tarif gilt) und haben dann AP/Pauschale/Verlust = 0 (Tarif via
+    Referenz, kein Wert-Duplikat).
     """
 
     model_config = ConfigDict(frozen=True)
@@ -33,13 +40,23 @@ class NetzkostenEntry(BaseModel):
     bundesland: str = Field(description="Bundesland des Versorgungsgebiets")
     enclaves: tuple[str, ...] = Field(
         default=(),
-        description="Gemeinde-Namen, die dieser VNB NICHT versorgt (eigene Stadtwerke)",
+        description="Landes-VNB: Gemeinden, die dieser VNB NICHT versorgt (eigene Stadtwerke)",
     )
-    netznutzung_arbeitspreis_ct_kwh: float = Field(description="Netznutzung Arbeitspreis ct/kWh")
+    gemeinden: tuple[str, ...] = Field(
+        default=(),
+        description="Stadt-/Enklaven-VNB: per Inklusion versorgte Gemeinden (leer = Landes-VNB)",
+    )
+    netznutzung_arbeitspreis_ct_kwh: float = Field(
+        default=0.0, description="Netznutzung Arbeitspreis ct/kWh (0 bei Attributions-VNB)"
+    )
     netznutzung_pauschale_eur_jahr: float = Field(
-        description="Netznutzung Pauschale EUR/Jahr (Grundpreis + Messentgelt)"
+        default=0.0, description="Netznutzung Pauschale EUR/Jahr (Grundpreis + Messentgelt)"
     )
-    netzverlust_ct_kwh: float = Field(description="Netzverlust-Entgelt ct/kWh")
+    netzverlust_ct_kwh: float = Field(default=0.0, description="Netzverlust-Entgelt ct/kWh")
+    tarif_referenz: str = Field(
+        default="",
+        description="Attributions-VNB: key des Netzbereich-VNB, dessen Tarif gilt",
+    )
     gueltig_ab: str = Field(default="", description="Gültig ab (ISO-Datum, z.B. '2026-01-01')")
     quelle: str = Field(default="", description="Quelle des Preisblatts (URL/Behörde)")
 

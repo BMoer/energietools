@@ -112,7 +112,17 @@ mitgeführt und ist damit Zeile für Zeile von Hand prüfbar.
 - **Netzkosten je Netzbereich:** aus den **offiziellen Netzbetreiber-Preisblättern**
   (`data/netz/netzkosten.json`). Pro Netzbereich werden erhoben:
   `netznutzung_arbeitspreis_ct_kwh`, `netznutzung_pauschale_eur_jahr` und
-  `netzverlust_ct_kwh`, jeweils mit `gueltig_ab` und `quelle` (Preisblatt-URL).
+  `netzverlust_ct_kwh`, jeweils mit `gueltig_ab` und `quelle` (Preisblatt-URL). Jeder
+  Eintrag trägt zusätzlich `gemeinden` (Inklusionsliste der Stadt-/Enklaven-VNB), damit
+  der Resolver inklusion-first auflösen kann.
+- **Genau 14 NE7-Netzbereiche.** Die Novelle 2026 ersetzt (§ 5 Abs. 1 Z 6 „lautet:") die
+  NE7-Tarifliste vollständig durch **14 Netzbereiche**: 9 Bundesländer + 4 Stadt-
+  Netzbereiche (Linz, Graz, Innsbruck, Klagenfurt) + Kleinwalsertal. Das ist die
+  **vollständige** Liste — jeder der ~119 VNB billt einen dieser 14 Tarife.
+- **Attributions-VNB** (`data/netz/vnb_attribution.json`): kleine Stadtwerke (z. B.
+  Stadtwerke Kapfenberg) tragen einen **realen Namen** + `tarif_referenz` auf ihren
+  Netzbereich-VNB — Tarif via Referenz, **kein Wert-Duplikat**. So zeigt der Resolver den
+  tatsächlichen Betreiber, ohne einen zweiten Tarif zu führen.
 - **Autoritative Gesamttabelle:** die **SNE-V 2018 – Novelle 2026 (BGBl. II Nr. 305/2025)**
   dient als verordnungsseitige Gesamttabelle der Systemnutzungsentgelte, gegen die jeder
   einzelne Preisblatt-Wert gegengeprüft wird.
@@ -126,8 +136,19 @@ mitgeführt und ist damit Zeile für Zeile von Hand prüfbar.
 - **Preisblatt ↔ SNE-V-Verordnung Cross-Check, je Netzbereich.** Für jeden erfassten VNB
   wird der Preisblatt-Wert **exakt gegen die Verordnung** (BGBl. II Nr. 305/2025)
   bestätigt. Stimmt Preisblatt und Verordnung nicht überein, wird der Netzbereich **nicht**
-  als `ok` gezählt. Aktueller Stand: alle erfassten VNB sind so bestätigt
-  (`netzbereich_coverage.ok = 9`).
+  als `ok` gezählt. Aktueller Stand: **alle 14 Netzbereiche** sind so bestätigt
+  (`netzbereich_coverage.ok = 14`) → **vollständige NE7-Kosten-Abdeckung**.
+- **Adversariale Doppel-Lesung.** Jeder NE7-Wert wird zweifach unabhängig aus dem
+  (gerenderten) Tabellen-PDF gelesen und gegen die SNE-V-Zeile abgeglichen. Die
+  typischen Fallen werden explizit ausgeschlossen: **AP** (rund um die Uhr), nicht
+  SNAP/DTAP/DNAP; **Entnehmer-Verlust**, nicht der bundesweite Einspeiserwert
+  0,279 ct/kWh; Zeile **„nicht gemessene Leistung"**, nicht „gemessene Leistung".
+- **Long-Tail-Befund (Novelle 2026):** Die ~105 kleinen Stadtwerke haben **keinen eigenen
+  NE7-Tarif** mehr — empirisch an 3 Preisblättern 2026 bestätigt (Stadtwerke Kufstein =
+  Bereich Tirol, Kapfenberg = Steiermark, Feldkirch = Vorarlberg). Bis Novelle 2025
+  bestehende Eigen-Tarife (z. B. Kapfenberg 9,13) wurden konsolidiert. Sie werden daher
+  **nicht** als eigene Netzbereiche geführt, sondern als Attributions-VNB (realer Name,
+  Tarif via Referenz).
 - **Föderale Konstanten** stammen direkt aus den Verordnungen und sind damit selbst die
   autoritative Quelle — sie sind nicht aus Sekundärquellen abgeleitet.
 
@@ -168,11 +189,12 @@ ein offizielles Preisblatt **und** auf die Verordnung zurückführbar.
 
 ## 4. Ehrlichkeit & Grenzen
 
-- **Coverage-Ledger.** Wir behaupten keine flächendeckende Erfassung, die wir nicht haben.
-  Der Stand steht explizit im MANIFEST: `netzbereich_coverage = 9 / 119` Landes-VNB. Die 9
-  erfassten Netzbereiche decken die **Landes-Netzbetreiber aller 9 Bundesländer** ab und
-  damit den **Bevölkerungs-Großteil** Österreichs; die verbleibenden ~110 sind kleine
-  lokale/kommunale Netze.
+- **Coverage-Ledger.** Der Stand steht explizit im MANIFEST: `netzbereich_coverage = 14`
+  von 14 NE7-Netzbereichen der Novelle 2026 → **vollständige Kosten-Abdeckung**: jede
+  österreichische Gemeinde löst auf einen korrekten NE7-Tarif auf. Die ~105 kleinen
+  Stadtwerke sind **keine** eigenen Netzbereiche (sie billen den Tarif ihres
+  Netzbereichs); sie werden als Attributions-VNB (realer Name) geführt — derzeit eine
+  erste Charge (Kapfenberg/Kufstein/Feldkirch), additiv erweiterbar ohne Kostenwirkung.
 - **Fail-open bei Unbekanntem.** Ist eine PLZ bzw. ein Netzbereich nicht erfasst, werden
   **keine Netzkosten geschätzt oder erfunden** — es wird keine Zahl behauptet, die wir
   nicht aus einem Preisblatt belegen können. Der `disclaimer` im MANIFEST sagt das
@@ -193,8 +215,12 @@ Die Methodik ist nicht nur beschrieben, sondern **ausführbar prüfbar**:
 
 - **Versionierte Snapshots.** Alle Daten liegen versioniert im Repo:
   - `data/tariffs/catalog.json` + `data/tariffs/MANIFEST.json`
-  - `data/netz/netzkosten.json`, `data/netz/abgaben.json`,
+  - `data/netz/netzkosten.json` (14 Tarif-Netzbereiche, mit `gemeinden`),
+    `data/netz/vnb_attribution.json` (Attributions-VNB), `data/netz/abgaben.json`,
     `data/netz/plz_netzbereich.json` + `data/netz/MANIFEST.json`
+- **Inhaltliche Erklärung.** Wie sich der Strompreis aus Netzkosten + Abgaben + Energie +
+  USt zusammensetzt (Hintergrund, Formel, Rechenbeispiel) steht in
+  [`NETZKOSTEN_UND_GEBUEHREN.md`](NETZKOSTEN_UND_GEBUEHREN.md).
 - **MANIFEST je Schicht.** Jedes MANIFEST trägt: `generated_at` (Stand),
   `coverage`/`provider_coverage`/`netzbereich_coverage`, `provenance` (Quellenbeschreibung),
   `license: MIT` sowie eine `provenance`-Beschreibung der Quellen (First-Party-Preisblätter + Verordnungen).

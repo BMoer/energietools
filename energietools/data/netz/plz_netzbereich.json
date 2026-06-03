@@ -1,0 +1,107 @@
+[
+ {
+  "plz": "1010",
+  "gemeinde": "Wien",
+  "bundesland": "Wien"
+ },
+ {
+  "plz": "3100",
+  "gemeinde": "St. Pölten",
+  "bundesland": "Niederösterreich"
+ },
+ {
+  "plz": "4020",
+  "gemeinde": "Leonding",
+  "bundesland": "Oberösterreich"
+ },
+ {
+  "plz": "4030",
+  "gemeinde": "Linz",
+  "bundesland": "Oberösterreich"
+ },
+ {
+  "plz": "4600",
+  "gemeinde": "Wels",
+  "bundesland": "Oberösterreich"
+ },
+ {
+  "plz": "5020",
+  "gemeinde": "Salzburg",
+  "bundesland": "Salzburg"
+ },
+ {
+  "plz": "6020",
+  "gemeinde": "Innsbruck",
+  "bundesland": "Tirol"
+ },
+ {
+  "plz": "6300",
+  "gemeinde": "Wörgl",
+  "bundesland": "Tirol"
+ },
+ {
+  "plz": "6330",
+  "gemeinde": "Kufstein",
+  "bundesland": "Tirol"
+ },
+ {
+  "plz": "6800",
+  "gemeinde": "Feldkirch",
+  "bundesland": "Vorarlberg"
+ },
+ {
+  "plz": "6900",
+  "gemeinde": "Bregenz",
+  "bundesland": "Vorarlberg"
+ },
+ {
+  "plz": "6991",
+  "gemeinde": "Mittelberg",
+  "bundesland": "Vorarlberg"
+ },
+ {
+  "plz": "7000",
+  "gemeinde": "Eisenstadt",
+  "bundesland": "Burgenland"
+ },
+ {
+  "plz": "8010",
+  "gemeinde": "Eggersdorf bei Graz",
+  "bundesland": "Steiermark"
+ },
+ {
+  "plz": "8020",
+  "gemeinde": "Graz",
+  "bundesland": "Steiermark"
+ },
+ {
+  "plz": "8160",
+  "gemeinde": "Naas",
+  "bundesland": "Steiermark"
+ },
+ {
+  "plz": "8530",
+  "gemeinde": "Deutschlandsberg",
+  "bundesland": "Steiermark"
+ },
+ {
+  "plz": "8605",
+  "gemeinde": "Kapfenberg",
+  "bundesland": "Steiermark"
+ },
+ {
+  "plz": "8700",
+  "gemeinde": "Leoben",
+  "bundesland": "Steiermark"
+ },
+ {
+  "plz": "9020",
+  "gemeinde": "Magdalensberg",
+  "bundesland": "Kärnten"
+ },
+ {
+  "plz": "9073",
+  "gemeinde": "Klagenfurt am Wörthersee",
+  "bundesland": "Kärnten"
+ }
+]

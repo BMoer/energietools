@@ -1,0 +1,17 @@
+{
+  "catalog_version": "1",
+  "generated_at": "2026-06-01T12:37:22.352523+00:00",
+  "market": "AT",
+  "energy_type": "POWER",
+  "price_basis": "netto_listenpreis",
+  "tariff_count": 131,
+  "provider_coverage": {
+    "ok": 65,
+    "total": 65,
+    "failed": [],
+    "note": "65 = erfasste Anbieter-Quellen (inkl. Anbieter ohne aktuell publizierten Tarif); im Katalog vertretene Lieferanten (distinct 'lieferant') = 57."
+  },
+  "provenance": "Eigene Erhebung aus den Anbieter-Websites und offiziellen Preisblatt-PDFs (ElWOG/EAG); nur die Ergebnis-Daten sind hier publiziert.",
+  "license": "MIT",
+  "disclaimer": "Netto-Listenpreise, ohne Gewähr. Netzkosten und PLZ-abhängige Abgaben sind nicht enthalten und werden zur Vergleichszeit ergänzt."
+}

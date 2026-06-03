@@ -1,0 +1,17 @@
+{
+ "data_version": "1",
+ "generated_at": "2026-06-02T13:04:50.694426+00:00",
+ "market": "AT",
+ "energy_type": "POWER",
+ "profil": "NE7 Haushalt, ohne Leistungsmessung, Niederspannung",
+ "netzbereich_coverage": {
+  "ok": 14,
+  "total_vnb_ca": 119
+ },
+ "attribution_vnb": 3,
+ "plz_count": 21,
+ "provenance": "Eigene Erhebung der Netzkosten je Netzbereich aus den öffentlich publizierten Netzbetreiber-Preisblättern (NE7-Haushalt), cross-validiert gegen die bundesweite Systemnutzungsentgelte-Verordnung (BGBl. II Nr. 305/2025); wo kein direkter Preisblatt-Link vorliegt, ist als quelle ersatzweise die Verordnungs-Fundstelle hinterlegt. Föderale Abgaben aus den jeweiligen Verordnungen. Nur die Ergebnis-Daten sind hier publiziert.",
+ "methodik": "siehe METHODIK.md",
+ "license": "MIT",
+ "disclaimer": "Regulierte Netzkosten + Abgaben, ohne Gewähr. Unbekannte PLZ/Netzbereiche werden NICHT geschätzt (fail-open). Stand der Werte siehe gueltig_ab je Eintrag."
+}

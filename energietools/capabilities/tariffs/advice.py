@@ -3,11 +3,13 @@
 
 """Der dritte Auditability-Pfeiler: Rechnung → Tarifvergleich, in einem Fluss.
 
-``invoice_parser`` scannt eine österreichische Energierechnung zu strukturierten
-Feldern; dieser Modul führt diese Felder mit dem Open-Data-Katalog zusammen und
-liefert einen vollständig nachvollziehbaren Vergleich. Der Scan (OCR) ist
-LLM-gestützt; die **Zusammenführung und Rechnung** sind deterministisch und von
-außen reproduzierbar — genau die Grenze, die open source sein soll.
+Nimmt die strukturierten Felder einer Energierechnung und führt sie mit dem
+Open-Data-Katalog zu einem vollständig nachvollziehbaren Vergleich zusammen.
+Die strukturierten Felder kommen entweder aus der **deterministischen**
+Text-PDF-Extraktion (``invoice_parser.parse_invoice``) oder aus einer externen
+LLM/OCR-Extraktion in der aufrufenden Anwendung (gridbert) — die
+**Zusammenführung und Rechnung** hier sind deterministisch und von außen
+reproduzierbar, genau die Grenze, die open source sein soll.
 """
 
 from __future__ import annotations

@@ -131,10 +131,13 @@ pip install energietools[search]    # Web-Suche
 pip install energietools[excel]     # Excel-Support
 ```
 
-energietools bündelt **keinen** LLM-Client. Fähigkeiten, die ein LLM brauchen (der
-Rechnungs-Scan `invoice_parser`), bekommen einen Provider injiziert (Protokoll:
-`energietools.tools.llm_protocol.LLMProvider`); der konkrete Client lebt in der
-aufrufenden Anwendung.
+energietools bündelt **keinen** LLM/OCR-Client. Der Rechnungs-Scan
+(`invoice_parser.parse_invoice`) ist hier **deterministisch**: er liest
+durchsuchbare Text-PDFs per Regex aus und liefert die Felder mit einem
+auditierbaren `rechenweg`. Die nicht-deterministische Vision-/LLM-Extraktion
+(eingescannte PDFs, Fotos) lebt in der aufrufenden Anwendung (gridbert) und
+übergibt ihre strukturierten Felder an die deterministische Zusammenführung
+(`tariff_advice`).
 
 ## Vertrauen & Herkunft
 

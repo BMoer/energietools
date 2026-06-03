@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -74,4 +74,14 @@ class Invoice(BaseModel):
     original_energiekosten_eur: float | None = Field(
         default=None,
         description="Original-Energiekosten vor Hochrechnung (nur bei ist_hochgerechnet=True)",
+    )
+
+    # --- Rechenweg (Audit-Trail der deterministischen Herleitung) -------------
+    rechenweg: dict[str, Any] = Field(
+        default_factory=dict,
+        description=(
+            "Auditierbarer Herleitungsweg: gewählter Arbeitspreis-Plan, Kandidaten, "
+            "USt-Faktor, ob der Abrechnungszeitraum bekannt war, und Hinweise auf "
+            "Annahmen/Plausibilität (keine stillen Defaults)."
+        ),
     )

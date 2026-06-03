@@ -1,10 +1,46 @@
 # TODO - bewusst offene Lücken
 
-Dieses Repo ist ein **erster horizontaler Durchstich**: die Struktur ist
-vollständig (alle drei Schichten, alle Komponenten existieren), die Tiefe ist
-selektiv. Hier stehen die bewusst offen gelassenen Punkte - erkennbar, nicht
-versteckt. Platzhalter im Code werfen `NotImplementedError` mit einem Docstring,
-der mit `PLATZHALTER:` beginnt.
+> **Bindender Stand für die nächste Session. Stand: 2026-06-03.**
+> Dieses Repo ist ein **erster horizontaler Durchstich**: die Struktur ist
+> vollständig (alle drei Schichten, alle Komponenten existieren), die Tiefe ist
+> selektiv. Hier stehen die bewusst offen gelassenen Punkte - erkennbar, nicht
+> versteckt. Platzhalter im Code werfen `NotImplementedError` mit einem Docstring,
+> der mit `PLATZHALTER:` beginnt.
+
+## Entscheidungen (geparkt, Stand 2026-06-03)
+
+Bewusst vertagt - hier festgehalten, damit sie nicht erneut diskutiert werden:
+
+- **Optimierer-Löser (CVXPY/Pyomo):** offen lassen, am **konkreten Fall** entscheiden,
+  der ihn zuerst braucht.
+- **`BaseConnector`-Protokoll:** erst anlegen, **wenn gebraucht** - kein ungenutztes
+  Protokoll auf Vorrat.
+- **grid_fees NE3-6 + DE/CH:** kommen **aus gridbert** (dort leben die Scraper), nicht
+  hier raten. Bis dahin nur NE7-AT.
+- **Auflösung diskret → Zeitreihe:** später (Interface ist als Superset vorbereitet).
+- **Invoice-LLM/OCR:** entschieden + erledigt - liegt in gridbert; energietools hält
+  nur die deterministische Text-PDF-Extraktion + `tariff_advice` (auditierbar).
+- **Open-Data:** vorhandene Quellen gemerged (inkl. neu `data/providers/`); weitere
+  (Gas, NE3-6, …) kommen bewusst aus gridbert.
+
+## gridbert-Logik: offen vs. proprietär (Kandidaten für v2-Auswahl)
+
+**Open-able (auditierbar/deterministisch, könnten nach energietools):**
+
+- `tools/cost_engine.py` - **die zentrale Kostenrechnung** (auditierbares Herzstück;
+  energietools hat bisher nur Teile davon). Höchste Hebelwirkung.
+- `tools/h0_profile.py` - synthetisches H0-Standardlastprofil (öffentliche Methode);
+  **speist den Baukasten** (liefert das Verbrauchsprofil für scenarios/system).
+- `tools/gas_compare.py` + `models/gas.py` - Gas-Tarifvergleich (die „gas"-Lücke);
+  **Vorbedingung:** noch auf E-Control-Client, der zuerst raus muss (wie bei Strom).
+- `tools/zaehlpunkt.py` - Zählpunkt-Validierung (öffentliches AT-Format), kleiner Util.
+- `tools/spot_pricing.py` - Spot-Preis-Rechnung (Begleiter zu spot_analysis).
+- `tools/anbieter_lookup.py` - Namens-Matching (Daten `anbieter.json` sind jetzt hier).
+
+**Proprietär (bleibt in gridbert):** `smartmeter.py` + `smartmeter_providers/` (Credentials),
+`services/invoice_ocr.py`, `services/gridbert_recommend.py` (Produkt-Empfehlung),
+`services/tariff_comparison_db.py` (DB), `switching.py` (PDF-Seiteneffekt),
+`models/eda.py`, alle `scripts/scrape_*`/`validate_*`/`backfill_*` (Scraper/Pipelines).
 
 ## Platzhalter im Code (Struktur da, Verhalten offen)
 

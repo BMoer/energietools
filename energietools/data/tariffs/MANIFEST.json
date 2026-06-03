@@ -12,6 +12,8 @@
     "note": "65 = erfasste Anbieter-Quellen (inkl. Anbieter ohne aktuell publizierten Tarif); im Katalog vertretene Lieferanten (distinct 'lieferant') = 57."
   },
   "provenance": "Eigene Erhebung aus den Anbieter-Websites und offiziellen Preisblatt-PDFs (ElWOG/EAG); nur die Ergebnis-Daten sind hier publiziert.",
+  "methodik": "siehe METHODIK.md (§2 Tarife: zwei First-Party-Quellen, drei Validierungs-Gates)",
+  "knowledge": "NETZKOSTEN_UND_GEBUEHREN.md bzw. wiki/tarife/ + wiki/wirtschaftlichkeit/ (Preis-Zusammensetzung)",
   "license": "MIT",
   "disclaimer": "Netto-Listenpreise, ohne Gewähr. Netzkosten und PLZ-abhängige Abgaben sind nicht enthalten und werden zur Vergleichszeit ergänzt."
 }

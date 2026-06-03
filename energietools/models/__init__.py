@@ -3,7 +3,6 @@
 
 """Pydantic Datenmodelle — Re-Exports aus Submodulen."""
 
-from energietools.models.battery import BatteryScenario, BatterySimulation
 from energietools.models.beg import BEGCalculation, BEGComparison
 from energietools.models.energy_news import EnergyMonitorResult, EnergyNewsItem, Foerderung
 from energietools.models.invoice import EnergieBlock, Invoice
@@ -22,8 +21,6 @@ from energietools.models.tariff import Rechenweg, Tariff, TariffComparison
 
 __all__ = [
     "AnomalyResult",
-    "BatteryScenario",
-    "BatterySimulation",
     "BEGCalculation",
     "BEGComparison",
     "ClusterInfo",

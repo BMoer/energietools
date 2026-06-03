@@ -151,6 +151,7 @@ class NetzManifest(BaseModel):
     netzbereich_coverage: dict[str, object] = Field(default_factory=dict)
     plz_count: int = Field(default=0)
     provenance: str = Field(default="")
-    methodik: str = Field(default="")
+    methodik: str = Field(default="", description="Verweis auf den Provenance-Doc (wie erhoben)")
+    knowledge: str = Field(default="", description="Verweis auf die Wissens-Referenz (Bedeutung)")
     license: str = Field(default="")
     disclaimer: str = Field(default="")

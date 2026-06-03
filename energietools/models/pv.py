@@ -5,11 +5,16 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel
 
 
 class PVSimulation(BaseModel):
-    """Ergebnis einer PV-Simulation."""
+    """Ergebnis einer PV-Simulation.
+
+    Die Amortisation/ROI wird NICHT mehr naiv im Modell gerechnet, sondern vom
+    auditierbaren ``finance``-Modul (ROI/NPV/LCOE) — aus ``investition_eur``,
+    ``foerderung_eur`` und ``ersparnis_jahr_eur``. Siehe capabilities/finance.
+    """
 
     anlage_kwp: float
     ausrichtung: str  # "Süd", "Ost", "West", etc.
@@ -22,15 +27,5 @@ class PVSimulation(BaseModel):
     ersparnis_jahr_eur: float = 0.0
     investition_eur: float = 0.0
     foerderung_eur: float = 0.0
-
-    @computed_field
-    @property
-    def amortisation_jahre(self) -> float:
-        """Amortisationsdauer in Jahren."""
-        netto_invest = self.investition_eur - self.foerderung_eur
-        if self.ersparnis_jahr_eur <= 0 or netto_invest <= 0:
-            return 99.0
-        return round(netto_invest / self.ersparnis_jahr_eur, 1)
-
     empfehlung: str = ""
     plz: str = ""

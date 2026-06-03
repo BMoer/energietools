@@ -1,7 +1,12 @@
 # energietools — Open-Source Toolkit für den österreichischen Energiemarkt
 # SPDX-License-Identifier: MIT
 
-"""Rechnungs-Extraktion via Claude Vision API oder Ollama (Fallback)."""
+"""Rechnungs-Extraktion via injizierten LLM-Provider (Vision/Text).
+
+Der konkrete LLM-Client wird von außen übergeben (siehe ``llm_protocol``), nicht
+hier gebündelt — energietools bleibt frei von Provider-SDKs und API-Schlüsseln.
+Die deterministische Regex-Vorextraktion läuft ohne LLM.
+"""
 
 from __future__ import annotations
 
@@ -11,11 +16,11 @@ import io
 import json
 import logging
 from pathlib import Path
-from typing import Any
 
 import pdfplumber
 
 from energietools.models import Invoice
+from energietools.tools.llm_protocol import LLMProvider
 
 log = logging.getLogger(__name__)
 
@@ -324,33 +329,25 @@ def _detect_image_media_type(image_b64: str) -> str:
 # --- LLM-based extraction (Claude or OpenAI via LLMProvider) ------------------
 
 def _extract_via_llm(
-    llm_provider: Any = None,
+    llm_provider: LLMProvider | None = None,
     text: str = "",
     image_b64: str = "",
     images_b64: list[str] | None = None,
 ) -> dict:
-    """Extrahiere Rechnungsdaten via LLM Provider (Claude Vision, OpenAI, etc.).
+    """Extrahiere Rechnungsdaten via injizierten LLM-Provider.
 
     Args:
-        llm_provider: LLM provider instance.
+        llm_provider: Injizierter Provider (siehe ``llm_protocol.LLMProvider``).
+            Pflicht — energietools baut keinen Provider aus Env-Variablen.
         text: Extracted text from a text-based PDF.
         image_b64: Single image (for photo uploads).
         images_b64: Multiple page images (for scan PDFs).
     """
     if llm_provider is None:
-        # Fallback: create provider from server config
-        import os
-        from energietools.llm import create_provider
-
-        mistral_key = os.environ.get('MISTRAL_API_KEY', '')
-        anthropic_key = os.environ.get('ANTHROPIC_API_KEY', '')
-        if mistral_key:
-            # MistralProvider auto-switches to pixtral for vision requests
-            llm_provider = create_provider("mistral", mistral_key, os.environ.get('MISTRAL_MODEL', 'mistral-large-latest'))
-        elif anthropic_key:
-            llm_provider = create_provider("claude", anthropic_key, os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-20250514'))
-        else:
-            raise ValueError("Kein LLM-Provider konfiguriert (MISTRAL_API_KEY oder ANTHROPIC_API_KEY setzen)")
+        raise ValueError(
+            "_extract_via_llm benötigt einen injizierten llm_provider — "
+            "energietools bündelt keinen LLM-Client (Protokoll: llm_protocol.LLMProvider)."
+        )
 
     if images_b64:
         # Multiple page images (scan PDF) — send all pages as attachments
@@ -444,23 +441,17 @@ Alle Zahlen mit Punkt als Dezimalzeichen.
 
 
 def _extract_via_llm_compact(
-    llm_provider: Any = None,
+    llm_provider: LLMProvider | None = None,
     text: str = "",
     image_b64: str = "",
     images_b64: list[str] | None = None,
 ) -> dict:
     """Compact LLM extraction without preiszeilen (fallback for truncated JSON)."""
     if llm_provider is None:
-        import os
-        from energietools.llm import create_provider
-        mistral_key = os.environ.get('MISTRAL_API_KEY', '')
-        anthropic_key = os.environ.get('ANTHROPIC_API_KEY', '')
-        if mistral_key:
-            llm_provider = create_provider("mistral", mistral_key, os.environ.get('MISTRAL_MODEL', 'mistral-large-latest'))
-        elif anthropic_key:
-            llm_provider = create_provider("claude", anthropic_key, os.environ.get('CLAUDE_MODEL', 'claude-sonnet-4-20250514'))
-        else:
-            raise ValueError("Kein LLM-Provider konfiguriert")
+        raise ValueError(
+            "_extract_via_llm_compact benötigt einen injizierten llm_provider "
+            "(Protokoll: llm_protocol.LLMProvider)."
+        )
 
     if images_b64:
         attachments = []
@@ -483,44 +474,6 @@ def _extract_via_llm_compact(
         temperature=0.0,
     )
     return _parse_json_response("\n".join(response.text_parts))
-
-
-# --- Ollama Fallback (für self-hosted) ----------------------------------------
-
-def _extract_via_ollama(text: str = "", image_b64: str = "") -> dict:
-    """Extrahiere Rechnungsdaten via Ollama (Fallback für self-hosted)."""
-    import ollama
-
-    import os; OLLAMA_HOST = os.environ.get('OLLAMA_HOST', 'http://localhost:11434'); OLLAMA_MODEL = os.environ.get('OLLAMA_MODEL', 'llama3.2'); OLLAMA_VISION_MODEL = os.environ.get('OLLAMA_VISION_MODEL', 'llama3.2-vision')
-
-    client = ollama.Client(host=OLLAMA_HOST, timeout=300)
-
-    if image_b64:
-        response = client.chat(
-            model=OLLAMA_VISION_MODEL,
-            messages=[{
-                "role": "user",
-                "content": EXTRACTION_PROMPT,
-                "images": [image_b64],
-            }],
-        )
-    else:
-        response = client.chat(
-            model=OLLAMA_MODEL,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Hier ist der Text einer österreichischen Stromrechnung:\n\n{text}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "Ich habe den Rechnungstext gelesen. Was soll ich damit tun?",
-                },
-                {"role": "user", "content": EXTRACTION_PROMPT},
-            ],
-        )
-
-    return _parse_json_response(response.message.content)
 
 
 # --- Deterministic PDF table extraction (Option 3) ---------------------------
@@ -789,8 +742,14 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
 
 # --- Haupt-Funktion -----------------------------------------------------------
 
-def parse_invoice(file_path: str | Path, llm_provider: Any = None) -> Invoice:
+def parse_invoice(file_path: str | Path, llm_provider: LLMProvider | None = None) -> Invoice:
     """Extrahiere Rechnungsdaten aus PDF oder Bild.
+
+    Args:
+        file_path: Pfad zur Rechnung (PDF oder Bild).
+        llm_provider: Injizierter LLM-Provider (Pflicht, siehe
+            ``llm_protocol.LLMProvider``). energietools bündelt keinen Client —
+            der konkrete Provider lebt in der aufrufenden Anwendung (z.B. gridbert).
 
     Strategy:
     1. For text-PDFs: try deterministic regex extraction first (fast, free, reliable)
@@ -802,16 +761,18 @@ def parse_invoice(file_path: str | Path, llm_provider: Any = None) -> Invoice:
     if not path.exists():
         raise FileNotFoundError(f"Datei nicht gefunden: {path}")
 
-    # Determine extraction backend
-    import os; _server_key = os.environ.get('MISTRAL_API_KEY', '') or os.environ.get('ANTHROPIC_API_KEY', '')
+    # Extraktions-Backend: der LLM-Provider MUSS injiziert sein. energietools
+    # baut keinen Provider aus Env-Variablen und bündelt keinen Client.
+    if llm_provider is None:
+        raise ValueError(
+            "kein llm_provider injiziert — energietools bündelt keinen LLM-Client. "
+            "Übergib einen Provider (Protokoll: provider_name, build_user_content, "
+            "chat -> .text_parts); der konkrete Client lebt in der aufrufenden Anwendung."
+        )
 
-    if llm_provider is not None or _server_key:
-        def extract_fn(text: str = "", image_b64: str = "", images_b64: list[str] | None = None) -> dict:
-            return _extract_via_llm(llm_provider=llm_provider, text=text, image_b64=image_b64, images_b64=images_b64)
-        backend_name = llm_provider.provider_name if llm_provider else "Claude"
-    else:
-        extract_fn = _extract_via_ollama
-        backend_name = "Ollama"
+    def extract_fn(text: str = "", image_b64: str = "", images_b64: list[str] | None = None) -> dict:
+        return _extract_via_llm(llm_provider=llm_provider, text=text, image_b64=image_b64, images_b64=images_b64)
+    backend_name = llm_provider.provider_name
 
     deterministic_data: dict | None = None
 

@@ -1,173 +1,162 @@
-# energietools — Open-Source Toolkit für den österreichischen Energiemarkt
+# energietools
 
-## What is this?
+Ein Open-Source-Toolkit (MIT) für den österreichischen Energiemarkt. energietools
+ist der **auditierbare Kern**: Wissen, Daten und Rechnung, die von außen
+nachvollziehbar sein sollen. Die Beschaffung (Scraper, Pipelines, Credentials, das
+Produkt) bleibt proprietär; hier liegen nur das kuratierte Wissen, die publizierten
+Daten-Snapshots und die deterministische Rechnung.
 
-`energietools` is the open-source, **auditable** core of the Austrian energy market: the business logic anyone should be able to reproduce — tariff data, invoice scanning, and the comparison that joins them. Every number it produces carries a transparent `Rechenweg` (netto → discount → Gebrauchsabgabe → USt → brutto), so a result can be re-derived by hand or by an external auditor.
+## Was energietools sein soll
 
-At its heart is a versioned **Open-Data tariff catalog** (`energietools/data/tariffs/`) — a normalized, first-party snapshot of Austrian electricity tariffs (net list prices). Tariff comparison runs entirely offline against this catalog — no external tariff API, no live lookups.
+Ein Agent-Toolkit aus **drei Schichten**, die ein Agent orchestriert, statt selbst
+zu rechnen:
 
-The toolkit is organized around a **capability spine** (`energietools/capabilities/`): each capability has one shape (`run(**kwargs) -> CapabilityResult`) and self-registers into both a CLI and a lightweight multi-provider agent framework (Claude, OpenAI, Mistral).
+- **Wissen (Second Brain).** Ein nach Andrej Karpathys LLM-Wiki gebautes
+  Markdown-Wiki (`wiki/`). Es erklärt, was die Dinge *bedeuten*: wie sich
+  Gesamtenergiekosten zusammensetzen, wie Energiegemeinschaften funktionieren, was
+  die Netzebenen sind. Kuratiert und verdichtet, kein Daten-Dump.
+- **Daten (Open Data).** Datierte, gequellte Snapshots öffentlich verfügbarer Daten
+  (`energietools/data/`): Tarife, Netzentgelte, aktive Förderungen. Jeder Snapshot
+  trägt Stand-Datum und Quelle.
+- **Rechnen (Simulationsbaukasten + Capabilities).** Verschaltbare physikalische
+  Komponenten (PV, Batterie, E-Auto, Wärmepumpe, Gaskessel), die man zu einem System
+  zusammensteckt und über einen konfigurierbaren Optimierer rechnet - plus die
+  auditierbaren Capabilities (Tarifvergleich, Netzentgelt, Finanzkennzahlen).
+
+**Der rote Faden:** der Agent liest *Wissen*, zieht den passenden *Daten*-Snapshot,
+rechnet deterministisch über den *Baukasten*. Kein Rechnen im LLM, wo es still
+falsch wird. Das Wiki sagt, was etwas bedeutet; die Daten liefern die aktuelle
+Zahl; der Baukasten rechnet sie nachvollziehbar.
+
+> **Audit-Prinzip.** Jede produzierte Zahl ist nachrechenbar: datierte, gequellte
+> Snapshots statt Live-Scrape, ein lückenloser `Rechenweg` pro Ergebnis, keine
+> stillen Defaults (fehlende Eingaben werfen einen `CapabilityError`). Schätzungen
+> sind als solche gekennzeichnet, nicht als Abrechnung ausgegeben.
+
+## Die drei Schichten im Gebrauch
+
+### Wissen - `wiki/`
+Ein Ordner aus Markdown-Seiten, **kein Server**. Zeig einen Agenten (oder dich
+selbst) auf `wiki/index.md` bzw. den maschinenlesbaren Index `wiki/llms.txt`. Jede
+Seite erklärt ein Konzept selbst-enthalten, mit Querlinks, `Berechnet von` (Link
+zur zuständigen Capability) und `Quellen` + `Stand`. Einstieg:
+[`wiki/netz/netzentgelte.md`](wiki/netz/netzentgelte.md) als ausgearbeitete Vorlage.
+
+### Daten - `energietools/data/`
+Versionierte First-Party-Snapshots: der Tarifkatalog (`data/tariffs/`), die
+Netzentgelt-/Abgaben-Parameter (`data/netz/`) und aktive Förderungen
+(`data/foerderungen.json`). Jeder Snapshot hat ein `MANIFEST.json` mit Provenance,
+`Stand`, Lizenz und Verweisen auf [METHODIK.md](METHODIK.md) (wie erhoben +
+validiert) und [NETZKOSTEN_UND_GEBUEHREN.md](NETZKOSTEN_UND_GEBUEHREN.md) (was die
+Zahlen bedeuten). Die Scraper, die diese Daten erzeugen, sind **nicht** Teil dieses
+Repos.
+
+### Rechnen - Library + Baukasten
+`pip install` und losrechnen - mit Rechenweg:
+
+```python
+from energietools.capabilities.tariffs import compare_against_catalog
+
+# Vergleiche deinen Tarif gegen den Open-Data-Katalog - offline, auditierbar.
+result = compare_against_catalog(
+    verbrauch_kwh=3200,
+    aktueller_lieferant="Wien Energie",
+    aktueller_energiepreis_ct_kwh=25.0,   # brutto, aus deiner Rechnung
+    aktuelle_grundgebuehr_eur_monat=6.0,  # brutto
+    gebrauchsabgabe_rate=0.07,            # Wien
+    plz="1060",
+)
+print(f"Max Ersparnis: {result.max_ersparnis_eur:.0f} EUR / Jahr")
+# Jeder Tarif trägt einen vollständigen Rechenweg:
+print(result.beste_fix[0].rechenweg.model_dump())
+```
+
+## Simulationsbaukasten (Schicht „Rechnen")
+
+Drei Bausteine, verschaltbar:
+
+1. **Komponenten** (`energietools/components/`) - jede mit gemeinsamer
+   Schnittstelle (Energie rein/raus, Zustand): PV und Batterie mit echtem
+   Verhalten; E-Auto, Gaskessel und der Wärmepumpen-Dispatch als erkennbare
+   Platzhalter (das COP-Modell der Wärmepumpe ist real).
+2. **System** (`energietools/system/`) - steckt Komponenten zusammen und
+   bilanziert den Energiefluss diskret.
+3. **Optimierer** (`energietools/optimizer/`) - konfigurierbare Zielfunktion
+   (ökonomisch, Eigenverbrauch, Autarkie). Bewerten geht; der Löser für
+   nicht-triviale Optima ist Platzhalter.
+
+```python
+from energietools.components import PVSystem, Battery, StepContext
+from energietools.system import EnergySystem
+
+system = EnergySystem([PVSystem(kwp=5.0), Battery.new(10.0)])
+res = system.run([4000.0], [StepContext(dt_hours=8760.0)])
+print(f"Eigenverbrauch {res.self_consumption_rate:.0%}, Autarkie {res.self_sufficiency_rate:.0%}")
+```
+
+Erste Auflösung ist **diskret** (eine Ingenieursrechnung, keine Zeitreihen); die
+Komponenten-Schnittstelle ist so angelegt, dass die spätere Zeitreihen-Variante ein
+Superset ist - ein Skalar ist ein Ein-Punkt-Profil.
+
+## Capabilities
+
+Jede Fähigkeit hat eine Form - `run(**kwargs) -> CapabilityResult` - und
+registriert sich selbst in der CLI. Auflisten: `python -m energietools list`.
+
+| Capability | Beschreibung |
+|------------|--------------|
+| `tariff_catalog` / `tariff_compare` / `tariff_advice` | Open-Data-Tarifkatalog abfragen, Tarif vergleichen, Rechnung → Vergleich (mit Rechenweg) |
+| `netzkosten` / `gesamtkosten` / `netz_verfuegbar` / `tarifvergleich_inkl_netz` | Regulierte Netz-/Gesamtkosten je PLZ, Verfügbarkeit, Vergleich inkl. Netz |
+| `grid_fees` | Netzentgelt je Betreiber/Land (per kWh), §16b-Speicherbefreiung, voller Rechenweg |
+| `finance` | Investitionskennzahlen ROI/NPV/LCOE (Standard-Finanzformeln) |
+| `scenarios` | Batterie-Größen-Sweep mit Eigenverbrauchs-Dispatch + ROI (ersetzt das alte `battery_sim`) |
+| `heatpump` | Heizkostenvergleich Wärmepumpe vs. Gas (Carnot-COP, diskret) |
+| `community_metrics` | Energiegemeinschafts-Kennzahlen (Eigenverbrauch/Autarkie/Reststrom/Überschuss) |
+| `pv_sim` / `spot_analysis` / `load_profile` / `energy_monitor` / `beg_advisor` / `web_search` | Weitere deterministische Werkzeuge |
+
+```bash
+python -m energietools list
+python -m energietools grid_fees --json '{"verbrauch_kwh": 3500}'
+python -m energietools finance --json '{"investition_eur": 9000, "jaehrlicher_ertrag_eur": 850, "nutzungsdauer_jahre": 15, "diskontrate": 0.04}'
+```
 
 ## Installation
 
 ```bash
-# Core package
-pip install energietools
-
-# All optional dependencies
-pip install energietools[all]
-
-# Specific extras
-pip install energietools[llm]       # Claude / Anthropic
-pip install energietools[openai]    # OpenAI GPT
-pip install energietools[mistral]   # Mistral (via the OpenAI-compatible SDK)
-pip install energietools[analysis]  # FDA anomaly detection, spot prices
-pip install energietools[pdf]       # PDF invoice parsing, document generation
-pip install energietools[search]    # Web search via DuckDuckGo
-pip install energietools[excel]     # Excel file support
-pip install energietools[ollama]    # Local LLM (invoice_parser fallback only)
+pip install energietools            # Kern
+pip install energietools[all]       # alle optionalen Abhängigkeiten
+pip install energietools[analysis]  # FDA-Anomalien, Spotpreise
+pip install energietools[pdf]       # PDF-Rechnungs-Parsing
+pip install energietools[search]    # Web-Suche
+pip install energietools[excel]     # Excel-Support
 ```
 
-## Quick Start
+energietools bündelt **keinen** LLM-Client. Fähigkeiten, die ein LLM brauchen (der
+Rechnungs-Scan `invoice_parser`), bekommen einen Provider injiziert (Protokoll:
+`energietools.tools.llm_protocol.LLMProvider`); der konkrete Client lebt in der
+aufrufenden Anwendung.
 
-```python
-from energietools.capabilities.tariffs import compare_against_catalog
+## Vertrauen & Herkunft
 
-# Compare your current tariff against the Open-Data catalog — offline, auditable.
-result = compare_against_catalog(
-    verbrauch_kwh=3200,
-    aktueller_lieferant="Wien Energie",
-    aktueller_energiepreis_ct_kwh=25.0,    # brutto, from your invoice
-    aktuelle_grundgebuehr_eur_monat=6.0,    # brutto
-    gebrauchsabgabe_rate=0.07,              # Vienna
-    plz="1060",
-)
+- [METHODIK.md](METHODIK.md) - wie die Daten erhoben und validiert werden:
+  First-Party- + gesetzliche Quellen, der Cross-Check gegen die
+  Systemnutzungsentgelte-Verordnung (BGBl. II Nr. 305/2025), Fail-open-Disziplin,
+  Reviewer-Checkliste.
+- [NETZKOSTEN_UND_GEBUEHREN.md](NETZKOSTEN_UND_GEBUEHREN.md) - die
+  Wissens-Referenz: wie sich ein österreichischer Strompreis zusammensetzt
+  (Netzkosten, Abgaben, Steuern), mit Rechenweg und Beispiel.
 
-print(f"Max Ersparnis: {result.max_ersparnis_eur:.0f} € / Jahr")
-for t in result.beste_fix[:5]:
-    print(f"{t.lieferant} {t.tarif_name}: {t.jahreskosten_eur:.0f} € / Jahr")
+## Grenze offen / proprietär
 
-# Every tariff carries a full Rechenweg you can audit:
-print(result.beste_fix[0].rechenweg.model_dump())
-```
+Öffentlich (MIT): Wissen, deterministische Rechnung, Daten-Snapshots. Proprietär
+(bleibt in gridbert): Beschaffung, Scraper, Pipelines, Credentials, Produkt.
+Connectoren gehören nicht in den öffentlichen Kern.
 
-### CLI
+## Lizenz & Attribution
 
-```bash
-python -m energietools list
-python -m energietools tariff_catalog --json '{"oekostrom": true}'
-python -m energietools tariff_compare --json '{"verbrauch_kwh": 3200,
-  "aktueller_energiepreis_ct_kwh": 25, "aktuelle_grundgebuehr_eur_monat": 6,
-  "gebrauchsabgabe_rate": 0.07}'
-```
+MIT - siehe [LICENSE](LICENSE). Teile des Simulationsbaukastens (Batterie-Dispatch,
+Wärmepumpen-COP) sind aus `pvtool` portiert; Finanz- und Netzentgelt-Logik sind
+Clean-Room-Reimplementierungen. Herkunft und Mit-Autorschaft: siehe
+[CREDITS.md](CREDITS.md).
 
-## Capabilities
-
-The auditable core, on the capability spine (`energietools/capabilities/`):
-
-Every capability has one shape — `run(**kwargs) -> CapabilityResult` — and self-registers into the CLI and agent. List them with `python -m energietools list`.
-
-| Capability | Description |
-|------------|-------------|
-| `tariff_catalog` | Query the Open-Data catalog of Austrian electricity tariffs (net list prices), filter by type / Ökostrom / provider / contract lock-in |
-| `tariff_compare` | Compare a current tariff (invoice prices) against the catalog — offline, with a full `Rechenweg` per tariff |
-| `tariff_advice` | Join scanned invoice data with the catalog into one auditable comparison (the invoice → comparison pillar) |
-| `community_metrics` | Energy-community metrics (SSR/self-sufficiency, SCR/self-consumption, Reststrom, Überschuss) from generation+consumption series |
-| `netzkosten` | Regulated gross yearly network costs (NE7 household) for a PLZ, from the Open-Data Netzbereiche — VNB, amount and a full Rechenweg (fail-open on unknown PLZ) |
-| `gesamtkosten` | Full gross yearly household costs: energy (Arbeitspreis + Grundgebühr) + Gebrauchsabgabe + 20 % USt + regulated network costs, with a full Rechenweg |
-| `netz_verfuegbar` | Check whether a tariff with a given service area ('AT', a Bundesland or a list) is available at a PLZ (fail-open on unknown PLZ) |
-| `tarifvergleich_inkl_netz` | Compare a current tariff (invoice prices) against the catalog and auto-add the regulated network costs + Gebrauchsabgabe from the PLZ |
-| `battery_sim`, `pv_sim`, `beg_advisor`, `spot_analysis`, `load_profile`, `energy_monitor`, `web_search` | Existing deterministic tools, bridged onto the spine via `FunctionCapability` (lazy-imported) |
-
-The catalog (`energietools/data/tariffs/catalog.json` + `MANIFEST.json`) is a versioned, first-party snapshot. Provenance and license are in the MANIFEST. The scrapers that produce it are **not** part of this repo (they stay proprietary); only the resulting data is published here.
-
-## Available Tools
-
-> The remaining `tools/` not yet on the spine:
-
-| Tool | Description |
-|------|-------------|
-| `smartmeter` | Smart meter data access — needs live credentials (kept off the JSON-callable spine). Currently Wiener Netze implemented; Netz NÖ is a stub (further operators in progress) |
-| `switching` | Generate Vollmacht PDF for provider switching (file side-effect, kept off the spine) |
-| `invoice_parser` | OCR electricity-bill parsing (Claude Vision, with Ollama fallback) — feeds `tariff_advice` |
-| `load_profile` | Analyze smart meter load profiles (FDA anomaly detection, heatmaps) |
-| `spot_analysis` | Spot tariff analysis using ENTSO-E day-ahead prices |
-| `battery_sim` | Home battery storage simulation (2/5/10/15 kWh scenarios) |
-| `pv_sim` | PV and balcony power station simulation using PVGIS |
-| `beg_advisor` | Evaluate Bürgerenergiegemeinschaft (BEG) membership options |
-| `energy_monitor` | Energy news, Förderungen catalog, RSS feeds |
-| `web_search` | DuckDuckGo web search for energy topics |
-
-## Agent Framework
-
-Build a conversational energy assistant in a few lines:
-
-```python
-from energietools.agent.registry import ToolRegistry
-from energietools.agent.loop import EnergiAgent
-from energietools.llm import create_provider
-from energietools.capabilities.tariffs import compare_against_catalog
-
-# Register tools
-registry = ToolRegistry()
-registry.register(
-    name="compare_against_catalog",
-    description="Vergleiche einen aktuellen Stromtarif gegen den Open-Data-Katalog",
-    input_schema={
-        "type": "object",
-        "properties": {
-            "verbrauch_kwh": {"type": "number"},
-            "aktueller_lieferant": {"type": "string"},
-            "aktueller_energiepreis_ct_kwh": {"type": "number"},
-            "aktuelle_grundgebuehr_eur_monat": {"type": "number"},
-            "gebrauchsabgabe_rate": {"type": "number"},
-            "plz": {"type": "string"},
-        },
-        "required": [
-            "verbrauch_kwh",
-            "aktueller_lieferant",
-            "aktueller_energiepreis_ct_kwh",
-            "aktuelle_grundgebuehr_eur_monat",
-        ],
-    },
-    handler=compare_against_catalog,
-)
-
-# Create LLM provider (Claude, OpenAI, or Mistral).
-# Mistral talks to its OpenAI-compatible API via the openai SDK, so
-# `pip install energietools[mistral]` and `[openai]` share the same dependency.
-provider = create_provider("claude", api_key="sk-ant-...", model="claude-haiku-4-5-20251001")
-
-# Run the agent
-agent = EnergiAgent(
-    registry,
-    provider,
-    system_prompt_builder=lambda: "Du bist ein österreichischer Energieberater.",
-    max_tokens=4096,
-)
-
-result = agent.run("Vergleiche meinen Tarif (Wien Energie, 3200 kWh/Jahr, "
-                   "25 ct/kWh brutto, 6 €/Monat, PLZ 1060) gegen den Katalog.")
-print(result)
-```
-
-## Roadmap
-
-The repo is on the capability spine.
-
-- **Done (Phase 1):** capability spine, Open-Data tariff catalog, auditable offline `tariff_compare` (no external tariff API).
-- **Done (Phase 2):** `tariff_advice` (invoice → catalog comparison, the auditable pillar); `community_metrics` (EEG/BEG SSR/SCR/Reststrom/Überschuss); existing deterministic tools bridged onto the spine via `FunctionCapability`.
-- **Next:** spine adapters for `smartmeter`/`switching` (credentials / file side-effects); deeper EEG analysis (temporal, EPEX correlation, AT extrapolation).
-
-The boundary: the **auditable business logic** (tariff data, invoice scanning, comparison) is open here; the machinery that produces the data (scrapers, hosting, UI) stays proprietary.
-
-## Documentation
-
-- **[METHODIK.md](METHODIK.md)** — how the data (tariffs + network costs) is collected & validated: First-Party + statutory sources, the cross-check against the federal tariff regulation (BGBl. II Nr. 305/2025, no external calculator), the 14 NE7-Netzbereiche, the attribution layer, fail-open discipline, and a reviewer checklist.
-- **[NETZKOSTEN_UND_GEBUEHREN.md](NETZKOSTEN_UND_GEBUEHREN.md)** — knowledge reference (LLM-wiki source): how an Austrian household electricity price is composed — network costs, levies, taxes, and how they interact with the competitive energy price — with the full Rechenweg and a worked example.
-
-## License
-
-MIT — see [LICENSE](LICENSE).
-
-The bundled tariff **data** (`energietools/data/tariffs/`) is licensed **MIT**, same as the code (see the `license` field in `MANIFEST.json`).
+Offene Punkte und Platzhalter: [TODO.md](TODO.md).

@@ -165,8 +165,11 @@ class TestRegistryBreadth:
         names = set(default_registry().names)
         expected = {
             "tariff_catalog", "tariff_compare", "tariff_advice", "community_metrics",
-            "battery_sim", "pv_sim", "beg_advisor", "spot_analysis",
+            # scenarios ersetzt das frühere battery_sim (tools/battery_sim.py gelöscht).
+            "scenarios", "pv_sim", "beg_advisor", "spot_analysis",
             "load_profile", "energy_monitor", "web_search",
+            # Rechenmodule aus dem pvtool-Merge:
+            "grid_fees", "finance",
         }
         assert expected <= names
 

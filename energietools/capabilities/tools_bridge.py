@@ -24,20 +24,12 @@ _CONSUMPTION_SERIES = {
 
 
 def register_tool_capabilities(registry: CapabilityRegistry) -> CapabilityRegistry:
-    """Registriert die deterministischen ``tools/``-Funktionen als Capabilities."""
-    registry.register(FunctionCapability(
-        name="battery_sim",
-        summary="Heimspeicher-Simulation (2/5/10/15 kWh) gegen Verbrauch + Spotpreise.",
-        target="energietools.tools.battery_sim:simulate_battery",
-        input_schema={
-            "type": "object",
-            "properties": {
-                "consumption_data": _CONSUMPTION_SERIES,
-                "tarif_preis_ct": {"type": "number"},
-            },
-            "required": ["consumption_data"],
-        },
-    ))
+    """Registriert die deterministischen ``tools/``-Funktionen als Capabilities.
+
+    Hinweis: Die Heimspeicher-Simulation ist als eigenständige ``scenarios``-Capability
+    in die Struktur überführt (siehe capabilities/scenarios/) und ersetzt das frühere,
+    hier gebridgete ``battery_sim`` (tools/battery_sim.py gelöscht).
+    """
     registry.register(FunctionCapability(
         name="pv_sim",
         summary="PV-/Balkonkraftwerk-Simulation via PVGIS für eine PLZ.",

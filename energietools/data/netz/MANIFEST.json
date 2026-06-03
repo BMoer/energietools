@@ -11,7 +11,8 @@
  "attribution_vnb": 3,
  "plz_count": 21,
  "provenance": "Eigene Erhebung der Netzkosten je Netzbereich aus den öffentlich publizierten Netzbetreiber-Preisblättern (NE7-Haushalt), cross-validiert gegen die bundesweite Systemnutzungsentgelte-Verordnung (BGBl. II Nr. 305/2025); wo kein direkter Preisblatt-Link vorliegt, ist als quelle ersatzweise die Verordnungs-Fundstelle hinterlegt. Föderale Abgaben aus den jeweiligen Verordnungen. Nur die Ergebnis-Daten sind hier publiziert.",
- "methodik": "siehe METHODIK.md",
+ "methodik": "siehe METHODIK.md (§3 Netzkosten: Erhebung, Preisblatt-Cross-Check, fail-open)",
+ "knowledge": "NETZKOSTEN_UND_GEBUEHREN.md bzw. wiki/netz/netzentgelte.md (Bedeutung + Rechenweg)",
  "license": "MIT",
  "disclaimer": "Regulierte Netzkosten + Abgaben, ohne Gewähr. Unbekannte PLZ/Netzbereiche werden NICHT geschätzt (fail-open). Stand der Werte siehe gueltig_ab je Eintrag."
 }

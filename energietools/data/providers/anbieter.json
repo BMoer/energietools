@@ -1,0 +1,219 @@
+[
+  {
+    "canonical": "Wien Energie Vertrieb GmbH & Co KG",
+    "brand": "Wien Energie",
+    "aliases": ["wien energie", "wienenergie", "wien-energie", "optima"],
+    "type": "strom-gas",
+    "region": ["Wien"]
+  },
+  {
+    "canonical": "EVN Energievertrieb GmbH & Co KG",
+    "brand": "EVN",
+    "aliases": ["evn", "evn energievertrieb", "energie versorgung niederösterreich"],
+    "type": "strom-gas",
+    "region": ["NÖ"]
+  },
+  {
+    "canonical": "Energie Steiermark Kunden GmbH",
+    "brand": "smartENERGY",
+    "aliases": [
+      "smartenergy",
+      "smart energy",
+      "smart energy steiermark",
+      "energie steiermark",
+      "estag",
+      "e-steiermark"
+    ],
+    "type": "strom-gas",
+    "region": ["Steiermark"]
+  },
+  {
+    "canonical": "Energie Burgenland Vertrieb GmbH & Co KG",
+    "brand": "Energie Burgenland",
+    "aliases": ["energie burgenland", "begas", "bewag"],
+    "type": "strom-gas",
+    "region": ["Burgenland"]
+  },
+  {
+    "canonical": "KELAG Energie & Wärme GmbH",
+    "brand": "KELAG",
+    "aliases": ["kelag", "kärntner elektrizitäts"],
+    "type": "strom-gas",
+    "region": ["Kärnten"]
+  },
+  {
+    "canonical": "TIWAG-Tiroler Wasserkraft AG",
+    "brand": "TIWAG",
+    "aliases": ["tiwag", "tiroler wasserkraft", "tiroler stromanbieter"],
+    "type": "strom",
+    "region": ["Tirol"]
+  },
+  {
+    "canonical": "Salzburg AG für Energie, Verkehr und Telekommunikation",
+    "brand": "Salzburg AG",
+    "aliases": ["salzburg ag", "saag"],
+    "type": "strom-gas",
+    "region": ["Salzburg"]
+  },
+  {
+    "canonical": "Energie AG Oberösterreich Vertrieb GmbH",
+    "brand": "Energie AG OÖ",
+    "aliases": ["energie ag", "eag", "energie ag oö", "energie ag vertrieb"],
+    "type": "strom-gas",
+    "region": ["OÖ"]
+  },
+  {
+    "canonical": "Innsbrucker Kommunalbetriebe AG",
+    "brand": "IKB",
+    "aliases": ["ikb", "innsbrucker kommunalbetriebe", "stadtwerke innsbruck"],
+    "type": "strom-gas",
+    "region": ["Tirol"]
+  },
+  {
+    "canonical": "Stadtwerke Klagenfurt AG",
+    "brand": "STW Klagenfurt",
+    "aliases": ["stadtwerke klagenfurt", "stw klagenfurt", "pull"],
+    "type": "strom-gas",
+    "region": ["Kärnten"]
+  },
+  {
+    "canonical": "VKW Vorarlberger Kraftwerke AG",
+    "brand": "VKW",
+    "aliases": ["vkw", "vorarlberger kraftwerke", "illwerke vkw"],
+    "type": "strom",
+    "region": ["Vorarlberg"]
+  },
+  {
+    "canonical": "VERBUND Energy4Business GmbH",
+    "brand": "VERBUND",
+    "aliases": ["verbund", "verbund-strom", "verbund ag", "verbund energy"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "LINZ STROM Vertrieb GmbH & Co KG",
+    "brand": "LINZ AG",
+    "aliases": ["linz ag", "linz strom", "linzag"],
+    "type": "strom-gas",
+    "region": ["OÖ"]
+  },
+  {
+    "canonical": "aWATTar GmbH",
+    "brand": "aWATTar",
+    "aliases": ["awattar", "awattar gmbh"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "Grünwelt Energie GmbH",
+    "brand": "Grünwelt",
+    "aliases": ["grünwelt", "gruenwelt", "grünwelt energie"],
+    "type": "strom-gas",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "oekostrom AG",
+    "brand": "oekostrom",
+    "aliases": ["oekostrom", "ökostrom ag", "oekostrom gmbh"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "go green energy GmbH & Co KG",
+    "brand": "Unsere Wasserkraft",
+    "aliases": ["go green energy", "unsere wasserkraft", "ggee"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "MAXENERGY Austria Handels GmbH",
+    "brand": "MAXENERGY",
+    "aliases": ["maxenergy", "max energy"],
+    "type": "strom-gas",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "Tibber Austria GmbH",
+    "brand": "Tibber",
+    "aliases": ["tibber"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "EnergieDirect Austria GmbH",
+    "brand": "EnergieDirect",
+    "aliases": ["energiedirect", "ed flex", "energie direct"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "switch energievertrieb GmbH",
+    "brand": "switch",
+    "aliases": ["switch energievertrieb", "switch.energy"],
+    "type": "strom-gas",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "smartenergy GmbH",
+    "brand": "smartenergy.at",
+    "aliases": ["smartenergy.at", "smart energy at"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "disk.energy GmbH",
+    "brand": "disk.energy",
+    "aliases": ["disk.energy", "disk energy", "disk strom"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "Stadtwerke Hartberg",
+    "brand": "STW Hartberg",
+    "aliases": ["stadtwerke hartberg", "stw hartberg"],
+    "type": "strom-gas",
+    "region": ["Steiermark"]
+  },
+  {
+    "canonical": "emmicom GmbH",
+    "brand": "emmicom",
+    "aliases": ["emmicom", "emmi com"],
+    "type": "strom",
+    "region": ["AT"]
+  },
+  {
+    "canonical": "Burgenland Energie AG",
+    "brand": "Burgenland Energie",
+    "aliases": ["burgenland energie ag"],
+    "type": "strom-gas",
+    "region": ["Burgenland"]
+  },
+  {
+    "canonical": "Stadtwerke Hallein GmbH",
+    "brand": "STW Hallein",
+    "aliases": ["stadtwerke hallein", "stw hallein"],
+    "type": "strom",
+    "region": ["Salzburg"]
+  },
+  {
+    "canonical": "Stadtwerke Wörgl",
+    "brand": "STW Wörgl",
+    "aliases": ["stadtwerke wörgl", "stw wörgl"],
+    "type": "strom",
+    "region": ["Tirol"]
+  },
+  {
+    "canonical": "Stadtwerke Bruck/Mur",
+    "brand": "STW Bruck",
+    "aliases": ["stadtwerke bruck"],
+    "type": "strom-gas",
+    "region": ["Steiermark"]
+  },
+  {
+    "canonical": "Energie Graz GmbH & Co KG",
+    "brand": "Energie Graz",
+    "aliases": ["energie graz"],
+    "type": "strom-gas",
+    "region": ["Steiermark"]
+  }
+]

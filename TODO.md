@@ -19,7 +19,8 @@ der mit `PLATZHALTER:` beginnt.
   thermischer Speicher, Bivalenzpunkt, Gas-Baseline, PV-Deckung). Braucht ein Zeitprofil.
 - [ ] **Optimierer-Löser** (`energietools/optimizer/optimizer.py`, `optimize`) -
   Bewerten (`evaluate`) geht; die Suche nach dem Optimum einer Zielfunktion braucht
-  einen echten Solver. Solver-Wahl (CVXPY/Pyomo) offen.
+  einen echten Solver. **Entscheidung (CVXPY/Pyomo) erst, wenn ein konkreter Fall sie
+  braucht** - dann anhand des Falls wählen.
 
 ## Architektur-Entscheidungen
 
@@ -40,11 +41,11 @@ der mit `PLATZHALTER:` beginnt.
 
 - [ ] **NE3-NE6 befüllen.** `grid_fees` trägt strukturell alle Netzebenen, v1 nutzt
   den gequellten NE7-Haushalt-Snapshot (`data/netz/`). NE3-NE6 (für gewerbliche/
-  Einspeise-Szenarien) sind noch nicht hinterlegt - aus dem E-Control-Preisblatt
-  ergänzen, nicht raten.
+  Einspeise-Szenarien) sind noch nicht hinterlegt - **wird aus gridbert befüllt, wo
+  die Scraper leben** (nicht hier raten). Bis dahin trägt grid_fees nur NE7.
 - [ ] **Länder-Dimension (DE/CH).** `country` ist parametrisiert; nur `AT` ist
   befüllt. `country != "AT"` liefert fail-open `None`. DE/CH später ergänzen
-  (`data/grid_fees/` je Land), ohne Rewrite.
+  (aus gridbert, wo die Scraper leben), ohne Rewrite.
 - [ ] **Netzbetreiber-Abdeckung.** `data/netz` deckt 14 Netzbereiche; weitere VNB
   und deren Doppeltarif (HT/NT) ergänzen.
 
@@ -57,9 +58,13 @@ der mit `PLATZHALTER:` beginnt.
 
 ## Daten & Provenance
 
-- [ ] **Welche gridbert-Open-Data-Quellen kommen dazu (v2).** Bewusste Auswahl durch
-  Ben - existiert, ist öffentlich, aber noch nicht gemerged (Gas-Netzentgelte,
-  weitere Förderungen, …). Kein Rateversuch.
+- [x] **Vorhandene Open-Data-Quellen gemerged.** Tarifkatalog, Netz, Förderungen, BEG
+  (bereits da) + **NEU `data/providers/`** (lieferanten.json Wechsel-Kontakte +
+  anbieter.json Namensnormalisierung, aus dem E-Control-Universum, mit MANIFEST).
+- [ ] **Weitere gridbert-Quellen (v2, Ideen/TODO).** Gas-Netzentgelte/Gas-Tarife,
+  NE3-6, weitere Förderzyklen - existiert teils in gridbert, kommt aus dort (Scraper).
+  Hinweis: `gridbert/netz/data/plz_slice.json` überlappt `plz_netzbereich.json` -
+  bewusst NICHT gemerged (Duplikat-/Drift-Gefahr).
 - [ ] **Welche Berechnungslogiken aus gridbert übernommen werden.** Ebenfalls
   bewusste Auswahl durch Ben.
 - [ ] **Provenance-Lücken schließen.** `plz_netzbereich.json`, `vnb_attribution.json`
@@ -81,6 +86,7 @@ der mit `PLATZHALTER:` beginnt.
 
 - [ ] **`BaseConnector`-Protokoll.** Höchstens das Protokoll gehört in den
   öffentlichen Kern; konkrete Implementierungen (Solis, Wiener Netze, …) bleiben
-  proprietär. Noch nicht angelegt.
+  proprietär. **Später anlegen, erst wenn gebraucht** (bewusste Entscheidung, kein
+  ungenutztes Protokoll auf Vorrat).
 - [ ] **MCP-Server als optionaler Connector.** Wiki und Baukasten als Tools für
   beliebige Agents - später.

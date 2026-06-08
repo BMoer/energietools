@@ -22,9 +22,11 @@ from energietools.models.spot import MonthlySpotBreakdown, SpotAnalysis
 
 log = logging.getLogger(__name__)
 
-# Typische österreichische Aufschläge (brutto, ct/kWh)
+# Vereinfachte Aufschläge der Spot-Analyse (netto, ct/kWh). Der Netzentgelt-Anteil
+# ist KEINE Magic-Number mehr: er wird aus dem auditierten grid_fees/netz-Snapshot
+# bezogen (siehe netz_ct unten). aufschlag_ct/steuern_ct bleiben grobe Defaults
+# dieses vereinfachten Modells und sind als solche überschreibbar.
 DEFAULT_AUFSCHLAG_CT = 1.5  # Lieferanten-Aufschlag
-DEFAULT_NETZ_CT = 3.5  # Netzentgelt
 DEFAULT_STEUERN_CT = 2.5  # Steuern & Abgaben
 UST_FACTOR = 1.20  # 20% MwSt
 
@@ -34,7 +36,7 @@ def analyze_spot_tariff(
     spot_prices: list[dict] | None = None,
     fix_preis_ct: float = 20.0,
     aufschlag_ct: float = DEFAULT_AUFSCHLAG_CT,
-    netz_ct: float = DEFAULT_NETZ_CT,
+    netz_ct: float | None = None,
     steuern_ct: float = DEFAULT_STEUERN_CT,
 ) -> SpotAnalysis:
     """Spot-Tarif-Analyse durchführen.
@@ -45,12 +47,20 @@ def analyze_spot_tariff(
                      Wenn None, wird ENTSO-E API verwendet.
         fix_preis_ct: Vergleichs-Fixpreis (brutto ct/kWh).
         aufschlag_ct: Lieferanten-Aufschlag (netto ct/kWh).
-        netz_ct: Netzentgelt (netto ct/kWh).
+        netz_ct: Netzentgelt-Anteil (netto ct/kWh). None = aus dem auditierten
+                 netz-Snapshot (per-kWh, Default-Netzbetreiber AT, gequellt) statt
+                 einer Magic-Number.
         steuern_ct: Steuern & Abgaben (netto ct/kWh).
 
     Returns:
         SpotAnalysis mit Kosten, Profilkostenfaktor und Empfehlung.
     """
+    # Netzentgelt-Anteil aus dem auditierten Snapshot beziehen (kein stiller Default).
+    if netz_ct is None:
+        from energietools.capabilities.netz import default_network_fee_ct_kwh
+
+        netz_ct = default_network_fee_ct_kwh()
+
     # Spot-Preise laden falls nicht gegeben
     if spot_prices is None:
         spot_prices = _fetch_spot_prices(consumption_data)

@@ -1,0 +1,13 @@
+{
+  "data_version": "1",
+  "stand": "2026-04",
+  "market": "AT",
+  "files": {
+    "lieferanten.json": "Österreichische Stromlieferanten mit Wechsel-Kontaktdaten (E-Mail, Website, Telefon, Aliasse).",
+    "anbieter.json": "Anbieter-Namensnormalisierung (canonical/brand/aliases/region) für robustes Matching."
+  },
+  "provenance": "Eigene Erhebung aus dem E-Control Tarifkalkulator (gelistete Anbieter) und den Anbieter-Websites; nur öffentlich verfügbare Kontakt-/Namensdaten. Keine Credentials, keine Partner-internen Daten. Die Scraper bleiben in gridbert.",
+  "methodik": "siehe METHODIK.md (§2 Tarife: First-Party-Quellen)",
+  "license": "MIT",
+  "disclaimer": "Kontakt-/Namensdaten, ohne Gewähr. Stand siehe oben; Anbieter-Kontakte ändern sich."
+}

@@ -27,7 +27,6 @@ from energietools.capabilities.netz.resolve import (
     resolve_netzbetreiber,
     tarif_fuer,
 )
-from energietools.capabilities.tariffs.compare import compare_against_catalog
 
 _UST = 1.20
 
@@ -207,68 +206,5 @@ class VerfuegbarkeitCapability(Capability):
         info = plz_info(plz)
         return {
             "verfuegbar": ist_verfuegbar(service_area, plz),
-            "bundesland": info.bundesland if info else None,
-        }
-
-
-class TarifvergleichInklNetzCapability(Capability):
-    """Tarifvergleich gegen den Open-Data-Katalog, mit Netz-Inputs aus der PLZ."""
-
-    name = "tarifvergleich_inkl_netz"
-    summary = (
-        "Vergleicht einen aktuellen Stromtarif (Brutto-Preise von der Rechnung) "
-        "gegen den Open-Data-Katalog und ergänzt die regulierten Netzkosten sowie "
-        "die Gebrauchsabgabe automatisch aus der PLZ. Liefert die Comparison + "
-        "einen Netz-Block."
-    )
-    input_schema = {
-        "type": "object",
-        "properties": {
-            "plz": {"type": "string", "description": "Postleitzahl"},
-            "verbrauch_kwh": {"type": "number", "description": "Jahresverbrauch in kWh"},
-            "aktueller_lieferant": {"type": "string"},
-            "aktueller_energiepreis_ct_kwh": {"type": "number", "description": "Brutto ct/kWh"},
-            "aktuelle_grundgebuehr_eur_monat": {
-                "type": "number",
-                "description": "Brutto EUR/Monat",
-            },
-            "spot_baseline_ct": {
-                "type": "number",
-                "description": "Optional: Börsen-Baseline ct/kWh, um Spot-Tarife zu bepreisen",
-            },
-        },
-        "required": [
-            "plz",
-            "verbrauch_kwh",
-            "aktueller_energiepreis_ct_kwh",
-            "aktuelle_grundgebuehr_eur_monat",
-        ],
-    }
-
-    def _run(self, **kwargs: Any) -> dict[str, Any]:
-        plz = _require_plz(kwargs)
-        verbrauch = _require_positive(kwargs, "verbrauch_kwh")
-
-        gab_rate = gebrauchsabgabe_rate(plz)
-        netzkosten_brutto, netzbetreiber = netzkosten_brutto_eur(plz, verbrauch)
-
-        comparison = compare_against_catalog(
-            verbrauch_kwh=verbrauch,
-            aktueller_lieferant=kwargs.get("aktueller_lieferant", "Aktueller Anbieter"),
-            aktueller_energiepreis_ct_kwh=float(kwargs["aktueller_energiepreis_ct_kwh"]),
-            aktuelle_grundgebuehr_eur_monat=float(kwargs["aktuelle_grundgebuehr_eur_monat"]),
-            gebrauchsabgabe_rate=gab_rate,
-            netzkosten_eur_jahr=netzkosten_brutto,
-            netzbetreiber=netzbetreiber,
-            spot_baseline_ct=kwargs.get("spot_baseline_ct"),
-            plz=plz,
-        )
-        return {
-            "comparison": comparison.model_dump(),
-            "netz": {
-                "plz": plz,
-                "netzbetreiber": netzbetreiber or None,
-                "netzkosten_eur_jahr_brutto": netzkosten_brutto,
-                "gebrauchsabgabe_rate": gab_rate,
-            },
+            "bundeslaender": list(info.bundeslaender) if info else None,
         }

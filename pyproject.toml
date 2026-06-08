@@ -19,17 +19,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-llm = ["anthropic>=0.40"]
-openai = ["openai>=1.50"]
-mistral = ["openai>=1.50"]  # MistralProvider talks to Mistral's OpenAI-compatible API via the openai SDK
+# Kein LLM-Provider-Extra: energietools bündelt keinen LLM-Client. Fähigkeiten,
+# die ein LLM brauchen (invoice_parser), bekommen einen Provider injiziert
+# (Protokoll: energietools.tools.llm_protocol). Der konkrete Client lebt in der
+# aufrufenden Anwendung (z.B. gridbert).
 analysis = ["scikit-fda>=0.9", "matplotlib>=3.7", "entsoe-py>=0.6"]
 pdf = ["pdfplumber>=0.11", "Pillow>=10.0", "fpdf2>=2.7"]
 search = ["duckduckgo-search>=7.0"]
 excel = ["openpyxl>=3.1"]
-ollama = ["ollama>=0.4"]
 all = [
-    "anthropic>=0.40",
-    "openai>=1.50",
     "scikit-fda>=0.9",
     "matplotlib>=3.7",
     "entsoe-py>=0.6",
@@ -38,7 +36,6 @@ all = [
     "fpdf2>=2.7",
     "duckduckgo-search>=7.0",
     "openpyxl>=3.1",
-    "ollama>=0.4",
 ]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 xml = ["defusedxml>=0.7"]
@@ -48,7 +45,7 @@ where = ["."]
 include = ["energietools*"]
 
 [tool.setuptools.package-data]
-energietools = ["data/*.json", "data/tariffs/*.json", "data/netz/*.json"]
+energietools = ["data/*.json", "data/tariffs/*.json", "data/netz/*.json", "data/providers/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

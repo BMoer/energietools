@@ -10,57 +10,9 @@ import pytest
 from energietools.capabilities.base import CapabilityError, FunctionCapability
 from energietools.capabilities.community.metrics import community_metrics
 from energietools.capabilities.registry import default_registry
-from energietools.capabilities.tariffs.advice import advise_from_invoice
-from energietools.models.invoice import Invoice
 
 # =============================================================================
-# 1. Pfeiler: Rechnung → auditierbarer Katalogvergleich
-# =============================================================================
-
-
-class TestTariffAdvice:
-    def _invoice(self, **over) -> Invoice:
-        base = dict(
-            lieferant="Teuer AG",
-            energiepreis_ct_kwh=40.0,
-            grundgebuehr_eur_monat=10.0,
-            jahresverbrauch_kwh=3200.0,
-            plz="1060",
-        )
-        base.update(over)
-        return Invoice(**base)
-
-    def test_advise_produces_auditable_comparison(self):
-        result = advise_from_invoice(self._invoice(), gebrauchsabgabe_rate=0.07)
-        assert len(result.alternativen) > 0
-        assert all(t.rechenweg is not None for t in result.alternativen)
-        assert result.max_ersparnis_eur > 0
-
-    def test_advise_uses_invoice_netzkosten_in_gesamtkosten(self):
-        result = advise_from_invoice(
-            self._invoice(netzkosten_eur_jahr=500.0), gebrauchsabgabe_rate=0.0,
-        )
-        best = result.beste_fix[0]
-        assert best.gesamtkosten_eur == round(best.jahreskosten_eur + 500.0, 2)
-
-    def test_advise_rejects_zero_consumption(self):
-        with pytest.raises(CapabilityError):
-            advise_from_invoice(self._invoice(jahresverbrauch_kwh=0.0))
-
-    def test_advice_capability_via_registry(self):
-        result = default_registry().get("tariff_advice").run(
-            jahresverbrauch_kwh=3200,
-            energiepreis_ct_kwh=40.0,
-            grundgebuehr_eur_monat=10.0,
-            gebrauchsabgabe_rate=0.07,
-            plz="1060",
-        )
-        assert result.ok is True
-        assert result.data["max_ersparnis_eur"] > 0
-
-
-# =============================================================================
-# 2. EEG-Community-Kennzahlen
+# 1. EEG-Community-Kennzahlen
 # =============================================================================
 
 
@@ -164,9 +116,12 @@ class TestRegistryBreadth:
     def test_all_expected_capabilities_registered(self):
         names = set(default_registry().names)
         expected = {
-            "tariff_catalog", "tariff_compare", "tariff_advice", "community_metrics",
-            "battery_sim", "pv_sim", "beg_advisor", "spot_analysis",
+            "tariff_catalog", "community_metrics",
+            # scenarios ersetzt das frühere battery_sim (tools/battery_sim.py gelöscht).
+            "scenarios", "pv_sim", "beg_advisor", "spot_analysis",
             "load_profile", "energy_monitor", "web_search",
+            # Rechenmodule aus dem pvtool-Merge:
+            "grid_fees", "finance",
         }
         assert expected <= names
 

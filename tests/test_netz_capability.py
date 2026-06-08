@@ -87,7 +87,7 @@ def test_verfuegbarkeit() -> None:
     assert VerfuegbarkeitCapability().run(service_area="AT", plz="1010").data["verfuegbar"] is True
     wien = VerfuegbarkeitCapability().run(service_area="Wien", plz="1010").data
     assert wien["verfuegbar"] is True
-    assert wien["bundesland"] == "Wien"
+    assert wien["bundeslaender"] == ["Wien"]
     assert (
         VerfuegbarkeitCapability().run(service_area="Tirol", plz="1010").data["verfuegbar"] is False
     )
@@ -97,13 +97,17 @@ def test_verfuegbarkeit() -> None:
 
 
 def test_stadt_netzbereiche_loesen_inklusion_first() -> None:
-    """Stadt-Netzbereiche lösen auf ihren eigenen VNB auf (nicht den Landes-VNB)."""
-    assert resolve_netzbetreiber("8020").key == "energie_graz"  # Graz
-    assert resolve_netzbetreiber("4030").key == "linz_netz"  # Linz
-    # Innsbruck (6020) war früher fail-open (TINETZ-Enklave) → jetzt IKB.
-    nb = resolve_netzbetreiber("6020")
-    assert nb.key == "ikb" and nb.key != "tinetz"
-    assert resolve_netzbetreiber("9073").key == "stadtwerke_klagenfurt"  # Klagenfurt
+    """Single-Gemeinde-Stadt-PLZ lösen via Inklusion auf ihren eigenen VNB auf."""
+    assert resolve_netzbetreiber("8020").key == "stromnetz_graz"  # Graz (eine Gemeinde)
+    assert resolve_netzbetreiber("4030").key == "linz_netz"  # Linz (eine Gemeinde)
+
+
+def test_geteilte_plz_fail_open_none() -> None:
+    """Geteilte PLZ (mehrere Gemeinden über mehrere VNB) → fail-open None (Schema v2)."""
+    # 6020 = Innsbruck (IKB) + Mutters/Natters/... (TINETZ); 8605 = Kapfenberg + St. Lorenzen.
+    assert resolve_netzbetreiber("6020") is None
+    assert resolve_netzbetreiber("8605") is None
+    assert netzkosten_brutto_eur("8605", 3500) == (0.0, "")
 
 
 def test_kleinwalsertal_evk_hoechster_tarif() -> None:
@@ -115,45 +119,45 @@ def test_kleinwalsertal_evk_hoechster_tarif() -> None:
     assert brutto > 800
 
 
-def test_attribution_kapfenberg_realer_name_steiermark_tarif() -> None:
-    """Kapfenberg (8605) → realer Name 'Stadtwerke Kapfenberg GmbH', Tarif = Steiermark."""
-    brutto, name = netzkosten_brutto_eur("8605", 3500)
-    assert name == "Stadtwerke Kapfenberg GmbH"  # realer Betreiber, nicht der Landes-VNB
-    # Kosten exakt wie ein Steiermark-Landes-Anschluss (Deutschlandsberg 8530).
-    leoben_brutto, _ = netzkosten_brutto_eur("8530", 3500)
-    assert brutto == pytest.approx(leoben_brutto)
+def test_attribution_feldkirch_realer_name_vorarlberg_tarif() -> None:
+    """Feldkirch (6800) → realer Name 'Stadtwerke Feldkirch', Tarif = Vorarlberg.
+
+    (8605 Kapfenberg ist im Voll-Schema eine geteilte PLZ; 6800 Feldkirch ist die
+    verbleibende Single-Gemeinde-Attributions-PLZ.)
+    """
+    brutto, name = netzkosten_brutto_eur("6800", 3500)
+    assert name == "Stadtwerke Feldkirch"  # realer Betreiber, nicht der Landes-VNB
+    # Kosten exakt wie ein Vorarlberg-Landes-Anschluss (Bürs 6706).
+    landes_brutto, _ = netzkosten_brutto_eur("6706", 3500)
+    assert brutto == pytest.approx(landes_brutto)
 
 
 def test_aequivalenz_beide_namen_akzeptiert() -> None:
-    """An einer Kapfenberg-PLZ gelten realer Name UND Netzbereich-Name."""
-    assert akzeptierte_vnb_namen("8605") == {
-        "Stadtwerke Kapfenberg GmbH",
-        "Energienetze Steiermark GmbH",
+    """An einer Feldkirch-PLZ gelten realer Name UND Netzbereich-Name."""
+    assert akzeptierte_vnb_namen("6800") == {
+        "Stadtwerke Feldkirch",
+        "Vorarlberger Energienetze GmbH",
     }
-    assert vnb_name_akzeptiert("8605", "Stadtwerke Kapfenberg")  # ohne GmbH
-    assert vnb_name_akzeptiert("8605", "Energienetze Steiermark")  # gleichwertig
-    assert vnb_name_akzeptiert("8605", "energienetze steiermark gmbh")  # tolerant
-    assert not vnb_name_akzeptiert("8605", "Wiener Netze")  # fremder VNB
+    assert vnb_name_akzeptiert("6800", "Stadtwerke Feldkirch")
+    assert vnb_name_akzeptiert("6800", "Vorarlberger Energienetze")  # ohne GmbH
+    assert vnb_name_akzeptiert("6800", "vorarlberger energienetze gmbh")  # tolerant
+    assert not vnb_name_akzeptiert("6800", "Wiener Netze")  # fremder VNB
 
 
 def test_attribution_capability_rechenweg_korrekt() -> None:
     """Capability zeigt realen Namen + korrekten (referenzierten) Rechenweg."""
-    result = NetzkostenCapability().run(plz="8605", verbrauch_kwh=3500)
+    result = NetzkostenCapability().run(plz="6800", verbrauch_kwh=3500)
     assert result.ok is True
-    assert result.data["netzbetreiber"] == "Stadtwerke Kapfenberg GmbH"
-    assert result.data["netzbereich"] == "Energienetze Steiermark GmbH"  # Tarif-Herkunft
-    # Rechenweg-AP ist der Steiermark-Tarif (8,82), NICHT 0 (Attributions-VNB).
+    assert result.data["netzbetreiber"] == "Stadtwerke Feldkirch"
+    assert result.data["netzbereich"] == "Vorarlberger Energienetze GmbH"  # Tarif-Herkunft
+    # Rechenweg-AP ist der Vorarlberg-Tarif (4,96), NICHT 0 (Attributions-VNB).
     komp = result.data["rechenweg"]["komponenten"]
-    assert komp["netznutzung_arbeitspreis_ct_kwh"] == pytest.approx(8.82, abs=1e-3)
-    assert result.data["netzkosten_eur_jahr_brutto"] == pytest.approx(502.42, abs=0.5)
+    assert komp["netznutzung_arbeitspreis_ct_kwh"] == pytest.approx(4.96, abs=1e-3)
+    assert result.data["netzkosten_eur_jahr_brutto"] == pytest.approx(342.69, abs=0.5)
 
 
 def test_default_registry_enthaelt_netz_capabilities() -> None:
-    """Die 4 neuen Netz-Capabilities sind in der Default-Registry registriert."""
+    """Die Netz-Capabilities sind registriert; die Vergleichs-Capability ist entfernt (S4)."""
     namen = set(default_registry().names)
-    assert {
-        "netzkosten",
-        "gesamtkosten",
-        "netz_verfuegbar",
-        "tarifvergleich_inkl_netz",
-    } <= namen
+    assert {"netzkosten", "gesamtkosten", "netz_verfuegbar"} <= namen
+    assert "tarifvergleich_inkl_netz" not in namen

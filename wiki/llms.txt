@@ -1,0 +1,23 @@
+# energietools Wiki
+
+> Kuratierte Wissensbasis (WISSEN-Schicht) zum österreichischen Energiemarkt. Erklärt Bedeutung von Markt, Netz, Tarifen, Steuern, Förderung, Messung, Wirtschaftlichkeit und Gas; verweist auf datierte, gequellte Daten-Snapshots (energietools/data/) und auf die Capabilities, die damit rechnen.
+
+## Einstieg
+
+- [Wiki-Startseite](index.md): Einstieg ins Wiki, Drei-Schichten-Modell (WISSEN/DATEN/RECHNEN), Navigation nach Kategorien, Vertrauen & Herkunft.
+- [Glossar](glossar.md): kompakte Begriffsdefinitionen quer durch alle Kategorien, von Arbeitspreis bis Viertelstundenwert.
+
+## Kategorien
+
+- [Markt](markt/index.md): österreichischer Strommarkt, wettbewerblicher Energiepreis gegen regulierte Netzseite, Marktrollen und Aufbau des Endpreises aus vier Blöcken.
+- [Netz](netz/index.md): regulierte Netzkosten und Netzentgelte je Netzebene und Netzbetreiber, Rechtsgrundlage Systemnutzungsentgelte-Verordnung.
+- [Tarife](tarife/index.md): wettbewerbliche Energiekomponente, Arbeitspreis und Grundgebühr, Tariftypen, Katalog und Vergleich.
+- [Steuern](steuern/index.md): Elektrizitätsabgabe, EAG-Förderbeitrag, gemeindespezifische Gebrauchsabgabe und Umsatzsteuer auf Strom.
+- [Förderung](foerderung/index.md): Investitions- und Einspeisemodelle für PV, Speicher und Energiegemeinschaften (EEG/BEG).
+- [Messung](messung/index.md): Smart Meter, Lastprofile und Viertelstundenwerte als Grundlage von Abrechnung und Optimierung.
+- [Wirtschaftlichkeit](wirtschaftlichkeit/index.md): ROI, NPV und LCOE für Investitionsentscheidungen rund um PV und Speicher.
+- [Gas](gas/index.md): Erdgas, Preisbestandteile, Netz und Abgaben parallel zum Strommarkt.
+
+## Netz im Detail
+
+- [Netzentgelte](netz/netzentgelte.md): Aufbau der Systemnutzungsentgelte (Netznutzung und Netzverlust), Netzebenen NE3 bis NE7, Unterschiede je Netzbetreiber und §16b-Speicherbefreiung.

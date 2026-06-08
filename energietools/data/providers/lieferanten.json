@@ -1,0 +1,144 @@
+{
+  "_comment": "Österreichische Stromlieferanten — Wechsel-Kontaktdaten. Nur Anbieter die im E-Control Tarifkalkulator gelistet sind. Quellen: E-Control, Anbieter-Websites. Stand: April 2026.",
+  "Verbund AG": {
+    "wechsel_email": "kundenservice@verbund.com",
+    "website": "https://www.verbund.com",
+    "telefon": "0800 66 11 33",
+    "aliases": ["Verbund", "VERBUND AG", "VERBUND Sales GmbH"]
+  },
+  "Wien Energie GmbH": {
+    "wechsel_email": "kundenservice@wienenergie.at",
+    "website": "https://www.wienenergie.at",
+    "telefon": "0800 500 800",
+    "aliases": ["Wien Energie", "WienEnergie"]
+  },
+  "EVN Energievertrieb GmbH & Co KG": {
+    "wechsel_email": "kundenservice@evn.at",
+    "website": "https://www.evn.at",
+    "telefon": "0800 800 100",
+    "aliases": ["EVN", "EVN Energievertrieb"]
+  },
+  "Energie Steiermark Kunden GmbH": {
+    "wechsel_email": "kundenservice@e-steiermark.com",
+    "website": "https://www.e-steiermark.com",
+    "telefon": "0800 800 500",
+    "aliases": ["Energie Steiermark", "E-Steiermark"]
+  },
+  "Salzburg AG für Energie, Verkehr und Telekommunikation": {
+    "wechsel_email": "kundenservice@salzburg-ag.at",
+    "website": "https://www.salzburg-ag.at",
+    "telefon": "0800 660 660",
+    "aliases": ["Salzburg AG", "SalzburgAG"]
+  },
+  "KELAG-Kärntner Elektrizitäts-Aktiengesellschaft": {
+    "wechsel_email": "kundenservice@kelag.at",
+    "website": "https://www.kelag.at",
+    "telefon": "0800 21 21 21",
+    "aliases": ["KELAG", "Kelag"]
+  },
+  "TIWAG-Tiroler Wasserkraft AG": {
+    "wechsel_email": "kundenservice@tiwag.at",
+    "website": "https://www.tiwag.at",
+    "telefon": "0800 818 819",
+    "aliases": ["TIWAG", "Tiwag"]
+  },
+  "illwerke vkw AG": {
+    "wechsel_email": "kundenservice@vkw.at",
+    "website": "https://www.vkw.at",
+    "telefon": "05574 9000",
+    "aliases": ["VKW", "illwerke vkw", "Illwerke VKW"]
+  },
+  "Linz AG für Energie, Telekommunikation, Verkehr und Kommunale Dienste": {
+    "wechsel_email": "kundenservice@linzag.at",
+    "website": "https://www.linzag.at",
+    "telefon": "0732 3400 3400",
+    "aliases": ["Linz AG", "LinzAG", "LINZ AG"]
+  },
+  "Energie Burgenland Vertrieb GmbH & Co KG": {
+    "wechsel_email": "kundenservice@energieburgenland.at",
+    "website": "https://www.energieburgenland.at",
+    "telefon": "0800 500 565",
+    "aliases": ["Energie Burgenland"]
+  },
+  "Energie AG Oberösterreich Vertrieb GmbH": {
+    "wechsel_email": "kundenservice@energieag.at",
+    "website": "https://www.energieag.at",
+    "telefon": "0800 818 000",
+    "aliases": ["Energie AG", "Energie AG Oberösterreich", "EnergieAG"]
+  },
+  "switch Energievertriebsgesellschaft m.b.H.": {
+    "wechsel_email": "office@switch-energie.at",
+    "website": "https://www.switch-energie.at",
+    "telefon": "01 90 500 02",
+    "aliases": ["switch", "Switch"]
+  },
+  "aWATTar GmbH": {
+    "wechsel_email": "support@awattar.com",
+    "website": "https://www.awattar.at",
+    "telefon": "",
+    "hinweis": "Hat MONTHLY (normaler Floater) und HOURLY (Stundentarif). Bei Wechsel MONTHLY empfehlen, HOURLY nur für tech-savvy Kunden.",
+    "aliases": ["aWATTar", "awattar", "Awattar"]
+  },
+  "oekostrom GmbH": {
+    "wechsel_email": "kundenservice@oekostrom.at",
+    "website": "https://www.oekostrom.at",
+    "telefon": "0800 31 31 00",
+    "aliases": ["oekostrom", "Oekostrom", "oekoenergie"]
+  },
+  "Grünwelt Energie GmbH": {
+    "wechsel_email": "info@gruenwelt.at",
+    "website": "https://www.gruenwelt.at",
+    "telefon": "",
+    "aliases": ["Grünwelt", "Gruenwelt", "Grünwelt Energie"]
+  },
+  "MaxEnergy GmbH": {
+    "wechsel_email": "kundenservice@maxenergy.at",
+    "website": "https://www.maxenergy.at",
+    "telefon": "",
+    "aliases": ["MaxEnergy", "Max Energy", "MAXENERGY"]
+  },
+  "Montana Energie-Handel GmbH & Co. KG": {
+    "wechsel_email": "info@montana-energie.at",
+    "website": "https://www.montana-energie.at",
+    "telefon": "",
+    "aliases": ["Montana", "Montana Energie"]
+  },
+  "goldgas GmbH": {
+    "wechsel_email": "service@goldgas.at",
+    "website": "https://www.goldgas.at",
+    "telefon": "",
+    "aliases": ["goldgas", "Goldgas"]
+  },
+  "Enamo Ökostrom GmbH": {
+    "wechsel_email": "kundenservice@enamo.at",
+    "website": "https://www.enamo.at",
+    "telefon": "",
+    "aliases": ["Enamo", "ENAMO"]
+  },
+  "go green energy GmbH & Co KG": {
+    "wechsel_email": "info@gogreenenergy.at",
+    "website": "https://www.gogreenenergy.at",
+    "telefon": "",
+    "aliases": ["go green energy", "Go Green"]
+  },
+  "Energie Graz GmbH & Co KG": {
+    "wechsel_email": "kundenservice@energie-graz.at",
+    "website": "https://www.energie-graz.at",
+    "telefon": "0316 8057 1857",
+    "aliases": ["Energie Graz"]
+  },
+  "Naturkraft Energievertriebsgesellschaft m.b.H.": {
+    "wechsel_email": "office@naturkraft.at",
+    "website": "https://www.naturkraft.at",
+    "telefon": "",
+    "hinweis": "Verbund-Tochter, Ökostrom-Fixpreistarife.",
+    "aliases": ["Naturkraft"]
+  },
+  "eFriends Energy GmbH": {
+    "wechsel_email": "office@efriends.at",
+    "website": "https://www.efriends.at",
+    "telefon": "",
+    "hinweis": "Monatsfloater. Marketing suggeriert P2P, ist aber normaler Lieferant im E-Control Register.",
+    "aliases": ["eFriends", "efriends"]
+  }
+}

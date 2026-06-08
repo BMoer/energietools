@@ -110,11 +110,11 @@ class TestZeitraumExtraction:
 
 
 class TestEnergieartDetection:
-    """Tests for Invoice.energieart field set by _postprocess_llm_output."""
+    """Tests for Invoice.energieart field set by finalize_invoice."""
 
     def _postprocess(self, raw: dict) -> dict:
-        from energietools.tools.invoice_parser import _postprocess_llm_output
-        return _postprocess_llm_output(raw)
+        from energietools.tools.invoice_parser import finalize_invoice
+        return finalize_invoice(raw)
 
     def test_plain_strom_invoice(self):
         raw = {"lieferant": "Wien Energie", "tarif_name": "Optima", "verbrauch_kwh": 3240, "plz": "1090"}

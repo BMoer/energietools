@@ -6,8 +6,8 @@
 Drei Zielfunktionen sind **lauffähig** (sie bewerten ein gegebenes System):
 
 - ``economic`` — jährliche Stromkosten (Netzbezug × (Energiepreis + Netzentgelt)
-  − Einspeisung × Einspeisetarif). Das Netzentgelt kommt aus dem auditierten
-  ``grid_fees``-Modul (kein Magic-Default).
+  − Einspeisung × Einspeisetarif). Das Netzentgelt kommt aus der auditierten
+  per-kWh-Schicht des ``netz``-Pakets (Capability ``grid_fees``; kein Magic-Default).
 - ``self_consumption`` — Eigenverbrauchsquote (maximieren).
 - ``autarky`` — Autarkiegrad/Selbstversorgung (maximieren).
 
@@ -36,8 +36,9 @@ _OBJECTIVES = frozenset({OBJECTIVE_ECONOMIC, OBJECTIVE_SELF_CONSUMPTION, OBJECTI
 class EconomicPrices:
     """Preise für die ökonomische Zielfunktion (explizit, keine Magic-Defaults).
 
-    Alle in EUR/kWh. Das Netzentgelt wird NICHT hier gesetzt, sondern aus
-    ``grid_fees`` für ``operator``/``country`` bezogen (auditierbar, gequellt).
+    Alle in EUR/kWh. Das Netzentgelt wird NICHT hier gesetzt, sondern aus dem
+    ``netz``-Paket (Capability ``grid_fees``) für ``operator``/``country`` bezogen
+    (auditierbar, gequellt).
     """
 
     energy_price_eur_kwh: float
@@ -58,9 +59,9 @@ class ObjectiveValue:
 
 
 def _grid_fee_eur_kwh(prices: EconomicPrices) -> float:
-    """Brutto-Netzentgelt EUR/kWh aus dem auditierten grid_fees-Snapshot."""
+    """Brutto-Netzentgelt EUR/kWh aus dem auditierten netz-Snapshot (per-kWh)."""
     from energietools.capabilities.base import CapabilityError
-    from energietools.capabilities.grid_fees import consumption_fee_ct_kwh
+    from energietools.capabilities.netz import consumption_fee_ct_kwh
 
     fee_ct = consumption_fee_ct_kwh(prices.operator, prices.country, brutto=True)
     if fee_ct is None:

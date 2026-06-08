@@ -48,7 +48,7 @@ def analyze_spot_tariff(
         fix_preis_ct: Vergleichs-Fixpreis (brutto ct/kWh).
         aufschlag_ct: Lieferanten-Aufschlag (netto ct/kWh).
         netz_ct: Netzentgelt-Anteil (netto ct/kWh). None = aus dem auditierten
-                 grid_fees-Snapshot (Default-Netzbetreiber AT, gequellt) statt
+                 netz-Snapshot (per-kWh, Default-Netzbetreiber AT, gequellt) statt
                  einer Magic-Number.
         steuern_ct: Steuern & Abgaben (netto ct/kWh).
 
@@ -57,7 +57,7 @@ def analyze_spot_tariff(
     """
     # Netzentgelt-Anteil aus dem auditierten Snapshot beziehen (kein stiller Default).
     if netz_ct is None:
-        from energietools.capabilities.grid_fees import default_network_fee_ct_kwh
+        from energietools.capabilities.netz import default_network_fee_ct_kwh
 
         netz_ct = default_network_fee_ct_kwh()
 

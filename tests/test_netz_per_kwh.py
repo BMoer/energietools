@@ -1,24 +1,32 @@
 # energietools — Open-Source Toolkit für den österreichischen Energiemarkt
 # SPDX-License-Identifier: MIT
 
-"""Tests für die grid_fees-Capability (operator-/länderparametrisiert, fail-open).
+"""Tests für die per-kWh-Netzentgelt-Schicht (operator-/länderparametrisiert, fail-open).
 
-Die österreichischen Zahlen kommen aus dem auditierten data/netz-Snapshot —
-diese Tests prüfen die Auflösung, das §16b-Verhalten, die Fail-open-Semantik und
-dass der per-kWh-Wert mit der netz-Layer-Komposition konsistent ist.
+Diese Schicht hieß früher ``grid_fees`` und ist seit S0 Teil des ``netz``-Pakets
+(``netz/per_kwh.py`` + ``netz/per_kwh_capability.py``); der öffentliche
+Capability-Name ``"grid_fees"`` bleibt. Die österreichischen Zahlen kommen aus dem
+auditierten data/netz-Snapshot — diese Tests prüfen die Auflösung, das
+§16b-Verhalten, die Fail-open-Semantik, die Konsistenz mit der netz-Layer-
+Komposition und dass der Merge (S0) sauber ist (Paket weg, Surface unter netz,
+Capability-Name erhalten).
 """
 
 from __future__ import annotations
 
-from energietools.capabilities.grid_fees import (
+import importlib
+
+import pytest
+
+from energietools.capabilities.netz import (
     DEFAULT_OPERATOR_AT,
+    GridFeesCapability,
     charging_fee_ct_kwh,
     consumption_fee_ct_kwh,
     default_network_fee_ct_kwh,
     network_fee_ct_kwh,
     resolve_operator,
 )
-from energietools.capabilities.grid_fees.capability import GridFeesCapability
 
 
 def test_resolve_default_operator_at() -> None:
@@ -90,3 +98,35 @@ def test_capability_requires_positive_verbrauch() -> None:
     res = GridFeesCapability().run(verbrauch_kwh=0)
     assert not res.ok
     assert "verbrauch_kwh" in (res.error or "")
+
+
+# --- S0-Merge-Guards: das grid_fees-Paket ist weg, das Surface lebt unter netz ----
+
+
+def test_grid_fees_package_removed() -> None:
+    """Das eigenständige grid_fees-Paket existiert nach S0 nicht mehr (Delete-Evidence)."""
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("energietools.capabilities.grid_fees")
+
+
+def test_per_kwh_surface_exported_from_netz() -> None:
+    """Alle per-kWh-Symbole + die Capability sind über das netz-Paket erreichbar."""
+    netz = importlib.import_module("energietools.capabilities.netz")
+    for name in (
+        "DEFAULT_OPERATOR_AT",
+        "GridFeesCapability",
+        "charging_fee_ct_kwh",
+        "consumption_fee_ct_kwh",
+        "default_network_fee_ct_kwh",
+        "network_fee_ct_kwh",
+        "resolve_operator",
+        "total_fee_breakdown",
+    ):
+        assert hasattr(netz, name), f"netz exportiert {name} nicht"
+
+
+def test_grid_fees_capability_name_kept() -> None:
+    """Der öffentliche Capability-Name bleibt 'grid_fees' (CLI-/LLM-Tool-Name)."""
+    from energietools.capabilities.registry import default_registry
+
+    assert "grid_fees" in default_registry().names

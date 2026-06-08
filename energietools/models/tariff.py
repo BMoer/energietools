@@ -7,7 +7,12 @@ from pydantic import BaseModel, Field
 
 
 class Rechenweg(BaseModel):
-    """Transparenter Berechnungsweg für einen Tarif — ermöglicht Nachvollziehbarkeit."""
+    """Transparenter Berechnungsweg für einen Tarif — ermöglicht Nachvollziehbarkeit.
+
+    Gebrauchsabgabe ist ein EIGENER Brutto-Block (``gebrauchsabgabe_eur``), NICHT in
+    ``brutto_jahreskosten_eur`` enthalten; USt liegt nur auf Energie+Grund nach Rabatt
+    (separate-Block-Modell, 1:1 wie gridbert.models.Rechenweg).
+    """
 
     energiepreis_netto_ct_kwh: float = Field(description="Netto-Energiepreis ct/kWh (ohne USt)")
     grundgebuehr_netto_eur_monat: float = Field(description="Netto-Grundgebühr EUR/Monat")
@@ -18,13 +23,18 @@ class Rechenweg(BaseModel):
         default=0.0, description="Neukundenrabatt netto EUR (Jahr 1, vor Steuer)",
     )
     netto_nach_rabatt_eur: float = Field(
-        default=0.0, description="Netto-Gesamt nach Abzug Neukundenrabatt (= netto_gesamt, wenn kein Rabatt)",
+        default=0.0, description="Netto-Gesamt nach Abzug Neukundenrabatt (= netto_gesamt ohne Rabatt)",
     )
-    gebrauchsabgabe_rate: float = Field(description="Gebrauchsabgabe-Satz (z.B. 0.07 für Wien)")
-    gebrauchsabgabe_eur: float = Field(description="Gebrauchsabgabe in EUR")
-    netto_inkl_gab_eur: float = Field(description="Netto inkl. Gebrauchsabgabe")
-    ust_eur: float = Field(description="Umsatzsteuer 20%")
-    brutto_jahreskosten_eur: float = Field(description="Endwert: Brutto-Jahreskosten Energie")
+    gebrauchsabgabe_rate: float = Field(
+        description="Gebrauchsabgabe-Satz (Prozent-Regeln z.B. 0.07; 0 bei ct/kWh-Regeln)"
+    )
+    gebrauchsabgabe_eur: float = Field(
+        description="Gebrauchsabgabe BRUTTO, eigener Block (NICHT in brutto_jahreskosten_eur)"
+    )
+    ust_eur: float = Field(description="Umsatzsteuer 20% auf Energie+Grund nach Rabatt")
+    brutto_jahreskosten_eur: float = Field(
+        description="Endwert Energie: netto_nach_rabatt × 1,20 (ohne Netz, ohne Gebrauchsabgabe)"
+    )
     quelle: str = Field(default="berechnet", description="Datenquelle des Rechenwegs (z.B. 'katalog', 'berechnet')")
     hinweis: str = Field(
         default="",
@@ -33,13 +43,15 @@ class Rechenweg(BaseModel):
 
 
 class Tariff(BaseModel):
-    """Ein Stromtarif im Vergleich (Quelle: Open-Data-Katalog oder eigene Rechnung)."""
+    """Ein Stromtarif (Quelle: Open-Data-Katalog oder eigene Rechnung)."""
 
     lieferant: str
     tarif_name: str
     energiepreis_ct_kwh: float
     grundgebuehr_eur_monat: float
-    jahreskosten_eur: float = Field(description="Energiekosten €/Jahr Jahr 1 inkl. Rabatt (Energie + Grundgebühr, ohne Netz)")
+    jahreskosten_eur: float = Field(
+        description="Energiekosten €/Jahr Jahr 1 inkl. Rabatt (Energie + Grundgebühr, OHNE Netz und Gebrauchsabgabe)"
+    )
     jahreskosten_ohne_rabatt_eur: float = Field(default=0.0, description="Energiekosten €/Jahr ab Jahr 2 (ohne Neukundenrabatt)")
     gesamtkosten_eur: float = Field(default=0.0, description="Gesamtkosten €/Jahr inkl. Netzkosten")
     ersparnis_eur: float = Field(default=0.0, description="Ersparnis vs. aktueller Tarif in €/Jahr")
@@ -50,19 +62,32 @@ class Tariff(BaseModel):
     kategorie: str = Field(default="fix", description="Kategorie: fix, floater, gruen")
     quelle: str = Field(default="katalog", description="Datenquelle")
     wechsel_link: str = Field(default="", description="Direktlink zur Anbieter-Anmeldung")
+    # Kosten-relevante Felder (S4: an gridbert angeglichen, defaulted/additiv).
+    gebrauchsabgabe_eur: float = Field(
+        default=0.0,
+        description="Gebrauchsabgabe €/Jahr brutto — eigener Block (NICHT in jahreskosten_eur)",
+    )
+    neukundenrabatt_eur: float = Field(
+        default=0.0, description="Neukundenrabatt brutto EUR (Pauschale, Jahr 1)",
+    )
+    neukundenrabatt_ct_kwh: float = Field(
+        default=0.0, description="Neukundenrabatt netto ct/kWh (Jahr 1, falls per-kWh statt Pauschale)",
+    )
+    spot_aufschlag_ct: float = Field(
+        default=0.0, description="Lieferanten-Aufschlag auf den Spot-Index (netto ct/kWh)",
+    )
+    spot_index: str = Field(default="", description="Börsenindex des Spot-Tarifs, z.B. 'EPEX AT'")
+    ist_biogas: bool = Field(default=False, description="Gas-Ökoflag (Biogas-Anteil)")
     rechenweg: Rechenweg | None = Field(default=None, description="Transparenter Berechnungsweg")
 
 
-def _categorize(tariff: Tariff) -> str:
-    """Determine category from tariftyp."""
-    typ = tariff.tariftyp.lower()
-    if "float" in typ or "monat" in typ or "spot" in typ or "stunden" in typ:
-        return "floater"
-    return "fix"
-
-
 class TariffComparison(BaseModel):
-    """Ergebnis des Tarifvergleichs — vollständig deterministisch sortiert."""
+    """Container eines Tarifvergleichs (Datenmodell).
+
+    Hinweis: die Vergleichs-LOGIK (Ersparnis/Ranking/Kategorien) lebt seit S4 im
+    Produkt (gridbert), nicht in energietools — et ist die reine Kosten-Engine.
+    Dieses Modell bleibt als Datencontainer für Konsumenten erhalten.
+    """
 
     aktueller_tarif: Tariff
     alternativen: list[Tariff] = Field(default_factory=list)
@@ -75,7 +100,7 @@ class TariffComparison(BaseModel):
         description="Gebrauchsabgabe-Satz für diese PLZ (z.B. 0.07 für Wien)",
     )
 
-    # Pre-sorted category lists (computed by enrich())
+    # Pre-sorted category lists (vom Konsumenten befüllt)
     beste_fix: list[Tariff] = Field(default_factory=list)
     beste_floater: list[Tariff] = Field(default_factory=list)
     beste_gruen: list[Tariff] = Field(default_factory=list)
@@ -86,61 +111,3 @@ class TariffComparison(BaseModel):
     def bester_tarif(self) -> Tariff | None:
         """Backward-compat: cheapest alternative overall."""
         return self.bester_gesamt
-
-    def enrich(self) -> TariffComparison:
-        """Compute savings, categories, and sorted lists. Returns new instance."""
-        aktuell_kosten = self.aktueller_tarif.jahreskosten_eur
-        netz = self.netzkosten_eur_jahr
-
-        # Enrich each tariff with savings, gesamtkosten, kategorie
-        enriched: list[Tariff] = []
-        for t in self.alternativen:
-            cat = _categorize(t)
-            enriched.append(Tariff(
-                **{
-                    **t.model_dump(),
-                    "ersparnis_eur": round(aktuell_kosten - t.jahreskosten_eur, 2),
-                    "gesamtkosten_eur": round(t.jahreskosten_eur + netz, 2),
-                    "kategorie": cat,
-                }
-            ))
-
-        # Sort each category by jahreskosten_eur (cheapest first)
-        fix_tarife = sorted(
-            [t for t in enriched if t.kategorie == "fix"],
-            key=lambda t: t.jahreskosten_eur,
-        )
-        floater_tarife = sorted(
-            [t for t in enriched if t.kategorie == "floater"],
-            key=lambda t: t.jahreskosten_eur,
-        )
-        gruen_tarife = sorted(
-            [t for t in enriched if t.ist_oekostrom],
-            key=lambda t: t.jahreskosten_eur,
-        )
-
-        bester = min(enriched, key=lambda t: t.jahreskosten_eur) if enriched else None
-
-        # Enrich aktueller_tarif too
-        aktuell_enriched = Tariff(
-            **{
-                **self.aktueller_tarif.model_dump(),
-                "gesamtkosten_eur": round(aktuell_kosten + netz, 2),
-                "kategorie": "aktuell",
-            }
-        )
-
-        return TariffComparison(
-            aktueller_tarif=aktuell_enriched,
-            alternativen=enriched,
-            plz=self.plz,
-            jahresverbrauch_kwh=self.jahresverbrauch_kwh,
-            netzkosten_eur_jahr=netz,
-            netzbetreiber=self.netzbetreiber,
-            gebrauchsabgabe_rate=self.gebrauchsabgabe_rate,
-            beste_fix=fix_tarife,
-            beste_floater=floater_tarife,
-            beste_gruen=gruen_tarife,
-            bester_gesamt=bester,
-            max_ersparnis_eur=round(aktuell_kosten - bester.jahreskosten_eur, 2) if bester else 0.0,
-        )

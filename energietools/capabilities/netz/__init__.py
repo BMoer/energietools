@@ -23,15 +23,25 @@ from __future__ import annotations
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
-    TarifvergleichInklNetzCapability,
     VerfuegbarkeitCapability,
 )
 from energietools.capabilities.netz.models import (
     Abgaben,
+    GemeindeInfo,
     NetzkostenEntry,
     NetzManifest,
     PlzInfo,
 )
+from energietools.capabilities.netz.per_kwh import (
+    DEFAULT_OPERATOR_AT,
+    charging_fee_ct_kwh,
+    consumption_fee_ct_kwh,
+    default_network_fee_ct_kwh,
+    network_fee_ct_kwh,
+    resolve_operator,
+    total_fee_breakdown,
+)
+from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
 from energietools.capabilities.netz.resolve import (
     gebrauchsabgabe_rate,
     ist_verfuegbar,
@@ -41,17 +51,25 @@ from energietools.capabilities.netz.resolve import (
 )
 
 __all__ = [
+    "DEFAULT_OPERATOR_AT",
     "Abgaben",
+    "GemeindeInfo",
     "GesamtkostenCapability",
+    "GridFeesCapability",
     "NetzManifest",
     "NetzkostenCapability",
     "NetzkostenEntry",
     "PlzInfo",
-    "TarifvergleichInklNetzCapability",
     "VerfuegbarkeitCapability",
+    "charging_fee_ct_kwh",
+    "consumption_fee_ct_kwh",
+    "default_network_fee_ct_kwh",
     "gebrauchsabgabe_rate",
     "ist_verfuegbar",
+    "network_fee_ct_kwh",
     "netzkosten_brutto_eur",
     "plz_info",
     "resolve_netzbetreiber",
+    "resolve_operator",
+    "total_fee_breakdown",
 ]

@@ -7,16 +7,317 @@
   "elektrizitaetsabgabe_haushalt_ct_kwh": 0.1,
   "quelle": "EAG-Förderbeitrags-/Förderpauschale-Verordnung 2025/2026; Elektrizitätsabgabegesetz (Haushalt 0,1 ct/kWh = temporäre 2026-Senkung von regulär 1,5 ct/kWh)."
  },
+ "gebrauchsabgabe_je_vnb": {
+  "wiener_netze": {
+   "typ": "prozent",
+   "satz": 0.07,
+   "basis": "energie_und_netz",
+   "gemeinde": "Wien",
+   "quelle": "Wiener Gebrauchsabgabegesetz 1966; E-Control-Liste 01.03.2026 (7 % auf Energie und Netz, ohne Abgaben)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "ikb": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie",
+   "gemeinde": "Innsbruck",
+   "quelle": "Tiroler Gebrauchsabgabegesetz; E-Control-Liste 01.03.2026 (Innsbruck/IKB: 6 % auf Energie)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "stadtwerke_klagenfurt": {
+   "typ": "ct_kwh",
+   "satz": 1.637,
+   "basis": "verbrauch",
+   "gemeinde": "Klagenfurt am Wörthersee",
+   "quelle": "Kärntner Gebrauchsabgabegesetz; E-Control-Liste 01.03.2026 (Energie Klagenfurt: 1,637 ct/kWh)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "salzburg_netz": {
+   "typ": "ct_kwh",
+   "satz": 0.3789,
+   "basis": "verbrauch",
+   "gemeinde": "Salzburg (landesweit)",
+   "quelle": "Salzburger Gebrauchsabgabegesetz; E-Control-Liste 01.03.2026 (Salzburg Netz: 0,3789 ct/kWh, Bundesland Salzburg)",
+   "gueltig_ab": "2026-03-01"
+  }
+ },
+ "gebrauchsabgabe_longtail_plz": {
+  "6600": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie",
+   "gemeinde": "Reutte",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Reutte: 6 % auf Energie)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6156": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Gries am Brenner",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Gries am Brenner: 6 % auf Energie und Netz)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6580": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "St. Anton am Arlberg",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (St. Anton am Arlberg: 6 % auf Energie und Netz)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6175": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Kematen in Tirol",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Kematen in Tirol: 6 % auf Energie und Netz)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6060": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Hall in Tirol",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Hall in Tirol: 6 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6361": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Hopfgarten im Brixental",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Hopfgarten im Brixental: 6 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6074": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Rinn",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Rinn: 6 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6460": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "netz",
+   "gemeinde": "Imst",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Imst: 6 % auf das Netz)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6370": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Kitzbühel",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Kitzbühel: 6 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6330": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Kufstein",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Kufstein: 6 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6332": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Kufstein",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Kufstein: 6 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6333": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Kufstein",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Kufstein: 6 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6130": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Schwaz",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Schwaz: 6 % auf Energie und Netz)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "6300": {
+   "typ": "prozent",
+   "satz": 0.06,
+   "basis": "energie_und_netz",
+   "gemeinde": "Wörgl",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Wörgl: 6 % auf Energie und Netz)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8812": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Neumarkt",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Neumarkt: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8820": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Neumarkt",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Neumarkt: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "9323": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Neumarkt",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Neumarkt: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8850": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Murau",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Murau: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8852": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Murau",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Murau: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8630": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Mariazell",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Mariazell: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8632": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Mariazell",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Mariazell: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8634": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Mariazell",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Mariazell: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8635": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Mariazell",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Mariazell: 3 % auf Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8786": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "energie_und_netz",
+   "gemeinde": "Rottenmann",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Rottenmann: 3 % auf Energie und Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8600": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Bruck an der Mur",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Bruck an der Mur: 3 % auf das Netz (ohne Messentgelt und Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8750": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Judenburg",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Judenburg: 3 % auf das Netz (ohne Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8680": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "energie_und_netz",
+   "gemeinde": "Mürzzuschlag",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Mürzzuschlag: 3 % auf Energie und Netz (ohne Messentgelt und Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8682": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "energie_und_netz",
+   "gemeinde": "Mürzzuschlag",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Mürzzuschlag: 3 % auf Energie und Netz (ohne Messentgelt und Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "8793": {
+   "typ": "prozent",
+   "satz": 0.03,
+   "basis": "netz",
+   "gemeinde": "Trofaiach",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Trofaiach: 3 % auf das Netz (ohne Messentgelt und Abgaben))",
+   "gueltig_ab": "2026-03-01"
+  },
+  "5630": {
+   "typ": "ct_kwh",
+   "satz": 0.4893,
+   "basis": "verbrauch",
+   "gemeinde": "Bad Hofgastein",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Bad Hofgastein: 0,4893 ct/kWh)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "3345": {
+   "typ": "ct_kwh",
+   "satz": 0.1013,
+   "basis": "verbrauch",
+   "gemeinde": "Göstling an der Ybbs",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Göstling an der Ybbs: 0,1013 ct/kWh)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "3343": {
+   "typ": "ct_kwh",
+   "satz": 0.1013,
+   "basis": "verbrauch",
+   "gemeinde": "Hollenstein an der Ybbs",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Hollenstein an der Ybbs: 0,1013 ct/kWh)",
+   "gueltig_ab": "2026-03-01"
+  },
+  "2431": {
+   "typ": "ct_kwh",
+   "satz": 0.1059,
+   "basis": "verbrauch",
+   "gemeinde": "Kleinneusiedl",
+   "quelle": "E-Control-Gebrauchsabgabe-Liste Strom 01.03.2026 (Kleinneusiedl: 0,1059 ct/kWh)",
+   "gueltig_ab": "2026-03-01"
+  }
+ },
+ "gebrauchsabgabe_methodik": "Die Gebrauchsabgabe folgt dem aufgelösten Netzbetreiber. Bemessungsbasis variiert je Gemeinde: 'energie', 'netz' oder 'energie_und_netz' (Netto, ohne Abgaben), bzw. Fixbetrag ct/kWh (typ='ct_kwh'). Korrektur ggü. Vorversion: Wien = 7 % auf Energie UND Netz (nicht nur Energie); Klagenfurt/Salzburg = ct/kWh. Nur verifizierte Sätze, sonst 0 (ehrlich, nicht erfunden).",
  "gebrauchsabgabe": {
   "basis": "energie_netto",
-  "hinweis": "Anteil auf den Energie-Netto (cost_engine-Konvention). Landes-/gemeindespezifisch; nur verifizierte Sätze, sonst 0 (ehrlich, nicht erfunden).",
+  "_superseded": "Veraltete Energie-only-Näherung. Autoritativ ist 'gebrauchsabgabe_je_vnb' (basisgenau, Stand 01.03.2026).",
   "regeln": [
    {
     "match": {
      "gemeinde": "Wien"
     },
     "rate": 0.07,
-    "quelle": "Wiener Gebrauchsabgabegesetz — 7 % ab 01.03.2026"
+    "quelle": "Wiener Gebrauchsabgabegesetz — 7 % ab 01.03.2026. ACHTUNG: korrekte Basis ist Energie UND Netz (siehe gebrauchsabgabe_je_vnb)."
    },
    {
     "match": {

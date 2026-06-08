@@ -207,7 +207,7 @@ class VerfuegbarkeitCapability(Capability):
         info = plz_info(plz)
         return {
             "verfuegbar": ist_verfuegbar(service_area, plz),
-            "bundesland": info.bundesland if info else None,
+            "bundeslaender": list(info.bundeslaender) if info else None,
         }
 
 

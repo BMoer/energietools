@@ -78,14 +78,38 @@ class NetzkostenEntry(BaseModel):
         return ct_pro_kwh * jahresverbrauch_kwh / 100.0 + self.netznutzung_pauschale_eur_jahr
 
 
+class GemeindeInfo(BaseModel):
+    """Eine Gemeinde mit IHREM Bundesland (eine PLZ kann mehrere umfassen)."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str = Field(description="Gemeindename")
+    bundesland: str = Field(description="Bundesland dieser Gemeinde")
+
+
 class PlzInfo(BaseModel):
-    """Ein PLZ-Eintrag aus dem PLZ→Netzbereich-Index."""
+    """Ein PLZ-Eintrag aus dem PLZ→Netzbereich-Index (Schema v2: Listen).
+
+    Eine PLZ kann mehrere Gemeinden (geteilt) und Bundesländer (grenzüberspannend)
+    umfassen; ``gemeinden`` trägt je Gemeinde ihr Bundesland — Grundlage für die
+    Per-Gemeinde-Auflösung und den Single-Gemeinde-Guard (geteilte PLZ).
+    """
 
     model_config = ConfigDict(frozen=True)
 
     plz: str = Field(description="Postleitzahl")
-    gemeinde: str = Field(description="Gemeinde-/Ortsname")
-    bundesland: str = Field(description="Bundesland")
+    ort: str = Field(default="", description="Orts-/Zustellbezeichnung")
+    gemeinden: tuple[GemeindeInfo, ...] = Field(
+        default=(), description="Gemeinden dieser PLZ (je mit ihrem Bundesland)"
+    )
+    bundeslaender: tuple[str, ...] = Field(
+        default=(), description="Distinct Bundesländer dieser PLZ"
+    )
+
+    @property
+    def gemeinde_namen(self) -> tuple[str, ...]:
+        """Die Gemeindenamen dieser PLZ."""
+        return tuple(g.name for g in self.gemeinden)
 
 
 class GebrauchsabgabeRegel(BaseModel):

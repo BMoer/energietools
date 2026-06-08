@@ -67,26 +67,43 @@ def resolve_netzbetreiber(plz: str) -> NetzkostenEntry | None:
     if info is None:
         return None
 
+    # Jede Gemeinde der PLZ einzeln (mit IHREM Bundesland) auflösen; nur wenn ALLE
+    # auf denselben VNB zeigen, ist die PLZ eindeutig. Geteilte PLZ (mehrere VNB)
+    # → fail-open None (lieber 0 Netzkosten als falscher VNB). 1:1 wie
+    # gridbert.netz.resolve.resolve_netzbetreiber.
     alle = load_alle_vnb()
+    treffer: dict[str, NetzkostenEntry] = {}
+    for g in info.gemeinden:
+        nb = _vnb_fuer_gemeinde(g.name, g.bundesland, alle)
+        if nb is not None:
+            treffer[nb.key] = nb
+    if len(treffer) == 1:
+        return next(iter(treffer.values()))
+    return None  # keiner oder mehrdeutig (geteilte PLZ) → fail-open
 
-    # 1) Inklusion (Stadt-/Enklaven-/Attributions-VNB) — Vorrang.
-    stadt = [nb for nb in alle if info.gemeinde in nb.gemeinden]
+
+def _vnb_fuer_gemeinde(
+    gemeinde: str, bundesland: str, alle: tuple[NetzkostenEntry, ...]
+) -> NetzkostenEntry | None:
+    """Der eindeutige VNB für GENAU EINE Gemeinde — oder ``None``.
+
+    (1) Inklusion: Stadt-/Enklaven-VNB, die die Gemeinde explizit führen (Vorrang);
+    (2) Exklusion: Landes-VNB im Bundesland, deren ``enclaves`` die Gemeinde nicht
+    enthalten. Kein/mehrdeutiger Treffer → ``None``.
+    """
+    stadt = [nb for nb in alle if gemeinde and gemeinde in nb.gemeinden]
     if len(stadt) == 1:
         return stadt[0]
     if len(stadt) > 1:
-        return None  # mehrdeutige Inklusion → fail-open
-
-    # 2) Exklusion (Landes-VNB; Stadt-/Attributions-VNB ausgenommen).
+        return None
     kandidaten = [
         nb
         for nb in alle
-        if not nb.gemeinden
-        and nb.bundesland == info.bundesland
-        and info.gemeinde not in nb.enclaves
+        if not nb.gemeinden and nb.bundesland == bundesland and gemeinde not in nb.enclaves
     ]
     if len(kandidaten) == 1:
         return kandidaten[0]
-    return None  # keiner oder mehrdeutig → fail-open
+    return None
 
 
 def tarif_fuer(nb: NetzkostenEntry) -> NetzkostenEntry | None:
@@ -125,11 +142,14 @@ def _regel_trifft(match: dict[str, object], info: PlzInfo) -> bool:
     Ein Match-Kriterium kann ein einzelner String oder eine Liste sein; alle
     angegebenen Kriterien müssen zutreffen (UND-Verknüpfung).
     """
-    felder = {"gemeinde": info.gemeinde, "bundesland": info.bundesland}
+    felder = {
+        "gemeinde": set(info.gemeinde_namen),
+        "bundesland": set(info.bundeslaender),
+    }
     for feld, erwartet in match.items():
-        ist = felder.get(feld)
+        ist = felder.get(feld, set())
         erlaubte = {erwartet} if isinstance(erwartet, str) else set(erwartet)  # type: ignore[arg-type]
-        if ist not in erlaubte:
+        if not (ist & erlaubte):
             return False
     return True
 
@@ -144,9 +164,9 @@ def gebrauchsabgabe_regel(
     (2) Long-Tail-Gemeinde per EXAKTER PLZ (``gebrauchsabgabe_longtail_plz``);
     (3) Wien-Fallback über das eigene Bundesland.
 
-    Hinweis: der Single-Gemeinde-Guard gegen geteilte PLZ (gb: ``len(gemeinden)==1``)
-    greift erst mit S2 (Listen-PLZ-Schema); heute ist et's ``PlzInfo`` skalar, also
-    inhärent Single-Gemeinde. Fail-open: nichts greift / unbekannte PLZ → ``None``.
+    Single-Gemeinde-Guard: Long-Tail greift nur bei eindeutiger PLZ (genau eine
+    Gemeinde) — kein Mis-Apply in geteilten PLZ. Fail-open: nichts greift /
+    unbekannte PLZ → ``None``.
     """
     abgaben = load_abgaben()
     if netzbetreiber_key and netzbetreiber_key in abgaben.gebrauchsabgabe_je_vnb:
@@ -156,11 +176,13 @@ def gebrauchsabgabe_regel(
     if info is None:
         return None
 
-    if plz in abgaben.gebrauchsabgabe_longtail_plz:
+    # Long-Tail: nur bei eindeutiger PLZ (genau eine Gemeinde) — kein Mis-Apply in
+    # geteilten PLZ (Single-Gemeinde-Guard, 1:1 wie gridbert).
+    if plz in abgaben.gebrauchsabgabe_longtail_plz and len(info.gemeinden) == 1:
         return abgaben.gebrauchsabgabe_longtail_plz[plz]
 
     # Wien ist als eigenes Bundesland eindeutig (auch ohne aufgelösten VNB).
-    if info.gemeinde == "Wien" and info.bundesland == "Wien":
+    if "Wien" in info.gemeinde_namen and list(info.bundeslaender) == ["Wien"]:
         return abgaben.gebrauchsabgabe_je_vnb.get("wiener_netze")
     return None
 
@@ -271,4 +293,4 @@ def ist_verfuegbar(service_area: str | list[str], plz: str) -> bool:
         return True  # fail-open: unbekannte PLZ nicht ausschließen
 
     erlaubte = {service_area} if isinstance(service_area, str) else set(service_area)
-    return info.bundesland in erlaubte
+    return bool(set(info.bundeslaender) & erlaubte)

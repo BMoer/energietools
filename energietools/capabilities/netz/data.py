@@ -75,13 +75,34 @@ def load_alle_vnb() -> tuple[NetzkostenEntry, ...]:
     return load_netzkosten() + load_attribution()
 
 
+def _normalize_plz_entry(entry: dict) -> dict:
+    """Akzeptiert auch das alte Skalar-Schema und mappt es auf Schema v2.
+
+    Schema v2 = ``{plz, ort, gemeinden:[{name,bundesland}], bundeslaender:[str]}``.
+    Ein alter Snapshot (``gemeinde``/``bundesland`` skalar) wird defensiv auf eine
+    1-Element-Liste abgebildet, damit Daten-Regen + Loader-Change nicht hart
+    brechen, falls sie getrennt landen.
+    """
+    if "gemeinden" in entry:
+        return entry
+    gemeinde = str(entry.get("gemeinde", "")).strip()
+    bundesland = str(entry.get("bundesland", "")).strip()
+    gemeinden = [{"name": gemeinde, "bundesland": bundesland}] if gemeinde else []
+    return {
+        "plz": entry.get("plz", ""),
+        "ort": entry.get("ort", gemeinde),
+        "gemeinden": gemeinden,
+        "bundeslaender": [bundesland] if bundesland else [],
+    }
+
+
 @lru_cache(maxsize=1)
 def load_plz_index() -> dict[str, PlzInfo]:
-    """Lädt plz_netzbereich.json als ``{plz: PlzInfo}`` (gecacht)."""
+    """Lädt plz_netzbereich.json als ``{plz: PlzInfo}`` (gecacht, Schema v2)."""
     raw = json.loads(_read_data("plz_netzbereich.json"))
     if not isinstance(raw, list):
         raise CapabilityError("plz_netzbereich.json: erwartet eine Liste von PLZ-Einträgen")
-    return {entry["plz"]: PlzInfo(**entry) for entry in raw}
+    return {entry["plz"]: PlzInfo(**_normalize_plz_entry(entry)) for entry in raw}
 
 
 @lru_cache(maxsize=1)

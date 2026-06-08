@@ -46,7 +46,7 @@ def test_gab_regel_parity_je_vnb(nb_key: str) -> None:
     )
 
 
-@pytest.mark.parametrize("plz", ["6300"])  # Wörgl: Single-Gemeinde in BEIDEN Repos
+@pytest.mark.parametrize("plz", ["6300", "6130"])  # Wörgl, Schwaz: Single-Gemeinde in BEIDEN
 def test_gab_regel_parity_longtail(plz: str) -> None:
     et_r = et_regel(plz, None)
     gb_r = gb_regel(plz, None)
@@ -69,26 +69,11 @@ def test_gab_regel_parity_no_ga_region() -> None:
     assert gb_regel("8700", None) is None
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="et PLZ-Index 21->2233 erst mit S2; Schwaz 6130 noch nicht im et-Snapshot. "
-    "Flippt nach S2 auf XPASS und erzwingt das Entfernen dieses xfail.",
-)
-def test_gab_regel_parity_longtail_pending_s2() -> None:
-    """6130 (Schwaz) ist in gb (2233 PLZ), aber noch nicht in et (21 PLZ) -> heute None."""
-    plz = "6130"
-    gb_r = gb_regel(plz, None)
-    assert gb_r is not None  # gb kennt Schwaz als Long-Tail
-    assert et_regel(plz, None) is not None  # et HEUTE None -> failt (erwartet); S2 fügt PLZ hinzu
+def test_gab_regel_parity_guard_multigemeinde() -> None:
+    """Single-Gemeinde-Guard greift in BEIDEN Repos identisch (S2-Resultat).
 
-
-@pytest.mark.xfail(
-    strict=True,
-    reason="Single-Gemeinde-Guard fehlt bei et's skalarer PlzInfo (S1); 6330 Kufstein ist "
-    "in gb multi-Gemeinde (Guard -> None), et wendet Long-Tail an. Fix mit S2.",
-)
-def test_gab_regel_guard_multigemeinde_pending_s2() -> None:
-    """Cross-Cutting-Risk #7: ohne Listen-PLZ kann et den Single-Gemeinde-Guard nicht erzwingen."""
-    plz = "6330"  # Kufstein: in gb multi-Gemeinde -> Guard -> None
-    assert gb_regel(plz, None) is None
-    assert et_regel(plz, None) is None  # et HEUTE: Regel (kein Guard) -> failt; S2 fixt
+    6330 Kufstein ist im Voll-Schema multi-Gemeinde (Kufstein + Söll) -> der
+    Guard liefert in gb UND et None (kein Mis-Apply des Long-Tail).
+    """
+    assert gb_regel("6330", None) is None
+    assert et_regel("6330", None) is None

@@ -50,11 +50,17 @@ def test_regel_je_vnb(nb_key: str, typ: str, satz: float, basis: str) -> None:
     assert (regel.typ, regel.satz, regel.basis) == (typ, satz, basis)
 
 
-@pytest.mark.parametrize("plz", ["6300", "6330"])  # Wörgl, Kufstein: im et-PLZ-Index + Long-Tail
+@pytest.mark.parametrize("plz", ["6300", "6130"])  # Wörgl, Schwaz: Single-Gemeinde + Long-Tail
 def test_regel_longtail_via_plz(plz: str) -> None:
     regel = gebrauchsabgabe_regel(plz, None)
     assert regel is not None
     assert (regel.typ, regel.satz, regel.basis) == ("prozent", 0.06, "energie_und_netz")
+
+
+def test_regel_longtail_guard_multigemeinde() -> None:
+    """Single-Gemeinde-Guard: geteilte PLZ wenden den Long-Tail NICHT an (-> None)."""
+    # 6330 Kufstein ist multi-Gemeinde (Kufstein + Söll) -> Guard -> None.
+    assert gebrauchsabgabe_regel("6330", None) is None
 
 
 def test_regel_wien_fallback() -> None:

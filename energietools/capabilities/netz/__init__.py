@@ -28,6 +28,7 @@ from energietools.capabilities.netz.capability import (
 )
 from energietools.capabilities.netz.models import (
     Abgaben,
+    GemeindeInfo,
     NetzkostenEntry,
     NetzManifest,
     PlzInfo,
@@ -53,6 +54,7 @@ from energietools.capabilities.netz.resolve import (
 __all__ = [
     "DEFAULT_OPERATOR_AT",
     "Abgaben",
+    "GemeindeInfo",
     "GesamtkostenCapability",
     "GridFeesCapability",
     "NetzManifest",

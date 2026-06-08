@@ -16,7 +16,6 @@ from functools import lru_cache
 from energietools.capabilities.base import CapabilityRegistry
 from energietools.capabilities.community.capability import CommunityMetricsCapability
 from energietools.capabilities.finance.capability import FinanceCapability
-from energietools.capabilities.grid_fees.capability import GridFeesCapability
 from energietools.capabilities.heatpump.capability import HeatPumpCapability
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
@@ -24,6 +23,7 @@ from energietools.capabilities.netz.capability import (
     TarifvergleichInklNetzCapability,
     VerfuegbarkeitCapability,
 )
+from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
 from energietools.capabilities.scenarios.capability import ScenariosCapability
 from energietools.capabilities.tariffs.advice import TariffAdviceCapability
 from energietools.capabilities.tariffs.capability import (

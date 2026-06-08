@@ -5,16 +5,20 @@
 
 Liefert das **marginale** Netzentgelt pro kWh (das, was Dispatch/Optimierer und
 Spot-Analyse als Kostenanteil brauchen) — im Gegensatz zur PLZ→Jahreskosten-
-Sicht der ``netz``-Capability. Die österreichischen Zahlen kommen aus demselben
-auditierten Snapshot (``data/netz/``): pro-kWh-Anteile = Netznutzungs-Arbeitspreis
-+ Netzverlust + EAG-Förderbeitrag (AP + Verlust) + Elektrizitätsabgabe; brutto =
-netto × 1,20. Das ist exakt die ``arbeitspreis_ct``-Komposition aus
-``netz.resolve.netzkosten_brutto_eur`` (Single Source of Truth).
+Sicht der übrigen ``netz``-Capabilities. Die österreichischen Zahlen kommen aus
+demselben auditierten Snapshot (``data/netz/``): pro-kWh-Anteile = Netznutzungs-
+Arbeitspreis + Netzverlust + EAG-Förderbeitrag (AP + Verlust) +
+Elektrizitätsabgabe; brutto = netto × 1,20. Das ist exakt die ``arbeitspreis_ct``-
+Komposition aus ``netz.resolve.netzkosten_brutto_eur`` (Single Source of Truth).
 
 FAIL-OPEN: unbekannter Operator oder ``country != "AT"`` → ``None`` (keine
 erfundenen Werte). Wo ein konkreter Default-Wert gebraucht wird (z.B. der
 Netzentgelt-Anteil der Spot-Analyse), wirft ein nicht auflösbarer Default einen
 ``CapabilityError`` — lieber ein sichtbarer Fehler als eine stille Magic-Number.
+
+Hinweis: dieses Modul lebte früher als eigenständige ``grid_fees``-Capability;
+seit S0 ist es Teil des ``netz``-Pakets (eine per-kWh-Sicht auf dieselbe Engine).
+Der Capability-Name ``"grid_fees"`` bleibt (siehe ``per_kwh_capability.py``).
 """
 
 from __future__ import annotations

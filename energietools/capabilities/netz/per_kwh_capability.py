@@ -6,6 +6,9 @@
 Auditierbar: jede Zahl trägt ihren Rechenweg und die Quelle des zugrunde
 liegenden Preisblatts. Fail-open: unbekannter Operator / nicht befülltes Land →
 ``operator: null``, Kosten 0, leerer Rechenweg (keine erfundenen Werte).
+
+Seit S0 unter dem ``netz``-Paket beheimatet (per-kWh-Sicht auf die netz-Engine);
+der öffentliche Capability-Name ``"grid_fees"`` bleibt unverändert.
 """
 
 from __future__ import annotations
@@ -13,7 +16,7 @@ from __future__ import annotations
 from typing import Any
 
 from energietools.capabilities.base import Capability, CapabilityError
-from energietools.capabilities.grid_fees.resolve import (
+from energietools.capabilities.netz.per_kwh import (
     _ap_netto_ct_kwh,
     resolve_operator,
     total_fee_breakdown,

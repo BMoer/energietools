@@ -23,7 +23,7 @@ MIT zugestimmt und wird als **Co-Autor** geführt.
 
 Aus lizenz-unabhängigen, öffentlichen Quellen neu geschrieben - kein pvtool-Code:
 
-- **Netzentgelte** - `energietools/capabilities/grid_fees/`. Operator- und
+- **Netzentgelte** - `energietools/capabilities/netz/` (per_kwh-Modul, ehem. `grid_fees/`). Operator- und
   länderparametrisiert; die österreichischen Zahlen stammen aus dem auditierten,
   gequellten `data/netz`-Snapshot (Systemnutzungsentgelte-Verordnung
   BGBl. II Nr. 305/2025, Netzbetreiber-Preisblätter, ElAbgG/EAG), nicht aus pvtool.

@@ -5,7 +5,10 @@
   "eag_foerderbeitrag_verlust_ct_kwh": 0.037,
   "eag_foerderpauschale_eur_jahr": 19.02,
   "elektrizitaetsabgabe_haushalt_ct_kwh": 0.1,
-  "quelle": "EAG-Förderbeitrags-/Förderpauschale-Verordnung 2025/2026; Elektrizitätsabgabegesetz (Haushalt 0,1 ct/kWh = temporäre 2026-Senkung von regulär 1,5 ct/kWh)."
+  "gueltig_ab": "2026-01-01",
+  "elektrizitaetsabgabe_senkung_gueltig_bis": "2026-12-31",
+  "elektrizitaetsabgabe_regulaer_ct_kwh": 1.5,
+  "quelle": "EAG-Förderbeitrags-/Förderpauschale-Verordnung 2025/2026; Elektrizitätsabgabegesetz (Haushalt 0,1 ct/kWh = temporäre Senkung bis 31.12.2026 von regulär 1,5 ct/kWh)."
  },
  "gebrauchsabgabe_je_vnb": {
   "wiener_netze": {

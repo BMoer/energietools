@@ -98,7 +98,7 @@ def test_verfuegbarkeit() -> None:
 
 def test_stadt_netzbereiche_loesen_inklusion_first() -> None:
     """Stadt-Netzbereiche lösen auf ihren eigenen VNB auf (nicht den Landes-VNB)."""
-    assert resolve_netzbetreiber("8020").key == "energie_graz"  # Graz
+    assert resolve_netzbetreiber("8020").key == "stromnetz_graz"  # Graz
     assert resolve_netzbetreiber("4030").key == "linz_netz"  # Linz
     # Innsbruck (6020) war früher fail-open (TINETZ-Enklave) → jetzt IKB.
     nb = resolve_netzbetreiber("6020")

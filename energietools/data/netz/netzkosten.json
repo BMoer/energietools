@@ -1,19 +1,5 @@
 [
  {
-  "key": "energie_graz",
-  "name": "Energie Graz GmbH & Co KG",
-  "bundesland": "Steiermark",
-  "enclaves": [],
-  "gemeinden": [
-   "Graz"
-  ],
-  "netznutzung_arbeitspreis_ct_kwh": 5.17,
-  "netznutzung_pauschale_eur_jahr": 54.0,
-  "netzverlust_ct_kwh": 0.658,
-  "gueltig_ab": "2026-01-01",
-  "quelle": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/305 (Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025)"
- },
- {
   "key": "energienetze_steiermark",
   "name": "Energienetze Steiermark GmbH",
   "bundesland": "Steiermark",
@@ -39,7 +25,7 @@
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.401,
   "gueltig_ab": "2026-01-01",
-  "quelle": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/305 (Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025)"
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
  },
  {
   "key": "ikb",
@@ -53,7 +39,7 @@
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.453,
   "gueltig_ab": "2026-01-01",
-  "quelle": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/305 (Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025)"
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
  },
  {
   "key": "kaernten_netz",
@@ -81,7 +67,7 @@
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.487,
   "gueltig_ab": "2026-01-01",
-  "quelle": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/305 (Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025)"
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
  },
  {
   "key": "netz_burgenland",
@@ -145,7 +131,21 @@
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.578,
   "gueltig_ab": "2026-01-01",
-  "quelle": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/305 (Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025)"
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
+ },
+ {
+  "key": "stromnetz_graz",
+  "name": "Stromnetz Graz GmbH",
+  "bundesland": "Steiermark",
+  "enclaves": [],
+  "gemeinden": [
+   "Graz"
+  ],
+  "netznutzung_arbeitspreis_ct_kwh": 5.17,
+  "netznutzung_pauschale_eur_jahr": 54.0,
+  "netzverlust_ct_kwh": 0.658,
+  "gueltig_ab": "2026-01-01",
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
  },
  {
   "key": "tinetz",
@@ -159,7 +159,7 @@
   "netznutzung_pauschale_eur_jahr": 54.0,
   "netzverlust_ct_kwh": 0.293,
   "gueltig_ab": "2026-01-01",
-  "quelle": "https://www.ris.bka.gv.at/eli/bgbl/II/2025/305 (Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025)"
+  "quelle": "https://www.tinetz.at/uploads/tx_bh/765/tinetz_sne-v_2026.pdf"
  },
  {
   "key": "vorarlberg_netz",

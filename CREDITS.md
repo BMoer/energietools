@@ -35,6 +35,19 @@ Aus lizenz-unabhängigen, öffentlichen Quellen neu geschrieben - kein pvtool-Co
 > 2026, NE7-Arbeitspreise), ist der gequellte Snapshot maßgeblich - nicht die
 > pvtool-Konstanten.
 
+## Relizenzierung AGPL → MIT (gridbert-Konsolidierung)
+
+Der Owner (Benjamin Mörzinger) hat folgende selbst geschriebene Module aus
+**gridbert** (AGPL-3.0-only) nach energietools (MIT) **neu formuliert** — kein
+AGPL-Header wurde in den MIT-Baum übernommen, die Logik wurde unter MIT neu
+geschrieben:
+
+- **Spot/Floater-Backtest-Mathematik** (PRIO-1 S3) — `energietools/tools/cost_engine.py`,
+  `energietools/tools/spot_pricing.py`, `energietools/tools/h0_profile.py`. Offline
+  (EPEX-Serie wird hineingereicht); die Beschaffung (aWATTar-Fetch) bleibt in gridbert.
+  `build_price_at` wurde modellfrei (Primitiven) umformuliert. Die EPEX-Snapshot-Daten
+  (`data/spot/`) sind aus der öffentlichen aWATTar-Marketdata-API abgeleitet.
+
 ## Vorarbeiten
 
 Einzelne deterministische Werkzeuge (`spot_analysis`, `load_profile`) tragen

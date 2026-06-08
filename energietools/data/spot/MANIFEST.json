@@ -1,0 +1,13 @@
+{
+  "spot_version": "1",
+  "generated_at": "2026-06-08",
+  "market": "AT",
+  "index": "EPEX AT (aWATTar Marketdata)",
+  "unit": "netto ct/kWh",
+  "price_count": 8760,
+  "zeitraum_von": "2025-01-01T00:00:00",
+  "zeitraum_bis": "2025-12-31T23:00:00",
+  "provenance": "aWATTar Marketdata-API (https://api.awattar.at/v1/marketdata), EUR/MWh → netto ct/kWh (÷10).",
+  "license": "MIT",
+  "hinweis": "Historischer Backtest-Datensatz, keine Prognose. Stündliche EPEX-AT Day-Ahead-Preise."
+}

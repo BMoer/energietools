@@ -20,6 +20,7 @@ from energietools.capabilities.base import CapabilityError
 from energietools.capabilities.netz.models import (
     Abgaben,
     GebrauchsabgabeRegel,
+    GebrauchsabgabeRegelDetail,
     NetzkostenEntry,
     NetzManifest,
     PlzInfo,
@@ -91,12 +92,22 @@ def load_abgaben() -> Abgaben:
         raise CapabilityError("abgaben.json: erwartet ein Objekt")
     gab = raw.get("gebrauchsabgabe", {})
     regeln = tuple(GebrauchsabgabeRegel(**r) for r in gab.get("regeln", []))
+    je_vnb = {
+        key: GebrauchsabgabeRegelDetail(**regel)
+        for key, regel in raw.get("gebrauchsabgabe_je_vnb", {}).items()
+    }
+    longtail = {
+        plz: GebrauchsabgabeRegelDetail(**regel)
+        for plz, regel in raw.get("gebrauchsabgabe_longtail_plz", {}).items()
+    }
     return Abgaben(
         gueltig_ab=raw.get("gueltig_ab", ""),
         federal=raw.get("federal", {}),
         gebrauchsabgabe_basis=gab.get("basis", "energie_netto"),
         gebrauchsabgabe_regeln=regeln,
         gebrauchsabgabe_default=float(gab.get("default", 0.0)),
+        gebrauchsabgabe_je_vnb=je_vnb,
+        gebrauchsabgabe_longtail_plz=longtail,
     )
 
 

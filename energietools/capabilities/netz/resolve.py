@@ -29,7 +29,11 @@ from energietools.capabilities.netz.data import (
     load_netzkosten,
     load_plz_index,
 )
-from energietools.capabilities.netz.models import NetzkostenEntry, PlzInfo
+from energietools.capabilities.netz.models import (
+    GebrauchsabgabeRegelDetail,
+    NetzkostenEntry,
+    PlzInfo,
+)
 
 _UST = 1.20
 
@@ -128,6 +132,53 @@ def _regel_trifft(match: dict[str, object], info: PlzInfo) -> bool:
         if ist not in erlaubte:
             return False
     return True
+
+
+def gebrauchsabgabe_regel(
+    plz: str, netzbetreiber_key: str | None = None
+) -> GebrauchsabgabeRegelDetail | None:
+    """Basisgenaue Gebrauchsabgabe-Regel für eine PLZ + (falls aufgelöst) den VNB.
+
+    Reihenfolge (1:1 wie ``gridbert.netz.abgaben.gebrauchsabgabe_regel``):
+    (1) Regel des aufgelösten Netzbetreibers (deterministisch, ``gebrauchsabgabe_je_vnb``);
+    (2) Long-Tail-Gemeinde per EXAKTER PLZ (``gebrauchsabgabe_longtail_plz``);
+    (3) Wien-Fallback über das eigene Bundesland.
+
+    Hinweis: der Single-Gemeinde-Guard gegen geteilte PLZ (gb: ``len(gemeinden)==1``)
+    greift erst mit S2 (Listen-PLZ-Schema); heute ist et's ``PlzInfo`` skalar, also
+    inhärent Single-Gemeinde. Fail-open: nichts greift / unbekannte PLZ → ``None``.
+    """
+    abgaben = load_abgaben()
+    if netzbetreiber_key and netzbetreiber_key in abgaben.gebrauchsabgabe_je_vnb:
+        return abgaben.gebrauchsabgabe_je_vnb[netzbetreiber_key]
+
+    info = plz_info(plz)
+    if info is None:
+        return None
+
+    if plz in abgaben.gebrauchsabgabe_longtail_plz:
+        return abgaben.gebrauchsabgabe_longtail_plz[plz]
+
+    # Wien ist als eigenes Bundesland eindeutig (auch ohne aufgelösten VNB).
+    if info.gemeinde == "Wien" and info.bundesland == "Wien":
+        return abgaben.gebrauchsabgabe_je_vnb.get("wiener_netze")
+    return None
+
+
+def netznutzung_netto_ohne_abgaben_fuer(
+    nb: NetzkostenEntry | None, jahresverbrauch_kwh: float
+) -> float:
+    """Reines Netznutzungs-/Netzverlustentgelt netto (ohne Abgaben) für einen VNB.
+
+    Bemessungsgrundlage der GA-Basis "netz"/"energie_und_netz". Folgt
+    ``tarif_referenz`` (Attributions-VNB). Fail-open: kein VNB/Tarif → 0.0.
+    """
+    if nb is None:
+        return 0.0
+    tarif = tarif_fuer(nb)
+    if tarif is None:
+        return 0.0
+    return tarif.netznutzung_netto_ohne_abgaben_eur(jahresverbrauch_kwh)
 
 
 def netzkosten_brutto_eur(plz: str, kwh: float) -> tuple[float, str]:

@@ -60,8 +60,22 @@ class NetzkostenEntry(BaseModel):
     gueltig_ab: str = Field(default="", description="Gültig ab (ISO-Datum, z.B. '2026-01-01')")
     quelle: str = Field(
         default="",
-        description="Quelle des Preisblatts (URL des Netzbetreiber-Preisblatts bzw. BGBl. II Nr. 305/2025)",
+        description=(
+            "Quelle des Preisblatts (URL des Netzbetreiber-Preisblatts bzw. BGBl. II Nr. 305/2025)"
+        ),
     )
+
+    def netznutzung_netto_ohne_abgaben_eur(self, jahresverbrauch_kwh: float) -> float:
+        """Reines Netznutzungs-/Netzverlustentgelt netto, OHNE föderale Abgaben.
+
+        Bemessungsgrundlage für die Gebrauchsabgabe-Basis "Netz (ohne Abgaben)":
+        nur VNB-Netznutzungs-Arbeitspreis + Netzverlust (ct/kWh) + Netznutzungs-
+        Pauschale (EUR/Jahr) — OHNE EAG-Förderbeitrag/-pauschale und OHNE
+        Elektrizitätsabgabe (die sind selbst Abgaben, nicht Teil der GA-Basis).
+        Spiegelt ``gridbert.netz.models.Netzkosten.netznutzung_netto_ohne_abgaben_eur``.
+        """
+        ct_pro_kwh = self.netznutzung_arbeitspreis_ct_kwh + self.netzverlust_ct_kwh
+        return ct_pro_kwh * jahresverbrauch_kwh / 100.0 + self.netznutzung_pauschale_eur_jahr
 
 
 class PlzInfo(BaseModel):
@@ -85,6 +99,48 @@ class GebrauchsabgabeRegel(BaseModel):
     )
     rate: float = Field(description="Gebrauchsabgabe-Satz (Anteil, z.B. 0.07 = 7 %)")
     quelle: str = Field(default="", description="Rechtsgrundlage / Quelle")
+
+
+class GebrauchsabgabeRegelDetail(BaseModel):
+    """Basisgenaue Gebrauchsabgabe-Regel (immutable) — typ/satz/basis.
+
+    ``typ``:  "prozent" (Anteil auf eine Basis) oder "ct_kwh" (Fixbetrag je kWh).
+    ``satz``: bei "prozent" der Anteil (0.07 = 7 %); bei "ct_kwh" der ct/kWh-Betrag.
+    ``basis``: bei "prozent" "energie" | "netz" | "energie_und_netz" (welcher
+              Netto-Block die Bemessungsgrundlage ist); bei "ct_kwh" "verbrauch".
+
+    Spiegelt 1:1 ``gridbert.netz.abgaben.GebrauchsabgabeRegel`` (Referenz der
+    basisgenauen GA-Berechnung). Quelle: E-Control-Gebrauchsabgabe-Liste Strom,
+    Stand 01.03.2026, fundiert auf den Landes-Gebrauchsabgabegesetzen.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    typ: str = Field(description="'prozent' (Anteil auf Basis) oder 'ct_kwh' (Fixbetrag je kWh)")
+    satz: float = Field(description="Anteil (0.07 = 7 %) bzw. ct/kWh-Betrag")
+    basis: str = Field(description="'energie' | 'netz' | 'energie_und_netz' | 'verbrauch'")
+    gemeinde: str = Field(default="", description="Gemeinde-/Gebietsbezeichnung")
+    quelle: str = Field(default="", description="Rechtsgrundlage / Quelle")
+    gueltig_ab: str = Field(default="2026-03-01", description="Gültig ab (ISO-Datum)")
+
+    def betrag_netto_eur(
+        self, energie_netto_eur: float, netz_netto_eur: float, verbrauch_kwh: float
+    ) -> float:
+        """Netto-Gebrauchsabgabe in EUR/Jahr für diese Regel.
+
+        ``energie_netto_eur`` = Energie-Arbeitspreis-Netto (Verbrauch × ct/kWh).
+        ``netz_netto_eur``    = reines Netznutzungs-/Netzverlustentgelt netto
+                                (OHNE föderale Abgaben — "Netz ohne Abgaben").
+        """
+        if self.typ == "ct_kwh":
+            return self.satz * verbrauch_kwh / 100.0
+        if self.basis == "energie":
+            basis_eur = energie_netto_eur
+        elif self.basis == "netz":
+            basis_eur = netz_netto_eur
+        else:  # "energie_und_netz"
+            basis_eur = energie_netto_eur + netz_netto_eur
+        return self.satz * basis_eur
 
 
 class Abgaben(BaseModel):
@@ -112,6 +168,14 @@ class Abgaben(BaseModel):
     )
     gebrauchsabgabe_default: float = Field(
         default=0.0, description="Satz, wenn keine Regel greift (ehrlich 0, nicht erfunden)"
+    )
+    gebrauchsabgabe_je_vnb: dict[str, GebrauchsabgabeRegelDetail] = Field(
+        default_factory=dict,
+        description="Basisgenaue GA-Regel je aufgelöstem VNB-Key (typ/satz/basis)",
+    )
+    gebrauchsabgabe_longtail_plz: dict[str, GebrauchsabgabeRegelDetail] = Field(
+        default_factory=dict,
+        description="Basisgenaue GA-Regel je exakter Long-Tail-PLZ (Single-Gemeinde)",
     )
 
     def _federal_float(self, schluessel: str) -> float:

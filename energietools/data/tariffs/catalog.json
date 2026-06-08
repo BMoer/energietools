@@ -2385,7 +2385,7 @@
     "tarif_name": "V-Strom-SPOT-H-KW4925",
     "tariftyp": "Stundenfloater",
     "preismodell": "",
-    "energiepreis_ct_kwh": 12.2238,
+    "energiepreis_ct_kwh": 11.1885,
     "grundgebuehr_eur_monat": 3.99,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",

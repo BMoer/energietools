@@ -157,11 +157,7 @@ def test_attribution_capability_rechenweg_korrekt() -> None:
 
 
 def test_default_registry_enthaelt_netz_capabilities() -> None:
-    """Die 4 neuen Netz-Capabilities sind in der Default-Registry registriert."""
+    """Die Netz-Capabilities sind registriert; die Vergleichs-Capability ist entfernt (S4)."""
     namen = set(default_registry().names)
-    assert {
-        "netzkosten",
-        "gesamtkosten",
-        "netz_verfuegbar",
-        "tarifvergleich_inkl_netz",
-    } <= namen
+    assert {"netzkosten", "gesamtkosten", "netz_verfuegbar"} <= namen
+    assert "tarifvergleich_inkl_netz" not in namen

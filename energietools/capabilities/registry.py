@@ -20,16 +20,11 @@ from energietools.capabilities.heatpump.capability import HeatPumpCapability
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
-    TarifvergleichInklNetzCapability,
     VerfuegbarkeitCapability,
 )
 from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
 from energietools.capabilities.scenarios.capability import ScenariosCapability
-from energietools.capabilities.tariffs.advice import TariffAdviceCapability
-from energietools.capabilities.tariffs.capability import (
-    TariffCatalogCapability,
-    TariffCompareCapability,
-)
+from energietools.capabilities.tariffs.capability import TariffCatalogCapability
 from energietools.capabilities.tools_bridge import register_tool_capabilities
 
 
@@ -37,17 +32,14 @@ from energietools.capabilities.tools_bridge import register_tool_capabilities
 def default_registry() -> CapabilityRegistry:
     """Zentrale Registry aller ausgelieferten Capabilities (gecacht)."""
     registry = CapabilityRegistry()
-    # Auditierbarer Kern: Open-Data-Tarife + Rechnungs-Zusammenführung.
+    # Auditierbarer Kern: Open-Data-Tarifkatalog (Vergleich lebt im Produkt, S4).
     registry.register(TariffCatalogCapability())
-    registry.register(TariffCompareCapability())
-    registry.register(TariffAdviceCapability())
     # Energiegemeinschafts-Kennzahlen (EEG/BEG).
     registry.register(CommunityMetricsCapability())
-    # Netz: regulierte Netzkosten, Gesamtkosten, Verfügbarkeit, Tarifvergleich inkl. Netz.
+    # Netz: regulierte Netzkosten, Gesamtkosten, Verfügbarkeit.
     registry.register(NetzkostenCapability())
     registry.register(GesamtkostenCapability())
     registry.register(VerfuegbarkeitCapability())
-    registry.register(TarifvergleichInklNetzCapability())
     # Rechenmodule: Netzentgelt je Betreiber/Land (per kWh) + Investitionskennzahlen.
     registry.register(GridFeesCapability())
     registry.register(FinanceCapability())

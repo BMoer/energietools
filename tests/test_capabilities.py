@@ -15,10 +15,7 @@ from energietools.capabilities.base import (
 )
 from energietools.capabilities.registry import default_registry
 from energietools.capabilities.tariffs.catalog import TariffCatalog, detect_tariftyp
-from energietools.capabilities.tariffs.compare import (
-    compare_against_catalog,
-    kosten_rechenweg,
-)
+from energietools.capabilities.tariffs.compare import kosten_rechenweg
 from energietools.capabilities.tariffs.models import CatalogTariff
 
 # =============================================================================
@@ -101,7 +98,8 @@ class TestCapabilityRegistry:
     def test_default_registry_has_tariff_capabilities(self):
         reg = default_registry()
         assert "tariff_catalog" in reg.names
-        assert "tariff_compare" in reg.names
+        assert "gesamtkosten" in reg.names  # Kosten-Engine bleibt
+        assert "tariff_compare" not in reg.names  # Vergleich lebt im Produkt (S4)
         assert len(reg.tool_definitions()) >= 2
 
 
@@ -161,10 +159,11 @@ class TestKostenRechenweg:
             netto_gg_eur_monat=6.0 / 1.2,
             gebrauchsabgabe_rate=0.07,
         )
-        assert rw.brutto_jahreskosten_eur == 933.04
+        assert rw.brutto_jahreskosten_eur == pytest.approx(872.0, abs=0.01)  # Energie, ohne GAB
+        assert rw.gebrauchsabgabe_eur == pytest.approx(61.04, abs=0.01)  # eigener Brutto-Block
         # interne Konsistenz
         assert abs(rw.netto_gesamt_eur - (rw.netto_energie_eur + rw.netto_grund_eur)) < 0.01
-        assert abs(rw.ust_eur - rw.netto_inkl_gab_eur * 0.2) < 0.01
+        assert abs(rw.ust_eur - rw.netto_gesamt_eur * 0.2) < 0.01
 
     def test_rechenweg_kette_lueckenlos_ohne_rabatt(self):
         """Auch ohne Rabatt bleibt die Kette auditierbar: netto_nach_rabatt == netto_gesamt."""
@@ -174,8 +173,8 @@ class TestKostenRechenweg:
         )
         assert rw.neukundenrabatt_netto_eur == 0.0
         assert rw.netto_nach_rabatt_eur == rw.netto_gesamt_eur
-        # GAB-Schritt aus den gespeicherten Feldern reproduzierbar
-        assert abs(rw.gebrauchsabgabe_eur - rw.netto_nach_rabatt_eur * 0.07) < 0.01
+        # GAB-Block (brutto) aus den gespeicherten Feldern reproduzierbar
+        assert abs(rw.gebrauchsabgabe_eur - rw.netto_nach_rabatt_eur * 0.07 * 1.2) < 0.01
 
     def test_rabatt_pauschal_reduziert_brutto(self):
         ohne = kosten_rechenweg(
@@ -189,63 +188,16 @@ class TestKostenRechenweg:
         assert round(ohne.brutto_jahreskosten_eur - mit.brutto_jahreskosten_eur, 2) == 50.0
 
 
-class TestCompareAgainstCatalog:
-    def test_compare_produces_sorted_alternatives_with_rechenweg(self):
-        result = compare_against_catalog(
-            verbrauch_kwh=3200,
-            aktueller_lieferant="Teuer AG",
-            aktueller_energiepreis_ct_kwh=40.0,
-            aktuelle_grundgebuehr_eur_monat=10.0,
-            gebrauchsabgabe_rate=0.07,
-            plz="1060",
-        )
-        assert len(result.alternativen) > 0
-        # jeder Tarif hat einen lückenlosen Rechenweg
-        assert all(t.rechenweg is not None for t in result.alternativen)
-        # Fixpreis-Liste ist nach Jahreskosten sortiert
-        fix = result.beste_fix
-        assert fix == sorted(fix, key=lambda t: t.jahreskosten_eur)
-        # Ersparnis gegen den (teuren) aktuellen Tarif ist positiv für den Besten
-        assert result.max_ersparnis_eur > 0
+class TestComparisonSurfaceRemoved:
+    """S4: et ist reine Kosten-Engine — die Vergleichs-Oberfläche ist entfernt."""
 
-    def test_spot_excluded_without_baseline(self):
-        """Ohne spot_baseline_ct dürfen keine Spot-Tarife im Ergebnis sein."""
-        result = compare_against_catalog(
-            verbrauch_kwh=3200,
-            aktueller_lieferant="X",
-            aktueller_energiepreis_ct_kwh=30.0,
-            aktuelle_grundgebuehr_eur_monat=8.0,
-            gebrauchsabgabe_rate=0.0,
-        )
-        assert all(t.energiepreis_ct_kwh > 0 for t in result.alternativen)
+    def test_compare_against_catalog_removed(self):
+        import energietools.capabilities.tariffs.compare as compare_mod
 
-    def test_spot_included_with_baseline(self):
-        """Mit spot_baseline_ct werden Spot-Tarife bepreist und einbezogen."""
-        no_spot = compare_against_catalog(
-            verbrauch_kwh=3200, aktueller_lieferant="X",
-            aktueller_energiepreis_ct_kwh=30.0, aktuelle_grundgebuehr_eur_monat=8.0,
-        )
-        with_spot = compare_against_catalog(
-            verbrauch_kwh=3200, aktueller_lieferant="X",
-            aktueller_energiepreis_ct_kwh=30.0, aktuelle_grundgebuehr_eur_monat=8.0,
-            spot_baseline_ct=8.0,
-        )
-        assert len(with_spot.alternativen) > len(no_spot.alternativen)
+        assert not hasattr(compare_mod, "compare_against_catalog")
+        assert hasattr(compare_mod, "kosten_rechenweg")  # die Kosten-Engine bleibt
 
-    def test_capability_envelope_via_registry(self):
-        result = default_registry().get("tariff_compare").run(
-            verbrauch_kwh=3200,
-            aktueller_energiepreis_ct_kwh=30.0,
-            aktuelle_grundgebuehr_eur_monat=8.0,
-            gebrauchsabgabe_rate=0.07,
-        )
-        assert result.ok is True
-        assert result.data["alternativen"]
-
-    def test_capability_rejects_zero_consumption(self):
-        result = default_registry().get("tariff_compare").run(
-            verbrauch_kwh=0,
-            aktueller_energiepreis_ct_kwh=30.0,
-            aktuelle_grundgebuehr_eur_monat=8.0,
-        )
-        assert result.ok is False
+    def test_compare_capabilities_not_registered(self):
+        namen = set(default_registry().names)
+        assert {"tariff_compare", "tariff_advice", "tarifvergleich_inkl_netz"} & namen == set()
+        assert {"tariff_catalog", "gesamtkosten"} <= namen

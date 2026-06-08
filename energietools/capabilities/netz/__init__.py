@@ -23,7 +23,6 @@ from __future__ import annotations
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
-    TarifvergleichInklNetzCapability,
     VerfuegbarkeitCapability,
 )
 from energietools.capabilities.netz.models import (
@@ -61,7 +60,6 @@ __all__ = [
     "NetzkostenCapability",
     "NetzkostenEntry",
     "PlzInfo",
-    "TarifvergleichInklNetzCapability",
     "VerfuegbarkeitCapability",
     "charging_fee_ct_kwh",
     "consumption_fee_ct_kwh",

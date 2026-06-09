@@ -197,36 +197,12 @@ def analyze_spot_tariff(
 
 
 def _fetch_spot_prices(consumption_data: list[dict]) -> list[dict]:
-    """ENTSO-E Day-Ahead Preise für den Zeitraum der Verbrauchsdaten laden."""
-    try:
-        from entsoe import EntsoePandasClient
+    """EPEX-AT-Preise aus dem auditierbaren Offline-Snapshot beziehen.
 
-        import os; ENTSOE_API_KEY = os.environ.get('ENTSOE_API_KEY', '')
+    Eine einzige, auditierbare Spot-Quelle (``energietools.data.spot``) statt eines
+    live ENTSO-E-Calls — netzfrei, deterministisch, im Wheel gebündelt. Fehlt der
+    Snapshot, wird fail-open ein leeres Tupel geliefert (Spot-Analyse nicht möglich).
+    """
+    from energietools.capabilities.spot import load_epex_prices
 
-        if not ENTSOE_API_KEY:
-            log.warning("ENTSOE_API_KEY nicht konfiguriert")
-            return []
-
-        # Zeitraum bestimmen
-        timestamps = [datetime.fromisoformat(p["timestamp"]) for p in consumption_data]
-        start = min(timestamps)
-        end = max(timestamps)
-
-        import pandas as pd
-        client = EntsoePandasClient(api_key=ENTSOE_API_KEY)
-        prices = client.query_day_ahead_prices(
-            "AT",
-            start=pd.Timestamp(start, tz="Europe/Vienna"),
-            end=pd.Timestamp(end, tz="Europe/Vienna"),
-        )
-
-        return [
-            {"timestamp": ts.isoformat(), "price_ct": price / 10}  # EUR/MWh → ct/kWh
-            for ts, price in prices.items()
-        ]
-    except ImportError:
-        log.info("entsoe-py nicht installiert — keine Spotpreise verfügbar")
-        return []
-    except Exception as exc:
-        log.warning("ENTSO-E API Fehler: %s", exc)
-        return []
+    return list(load_epex_prices())

@@ -19,7 +19,6 @@ from importlib import resources
 from energietools.capabilities.base import CapabilityError
 from energietools.capabilities.netz.models import (
     Abgaben,
-    GebrauchsabgabeRegel,
     GebrauchsabgabeRegelDetail,
     NetzkostenEntry,
     NetzManifest,
@@ -111,8 +110,8 @@ def load_abgaben() -> Abgaben:
     raw = json.loads(_read_data("abgaben.json"))
     if not isinstance(raw, dict):
         raise CapabilityError("abgaben.json: erwartet ein Objekt")
-    gab = raw.get("gebrauchsabgabe", {})
-    regeln = tuple(GebrauchsabgabeRegel(**r) for r in gab.get("regeln", []))
+    # S6: der alte energie-only Flat-Pfad (gebrauchsabgabe.{basis,regeln,default}) wird
+    # nicht mehr gelesen — die basisgenaue GA lebt in gebrauchsabgabe_je_vnb/_longtail_plz.
     je_vnb = {
         key: GebrauchsabgabeRegelDetail(**regel)
         for key, regel in raw.get("gebrauchsabgabe_je_vnb", {}).items()
@@ -124,9 +123,6 @@ def load_abgaben() -> Abgaben:
     return Abgaben(
         gueltig_ab=raw.get("gueltig_ab", ""),
         federal=raw.get("federal", {}),
-        gebrauchsabgabe_basis=gab.get("basis", "energie_netto"),
-        gebrauchsabgabe_regeln=regeln,
-        gebrauchsabgabe_default=float(gab.get("default", 0.0)),
         gebrauchsabgabe_je_vnb=je_vnb,
         gebrauchsabgabe_longtail_plz=longtail,
     )

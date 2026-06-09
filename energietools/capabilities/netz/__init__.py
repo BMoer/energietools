@@ -43,7 +43,6 @@ from energietools.capabilities.netz.per_kwh import (
 )
 from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
 from energietools.capabilities.netz.resolve import (
-    gebrauchsabgabe_rate,
     ist_verfuegbar,
     netzkosten_brutto_eur,
     plz_info,
@@ -64,7 +63,6 @@ __all__ = [
     "charging_fee_ct_kwh",
     "consumption_fee_ct_kwh",
     "default_network_fee_ct_kwh",
-    "gebrauchsabgabe_rate",
     "ist_verfuegbar",
     "network_fee_ct_kwh",
     "netzkosten_brutto_eur",

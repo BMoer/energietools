@@ -310,29 +310,5 @@
    "gueltig_ab": "2026-03-01"
   }
  },
- "gebrauchsabgabe_methodik": "Die Gebrauchsabgabe folgt dem aufgelösten Netzbetreiber. Bemessungsbasis variiert je Gemeinde: 'energie', 'netz' oder 'energie_und_netz' (Netto, ohne Abgaben), bzw. Fixbetrag ct/kWh (typ='ct_kwh'). Korrektur ggü. Vorversion: Wien = 7 % auf Energie UND Netz (nicht nur Energie); Klagenfurt/Salzburg = ct/kWh. Nur verifizierte Sätze, sonst 0 (ehrlich, nicht erfunden).",
- "gebrauchsabgabe": {
-  "basis": "energie_netto",
-  "_superseded": "Veraltete Energie-only-Näherung. Autoritativ ist 'gebrauchsabgabe_je_vnb' (basisgenau, Stand 01.03.2026).",
-  "regeln": [
-   {
-    "match": {
-     "gemeinde": "Wien"
-    },
-    "rate": 0.07,
-    "quelle": "Wiener Gebrauchsabgabegesetz — 7 % ab 01.03.2026. ACHTUNG: korrekte Basis ist Energie UND Netz (siehe gebrauchsabgabe_je_vnb)."
-   },
-   {
-    "match": {
-     "bundesland": [
-      "Burgenland",
-      "Vorarlberg"
-     ]
-    },
-    "rate": 0.0,
-    "quelle": "kein Landes-Gebrauchsabgabegesetz"
-   }
-  ],
-  "default": 0.0
- }
+ "gebrauchsabgabe_methodik": "Die Gebrauchsabgabe folgt dem aufgelösten Netzbetreiber. Bemessungsbasis variiert je Gemeinde: 'energie', 'netz' oder 'energie_und_netz' (Netto, ohne Abgaben), bzw. Fixbetrag ct/kWh (typ='ct_kwh'). Korrektur ggü. Vorversion: Wien = 7 % auf Energie UND Netz (nicht nur Energie); Klagenfurt/Salzburg = ct/kWh. Nur verifizierte Sätze, sonst 0 (ehrlich, nicht erfunden)."
 }

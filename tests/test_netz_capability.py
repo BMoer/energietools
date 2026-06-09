@@ -14,7 +14,6 @@ from energietools.capabilities.netz.capability import (
 )
 from energietools.capabilities.netz.resolve import (
     akzeptierte_vnb_namen,
-    gebrauchsabgabe_rate,
     netzkosten_brutto_eur,
     resolve_netzbetreiber,
     vnb_name_akzeptiert,
@@ -58,13 +57,6 @@ def test_unbekannte_plz_fail_open() -> None:
     assert result.ok is True
     assert result.data["netzbetreiber"] is None
     assert result.data["netzkosten_eur_jahr_brutto"] == 0.0
-
-
-def test_gebrauchsabgabe_rate() -> None:
-    """Wien 7 %, Eisenstadt (Burgenland) 0 %, unbekannte PLZ 0 %."""
-    assert gebrauchsabgabe_rate("1010") == 0.07
-    assert gebrauchsabgabe_rate("7000") == 0.0
-    assert gebrauchsabgabe_rate("99999") == 0.0
 
 
 def test_gesamtkosten_plausibel() -> None:

@@ -118,40 +118,10 @@ def tarif_fuer(nb: NetzkostenEntry) -> NetzkostenEntry | None:
     return next((t for t in load_netzkosten() if t.key == nb.tarif_referenz), None)
 
 
-def gebrauchsabgabe_rate(plz: str) -> float:
-    """Gebrauchsabgabe-Satz für eine PLZ (Anteil, z.B. 0.07 = 7 %).
-
-    Wertet die Regeln aus ``abgaben.json`` aus (Match auf Gemeinde und/oder
-    Bundesland, erste greifende Regel gewinnt); greift keine Regel, gilt der
-    Default. Fail-open: unbekannte/fehlende PLZ → 0.0 (nie hart ausschließen).
-    """
-    info = plz_info(plz)
-    if info is None:
-        return 0.0
-
-    abgaben = load_abgaben()
-    for regel in abgaben.gebrauchsabgabe_regeln:
-        if _regel_trifft(regel.match, info):
-            return regel.rate
-    return abgaben.gebrauchsabgabe_default
-
-
-def _regel_trifft(match: dict[str, object], info: PlzInfo) -> bool:
-    """Prüft, ob eine Gebrauchsabgabe-Regel auf die PLZ-Info passt.
-
-    Ein Match-Kriterium kann ein einzelner String oder eine Liste sein; alle
-    angegebenen Kriterien müssen zutreffen (UND-Verknüpfung).
-    """
-    felder = {
-        "gemeinde": set(info.gemeinde_namen),
-        "bundesland": set(info.bundeslaender),
-    }
-    for feld, erwartet in match.items():
-        ist = felder.get(feld, set())
-        erlaubte = {erwartet} if isinstance(erwartet, str) else set(erwartet)  # type: ignore[arg-type]
-        if not (ist & erlaubte):
-            return False
-    return True
+# S6: der energie-only Flat-Pfad (gebrauchsabgabe_rate + _regel_trifft, der die
+# gematchten gebrauchsabgabe_regeln aus abgaben.json auswertete) wurde gelöscht — er
+# war seit der basisgenauen GA (S1) + dem Wiren der GesamtkostenCapability (S5-Prep)
+# ohne Caller. Maßgeblich ist gebrauchsabgabe_regel (basisgenau, je VNB).
 
 
 def gebrauchsabgabe_regel(

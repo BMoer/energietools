@@ -50,6 +50,12 @@ class CatalogTariff(BaseModel):
     preisanpassung: str = ""
     wechsel_link: str = ""
 
+    # S7 Tarif-Historie: jede Version trägt ihre Gültigkeit (ISO-Datum). Leeres
+    # gueltig_bis = aktuell offen/gültig; leeres gueltig_ab = seit Snapshot-Beginn.
+    # Additiv/defaulted → alte Katalog-Einträge (ohne diese Felder) bleiben "aktuell".
+    gueltig_ab: str = Field(default="", description="Gültig ab (ISO-Datum); leer = seit Beginn")
+    gueltig_bis: str = Field(default="", description="Gültig bis (ISO-Datum); leer = aktuell offen")
+
     @property
     def ist_spot(self) -> bool:
         """True, wenn der Tarif keinen festen Energiepreis hat (Spot/Floater)."""
@@ -65,6 +71,10 @@ class CatalogManifest(BaseModel):
     energy_type: str = "POWER"
     price_basis: str = "netto_listenpreis"
     tariff_count: int = 0
+    # S7: Tarif-Historie. ``stand`` = Stichtag des aktuell-gültigen Schnitts;
+    # ``versionen_gesamt`` = alle Versionen (inkl. geschlossener) im Snapshot.
+    stand: str = Field(default="", description="Stichtag des aktuell-gültigen Schnitts (ISO-Datum)")
+    versionen_gesamt: int = Field(default=0, description="Versionen gesamt (inkl. geschlossener)")
     provider_coverage: dict = Field(default_factory=dict)
     provenance: str = ""
     license: str = "MIT"

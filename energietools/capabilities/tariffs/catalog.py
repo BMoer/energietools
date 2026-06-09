@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Iterable
+from datetime import date
 from functools import lru_cache
 from importlib import resources
 
@@ -27,6 +28,17 @@ _DATA_PACKAGE = "energietools.data.tariffs"
 # keinen strukturierten Typ trägt).
 _FLOATER_KEYWORDS = ("floater", "flex", "float", "monatsfloater", "variable")
 _SPOT_KEYWORDS = ("spot", "stundenfloater", "hourly", "dynamic", "dynamisch")
+
+
+def _ist_gueltig_am(tariff: CatalogTariff, stand: str) -> bool:
+    """True, wenn die Tarif-Version am Stichtag ``stand`` (ISO-Datum) gültig ist.
+
+    ISO-Datums-Strings vergleichen lexikografisch = chronologisch. Leeres
+    ``gueltig_ab`` = seit Beginn gültig; leeres ``gueltig_bis`` = aktuell offen.
+    """
+    ab_ok = not tariff.gueltig_ab or tariff.gueltig_ab <= stand
+    bis_ok = not tariff.gueltig_bis or stand <= tariff.gueltig_bis
+    return ab_ok and bis_ok
 
 
 def detect_tariftyp(tarif_name: str) -> str:
@@ -77,9 +89,21 @@ class TariffCatalog:
         self._manifest = manifest
 
     @classmethod
-    def load(cls) -> TariffCatalog:
-        """Lädt den gebündelten Open-Data-Snapshot."""
-        return cls(_load_raw(), load_manifest())
+    def load(cls, stand: str | None = None) -> TariffCatalog:
+        """Lädt den gebündelten Open-Data-Snapshot, gefiltert auf einen Stichtag.
+
+        ``stand=None`` (Default) → die **aktuell gültigen** Versionen (heute). Ein
+        ISO-Datum (z.B. ``"2026-04-01"``) → die zu diesem Stichtag gültige Sicht
+        (Tarif-Historie). Bestehende Caller ohne Argument bekommen wie bisher den
+        aktuellen Stand (alte Snapshots ohne Gültigkeitsfelder = alle aktuell).
+        """
+        stichtag = stand or date.today().isoformat()
+        return cls(_load_raw(), load_manifest()).gueltig_am(stichtag)
+
+    def gueltig_am(self, stand: str) -> TariffCatalog:
+        """Nur die am Stichtag ``stand`` (ISO-Datum) gültigen Tarif-Versionen."""
+        aktiv = tuple(t for t in self._tariffs if _ist_gueltig_am(t, stand))
+        return TariffCatalog(aktiv, self._manifest)
 
     @property
     def manifest(self) -> CatalogManifest | None:

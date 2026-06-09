@@ -20,10 +20,8 @@ from typing import Any
 from energietools.capabilities.base import Capability, CapabilityError
 from energietools.capabilities.netz.data import load_abgaben
 from energietools.capabilities.netz.resolve import (
-    gebrauchsabgabe_regel,
     ist_verfuegbar,
     netzkosten_brutto_eur,
-    netznutzung_netto_ohne_abgaben_fuer,
     plz_info,
     resolve_netzbetreiber,
     tarif_fuer,
@@ -150,44 +148,34 @@ class GesamtkostenCapability(Capability):
         ep_netto_ct = float(kwargs["energiepreis_netto_ct_kwh"])
         gg_netto_monat = float(kwargs["grundgebuehr_netto_eur_monat"])
 
-        energie_netto = verbrauch * ep_netto_ct / 100.0
-        grund_netto = gg_netto_monat * 12.0
+        # Delegiert an die EINE Szenario-Kosten-Engine (energietools.cost). Die
+        # Capability ist deren dünne Fixpreis-Sicht (kein Rabatt/Spot über das LLM-/
+        # CLI-Schema). Lazy-Import bricht den Package-Import-Zyklus (cost → netz).
+        from energietools.cost import gesamtkosten_szenario
 
-        # Gebrauchsabgabe BASISGENAU (typ/satz/basis), als EIGENER Brutto-Block —
-        # NICHT in die Energie-Brutto-Kette gefolded (separate-Block-Modell, 1:1 wie
-        # gridbert). Bemessungsbasis je Regel: Energie-Netto und/oder Netz-Netto (ohne
-        # Abgaben), bzw. Fixbetrag ct/kWh. Der VNB wird einmal aufgelöst und steuert
-        # GA-Regel + Netz-Basis + Netzkosten konsistent.
-        nb = resolve_netzbetreiber(plz)
-        regel = gebrauchsabgabe_regel(plz, nb.key if nb is not None else None)
-        netz_netto_ga = netznutzung_netto_ohne_abgaben_fuer(nb, verbrauch)
-        gab_netto = (
-            regel.betrag_netto_eur(energie_netto, netz_netto_ga, verbrauch)
-            if regel is not None
-            else 0.0
+        res = gesamtkosten_szenario(
+            plz=plz,
+            verbrauch_kwh=verbrauch,
+            netto_ep_ct=ep_netto_ct,
+            netto_gg_eur_monat=gg_netto_monat,
+            quelle="berechnet",
         )
-        gab_brutto = gab_netto * _UST
-        # Anzeige-Prozentsatz: 0 für ct/kWh-Regeln (echter Euro-Betrag steht im Block).
-        gab_rate_display = regel.satz if (regel is not None and regel.typ == "prozent") else 0.0
 
-        # Energie-Brutto-Kette schließt für sich (Energie + Grund) × USt — ohne GAB.
-        energie_brutto = (energie_netto + grund_netto) * _UST
-
-        netzkosten_brutto, netzbetreiber = netzkosten_brutto_eur(plz, verbrauch)
-        gesamt_brutto = energie_brutto + netzkosten_brutto + gab_brutto
-
+        energie_netto = round(verbrauch * ep_netto_ct / 100.0, 2)
+        grund_netto = round(gg_netto_monat * 12.0, 2)
+        gesamt = res["gesamtkosten_eur_jahr_brutto"]
         return {
-            "gesamtkosten_eur_jahr_brutto": round(gesamt_brutto, 2),
-            "netzbetreiber": netzbetreiber or None,
+            "gesamtkosten_eur_jahr_brutto": gesamt,
+            "netzbetreiber": res["netzbetreiber"],
             "rechenweg": {
-                "energie_netto_eur": round(energie_netto, 2),
-                "grund_netto_eur": round(grund_netto, 2),
-                "gebrauchsabgabe_rate": gab_rate_display,
-                "gebrauchsabgabe_eur": round(gab_brutto, 2),
-                "energie_brutto_eur": round(energie_brutto, 2),
-                "netzkosten_brutto_eur": netzkosten_brutto,
+                "energie_netto_eur": energie_netto,
+                "grund_netto_eur": grund_netto,
+                "gebrauchsabgabe_rate": res["gebrauchsabgabe_rate"],
+                "gebrauchsabgabe_eur": res["gebrauchsabgabe_eur"],
+                "energie_brutto_eur": res["jahreskosten_energie_brutto_eur"],
+                "netzkosten_brutto_eur": res["netzkosten_brutto_eur"],
                 "ust_faktor": _UST,
-                "gesamt_brutto_eur": round(gesamt_brutto, 2),
+                "gesamt_brutto_eur": gesamt,
             },
         }
 

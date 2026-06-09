@@ -47,6 +47,12 @@ geschrieben:
   (EPEX-Serie wird hineingereicht); die Beschaffung (aWATTar-Fetch) bleibt in gridbert.
   `build_price_at` wurde modellfrei (Primitiven) umformuliert. Die EPEX-Snapshot-Daten
   (`data/spot/`) sind aus der öffentlichen aWATTar-Marketdata-API abgeleitet.
+- **Per-Szenario-Kosten-Engine** (PRIO-1 S5-Prep) — `energietools/cost.py`
+  (`gesamtkosten_szenario`/`energie_rechenweg`). Konsolidiert die bereits unter MIT
+  vorhandenen Bausteine (basisgenaue Gebrauchsabgabe, Netzentgelt-Snapshot, Spot-Backtest,
+  Rabatt-Logik aus `kosten_rechenweg`) zum vollen Szenario-Kosten-Pfad inkl. Neukunden-
+  rabatt + Spot/Floater. Die separate-Block-Formel spiegelt gridberts `_tariff_from_row`,
+  neu unter MIT formuliert (kein AGPL-Header übernommen).
 
 ## Vorarbeiten
 

@@ -171,3 +171,23 @@ def test_ga_leoben_kein_block() -> None:
     """Leoben: keine verifizierte GA-Regel → 0-Block (keine erfundene GA)."""
     res = _fix("8700")
     assert res["gebrauchsabgabe_eur"] == 0.0
+
+
+# ---------------------------------------------------------------- nb_key-Override (VKZ-Brücke)
+
+
+def test_nb_key_override_treibt_netz_unabhaengig_von_plz() -> None:
+    """Vorgelöster nb_key (VKZ-Brücke) bestimmt die Netzkosten — auch bei unbekannter PLZ."""
+    from energietools.capabilities.netz.data import load_alle_vnb
+    from energietools.capabilities.netz.resolve import entry_fuer_key, netzkosten_brutto_fuer
+
+    # Irgendein VNB mit eigenem Tarif (Netzkosten > 0) — dynamisch, datenrobust.
+    key = next(nb.key for nb in load_alle_vnb() if netzkosten_brutto_fuer(nb, _KWH)[0] > 0)
+    erwartet_netz, name = netzkosten_brutto_fuer(entry_fuer_key(key), _KWH)
+
+    # PLZ "0000" würde plz-aufgelöst 0 Netzkosten geben; der nb_key erzwingt den VNB.
+    res = gesamtkosten_szenario(
+        plz="0000", verbrauch_kwh=_KWH, netto_ep_ct=10.0, netto_gg_eur_monat=0.0, nb_key=key,
+    )
+    assert res["netzkosten_brutto_eur"] == erwartet_netz > 0
+    assert res["netzbetreiber"] == name

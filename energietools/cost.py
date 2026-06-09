@@ -24,8 +24,9 @@ from typing import Any
 
 from energietools.capabilities.netz.models import GebrauchsabgabeRegelDetail
 from energietools.capabilities.netz.resolve import (
+    entry_fuer_key,
     gebrauchsabgabe_regel,
-    netzkosten_brutto_eur,
+    netzkosten_brutto_fuer,
     netznutzung_netto_ohne_abgaben_fuer,
     resolve_netzbetreiber,
 )
@@ -146,6 +147,7 @@ def gesamtkosten_szenario(
     neukundenrabatt_ct_kwh: float = 0.0,
     neukundenrabatt_eur: float = 0.0,
     spot_prices: list[dict] | None = None,
+    nb_key: str | None = None,
     quelle: str = "katalog",
 ) -> dict[str, Any] | None:
     """Volle Brutto-Jahres-Gesamtkosten EINES Szenarios (separate-Block-Modell).
@@ -154,6 +156,10 @@ def gesamtkosten_szenario(
     Gebrauchsabgabe (eigener Block) + regulierte Netzkosten. Spiegelt gridberts
     ``_tariff_from_row`` + die Netz/GA-Auflösung aus ``compare_from_db`` feldweise und
     ist damit der Per-Szenario-Kosten-Endpunkt für den Cutover.
+
+    ``nb_key``: optional ein vom Konsumenten **vorgelöster** VNB-Schlüssel (z.B.
+    VKZ-deterministisch über den Zählpunkt). Gesetzt → Netzkosten/GA-Netz-Basis folgen
+    diesem VNB statt der (mehrdeutigen) PLZ-Auflösung; ``None`` → Auflösung aus der PLZ.
 
     Returns ``None``, wenn der Tarif nicht bepreisbar ist (Spot/Floater ohne EPEX-Daten).
     """
@@ -167,12 +173,13 @@ def gesamtkosten_szenario(
     if ep_netto is None:
         return None
 
-    # Netzbetreiber EINMAL auflösen → Netzkosten + GA-Regel + GA-Netz-Basis konsistent.
-    nb = resolve_netzbetreiber(plz)
-    nb_key = nb.key if nb is not None else None
+    # Netzbetreiber EINMAL bestimmen → Netzkosten + GA-Regel + GA-Netz-Basis konsistent.
+    # Vorgelöster nb_key (VKZ-deterministisch beim Konsumenten) hat Vorrang vor der PLZ.
+    nb = entry_fuer_key(nb_key) if nb_key else resolve_netzbetreiber(plz)
+    resolved_key = nb.key if nb is not None else None
     netz_netto_ga = netznutzung_netto_ohne_abgaben_fuer(nb, verbrauch_kwh)
-    regel = gebrauchsabgabe_regel(plz, nb_key)
-    netzkosten_brutto, netzbetreiber = netzkosten_brutto_eur(plz, verbrauch_kwh)
+    regel = gebrauchsabgabe_regel(plz, resolved_key)
+    netzkosten_brutto, netzbetreiber = netzkosten_brutto_fuer(nb, verbrauch_kwh)
 
     rw = energie_rechenweg(
         verbrauch_kwh=verbrauch_kwh,

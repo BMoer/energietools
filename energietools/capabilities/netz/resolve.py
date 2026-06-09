@@ -203,17 +203,13 @@ def netznutzung_netto_ohne_abgaben_fuer(
     return tarif.netznutzung_netto_ohne_abgaben_eur(jahresverbrauch_kwh)
 
 
-def netzkosten_brutto_eur(plz: str, kwh: float) -> tuple[float, str]:
-    """Brutto-Netzkosten pro Jahr + **realer** VNB-Name für eine PLZ.
+def netzkosten_brutto_fuer(nb: NetzkostenEntry | None, kwh: float) -> tuple[float, str]:
+    """Brutto-Netzkosten pro Jahr + **realer** VNB-Name für einen bereits aufgelösten VNB.
 
-    Der Tarif folgt ggf. ``tarif_referenz`` (Attributions-VNB billt den Tarif
-    seines Netzbereichs); der Name bleibt der des realen Betreibers.
-
-    Returns:
-        ``(kosten_eur, netzbetreiber_name)``. Fail-open: kein VNB/Tarif auflösbar
-        → ``(0.0, "")`` (keine Regression im Vergleich).
+    Wie :func:`netzkosten_brutto_eur`, aber für einen schon (ggf. VKZ-deterministisch
+    vom Konsumenten) aufgelösten VNB statt aus der PLZ. Der Tarif folgt ggf.
+    ``tarif_referenz`` (Attributions-VNB). Fail-open: kein VNB/Tarif → ``(0.0, "")``.
     """
-    nb = resolve_netzbetreiber(plz)
     if nb is None:
         return (0.0, "")
     tarif = tarif_fuer(nb)
@@ -230,8 +226,31 @@ def netzkosten_brutto_eur(plz: str, kwh: float) -> tuple[float, str]:
     )
     pauschale_eur = tarif.netznutzung_pauschale_eur_jahr + abgaben.eag_foerderpauschale_eur_jahr
     netto = arbeitspreis_ct * kwh / 100.0 + pauschale_eur
-    brutto = netto * _UST
-    return (round(brutto, 2), nb.name)
+    return (round(netto * _UST, 2), nb.name)
+
+
+def netzkosten_brutto_eur(plz: str, kwh: float) -> tuple[float, str]:
+    """Brutto-Netzkosten pro Jahr + **realer** VNB-Name für eine PLZ.
+
+    Der Tarif folgt ggf. ``tarif_referenz`` (Attributions-VNB billt den Tarif
+    seines Netzbereichs); der Name bleibt der des realen Betreibers.
+
+    Returns:
+        ``(kosten_eur, netzbetreiber_name)``. Fail-open: kein VNB/Tarif auflösbar
+        → ``(0.0, "")`` (keine Regression im Vergleich).
+    """
+    return netzkosten_brutto_fuer(resolve_netzbetreiber(plz), kwh)
+
+
+def entry_fuer_key(key: str | None) -> NetzkostenEntry | None:
+    """Der VNB-Eintrag (realer Betreiber) mit diesem ``key`` — oder ``None``.
+
+    Brücke für Konsumenten, die den VNB selbst (z.B. VKZ-deterministisch über den
+    Zählpunkt) auflösen und von et nur die Kosten beziehen. ``None``/leer → ``None``.
+    """
+    if not key:
+        return None
+    return next((nb for nb in load_alle_vnb() if nb.key == key), None)
 
 
 def _normalisiere_vnb_namen(name: str) -> str:

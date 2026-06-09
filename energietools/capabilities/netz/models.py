@@ -112,19 +112,6 @@ class PlzInfo(BaseModel):
         return tuple(g.name for g in self.gemeinden)
 
 
-class GebrauchsabgabeRegel(BaseModel):
-    """Eine Gebrauchsabgabe-Regel (Match-Kriterien → Satz)."""
-
-    model_config = ConfigDict(frozen=True)
-
-    match: dict[str, object] = Field(
-        default_factory=dict,
-        description="Match-Kriterien (z.B. {'gemeinde': 'Wien'} oder {'bundesland': [...]})",
-    )
-    rate: float = Field(description="Gebrauchsabgabe-Satz (Anteil, z.B. 0.07 = 7 %)")
-    quelle: str = Field(default="", description="Rechtsgrundlage / Quelle")
-
-
 class GebrauchsabgabeRegelDetail(BaseModel):
     """Basisgenaue Gebrauchsabgabe-Regel (immutable) — typ/satz/basis.
 
@@ -172,8 +159,8 @@ class Abgaben(BaseModel):
 
     ``federal`` trägt die bundesweit uniformen Arbeitspreis-/Pauschal-Anteile
     (EAG-Förderbeitrag, EAG-Förderpauschale, Elektrizitätsabgabe Haushalt).
-    ``gebrauchsabgabe_regeln`` sind länder-/gemeindespezifisch; greift keine
-    Regel, gilt ``gebrauchsabgabe_default``.
+    Die Gebrauchsabgabe ist basisgenau je aufgelöstem VNB
+    (``gebrauchsabgabe_je_vnb``) bzw. per Long-Tail-PLZ (``gebrauchsabgabe_longtail_plz``).
     """
 
     model_config = ConfigDict(frozen=True)
@@ -182,16 +169,6 @@ class Abgaben(BaseModel):
     federal: dict[str, object] = Field(
         default_factory=dict,
         description="Bundesweit uniforme Abgaben (ct/kWh bzw. EUR/Jahr) + Quelle",
-    )
-    gebrauchsabgabe_basis: str = Field(
-        default="energie_netto",
-        description="Bemessungsbasis der Gebrauchsabgabe (Konvention)",
-    )
-    gebrauchsabgabe_regeln: tuple[GebrauchsabgabeRegel, ...] = Field(
-        default=(), description="Länder-/gemeindespezifische Gebrauchsabgabe-Regeln"
-    )
-    gebrauchsabgabe_default: float = Field(
-        default=0.0, description="Satz, wenn keine Regel greift (ehrlich 0, nicht erfunden)"
     )
     gebrauchsabgabe_je_vnb: dict[str, GebrauchsabgabeRegelDetail] = Field(
         default_factory=dict,

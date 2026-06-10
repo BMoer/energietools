@@ -1,0 +1,33 @@
+# Render-Alternative (Blueprint). In Render: "New → Blueprint" auf dieses Repo.
+# Build-Context = Repo-Root (energietools/ wird gebraucht).
+services:
+  - type: web
+    name: simba
+    runtime: docker
+    repo: https://github.com/BMoer/energietools
+    dockerfilePath: apps/simba/backend/Dockerfile
+    dockerContext: .
+    region: frankfurt
+    plan: starter            # nicht Free → kein Cold-Start (security.md)
+    healthCheckPath: /api/health
+    autoDeploy: false
+    envVars:
+      - key: PVTOOL_DATA_DIR
+        value: /app/data
+      - key: PVTOOL_UPLOAD_DIR
+        value: /app/data/uploads
+      - key: SIMBA_CORS_ORIGINS
+        value: https://energietools.at,https://simba.energietools.at
+      # Solis-Credentials als Render-Secret setzen (nicht hier eintragen):
+      - key: SOLIS_KEY_ID
+        sync: false
+      - key: SOLIS_KEY_SECRET
+        sync: false
+      - key: SOLIS_SN_EAST
+        sync: false
+      - key: SOLIS_SN_WEST
+        sync: false
+      - key: SOLIS_SN_EPM
+        sync: false
+# Custom Domain simba.energietools.at: in Render unter Settings → Custom Domains
+# hinzufügen, dann CNAME simba → <service>.onrender.com beim DNS-Provider setzen.

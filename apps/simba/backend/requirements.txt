@@ -1,19 +1,12 @@
 # Simba backend — re-wired auf energietools.
 #
-# Rechenkern: energietools (MIT, aus dem Monorepo). Im Container via
-#   pip install -e /repo            # installiert das energietools-Paket
-# bzw. lokal ist es bereits editierbar installiert. energietools zieht seine
-# eigenen Abhängigkeiten (pydantic, pandas, numpy, ...).
-#
-# Hybrid/Beschaffung: die Live-Connectoren (aWATTar-Spot, ENTSO-E-Balancing,
-# Solis, PVGIS-Stundenserie) + die volle Wärmepumpen-Summary laufen weiter über
-# das vendored ``pvtool`` (apps/simba/vendor/pvtool) und werden LAZY importiert —
-# ohne pvtool bootet die App, nur diese Endpunkte sind dann nicht verfügbar.
+# Rechenkern: energietools (MIT, aus dem Monorepo) wird im Dockerfile ZUERST
+# installiert (pip install /src) und zieht pydantic/pandas/numpy/httpx/… mit.
+# Hier stehen nur die zusätzlichen App-/Server-Abhängigkeiten + die Runtime-Deps
+# des vendored pvtool (requests, python-dotenv) für die Live-Connectoren.
 fastapi>=0.115
 uvicorn[standard]>=0.34
 python-multipart>=0.0.18
-pydantic>=2.0
 pydantic-settings>=2.0
 python-dotenv>=1.0
-pandas>=2.0
-numpy>=1.24
+requests>=2.28

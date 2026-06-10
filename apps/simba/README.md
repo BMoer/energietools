@@ -53,5 +53,6 @@ PVTOOL_DATA_DIR="$(pwd)/data" PVTOOL_UPLOAD_DIR="$(pwd)/data" \
 
 Eigener Container (Fly.io / Render), `backend/Dockerfile` + `docker-compose.yml`.
 Empfohlen: Subdomain `simba.energietools.at`, von der Gallery als externe Karte
-verlinkt (`demos/build_site.py`, Eintrag `slug: simba`, `external: True`).
+verlinkt (Astro-Verzeichnis unter `web/`, Eintrag `web/src/content/tools/simba.md`
+mit `hosting: external`).
 Solis-Credentials nur als Secret, nie im Image.

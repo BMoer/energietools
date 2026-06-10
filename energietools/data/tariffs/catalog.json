@@ -17,7 +17,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/"
+    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "aae_naturstrom",
@@ -37,7 +39,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/"
+    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "aae_naturstrom",
@@ -57,7 +61,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/"
+    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "aae_naturstrom",
@@ -77,7 +83,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/"
+    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "aae_naturstrom",
@@ -97,7 +105,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/"
+    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "aae_naturstrom",
@@ -117,7 +127,9 @@
     "preisgarantie_monate": 7,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/"
+    "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "kittel_muehle",
@@ -137,7 +149,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://kittelmuehle.at/oekostrom/"
+    "wechsel_link": "https://kittelmuehle.at/oekostrom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "kittel_muehle",
@@ -157,7 +171,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://kittelmuehle.at/strom/aquaventoflex.php"
+    "wechsel_link": "https://kittelmuehle.at/strom/aquaventoflex.php",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "avia_energy",
@@ -177,7 +193,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://www.eigl.at/avia-strom/unsere-tarife/eigl-avia-naturstrom-plus-floater-50771x50242.html"
+    "wechsel_link": "https://www.eigl.at/avia-strom/unsere-tarife/eigl-avia-naturstrom-plus-floater-50771x50242.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "avia_energy",
@@ -197,7 +215,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.eigl.at/avia-strom/unsere-tarife/eigl-avia-waldviertel-strom-plus-50767x50242.html"
+    "wechsel_link": "https://www.eigl.at/avia-strom/unsere-tarife/eigl-avia-waldviertel-strom-plus-50767x50242.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "awattar",
@@ -217,7 +237,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "stündliche",
-    "wechsel_link": "https://www.awattar.at/tariffs/hourly"
+    "wechsel_link": "https://www.awattar.at/tariffs/hourly",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "drei_energie",
@@ -237,7 +259,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.drei-energie.at/"
+    "wechsel_link": "https://www.drei-energie.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e_werk_franz",
@@ -257,7 +281,9 @@
     "preisgarantie_monate": 15,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ewg.at/produkte/strom/strom-fuer-privathaushalte/"
+    "wechsel_link": "https://www.ewg.at/produkte/strom/strom-fuer-privathaushalte/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e_werk_franz",
@@ -277,7 +303,9 @@
     "preisgarantie_monate": 15,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ewg.at/produkte/strom/strom-fuer-privathaushalte/"
+    "wechsel_link": "https://www.ewg.at/produkte/strom/strom-fuer-privathaushalte/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e_werk_sigl_wies",
@@ -297,7 +325,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ewerksigl.at/online-anmeldung/"
+    "wechsel_link": "https://www.ewerksigl.at/online-anmeldung/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e_on",
@@ -317,7 +347,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html"
+    "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e_on",
@@ -337,7 +369,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html"
+    "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e_on",
@@ -357,7 +391,9 @@
     "preisgarantie_monate": 5,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html"
+    "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e1_erste_energie_gas",
@@ -377,7 +413,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.erste-energie.at/tarife/gas"
+    "wechsel_link": "https://www.erste-energie.at/tarife/gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e1_erste_energie",
@@ -397,7 +435,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.erste-energie.at/tarife/strom"
+    "wechsel_link": "https://www.erste-energie.at/tarife/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e1_erste_energie_gas",
@@ -417,7 +457,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://www.erste-energie.at/tarife/gas"
+    "wechsel_link": "https://www.erste-energie.at/tarife/gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e1_erste_energie",
@@ -437,7 +479,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.erste-energie.at/tarife/strom"
+    "wechsel_link": "https://www.erste-energie.at/tarife/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "e1_erste_energie",
@@ -457,7 +501,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.erste-energie.at/tarife/strom"
+    "wechsel_link": "https://www.erste-energie.at/tarife/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "efriends",
@@ -477,7 +523,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://www.efriends.at/new/prices/"
+    "wechsel_link": "https://www.efriends.at/new/prices/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "ew_reutte",
@@ -497,7 +545,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ewr-energie.com/strom/"
+    "wechsel_link": "https://www.ewr-energie.com/strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "ew_reutte",
@@ -517,7 +567,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ewr-energie.com/strom/"
+    "wechsel_link": "https://www.ewr-energie.com/strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_ag",
@@ -537,7 +589,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://energieag.cdn.picturepark.com/v/3VFSFhf7/"
+    "wechsel_link": "https://energieag.cdn.picturepark.com/v/3VFSFhf7/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_ag",
@@ -557,7 +611,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://energieag.cdn.picturepark.com/v/SzeF1EjB/"
+    "wechsel_link": "https://energieag.cdn.picturepark.com/v/SzeF1EjB/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_burgenland",
@@ -577,7 +633,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/"
+    "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_burgenland",
@@ -597,7 +655,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/"
+    "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_burgenland",
@@ -617,7 +677,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/"
+    "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_graz",
@@ -637,7 +699,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://www.energie-graz.at/egg/strom/produkte-preismodelle"
+    "wechsel_link": "https://www.energie-graz.at/egg/strom/produkte-preismodelle",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_graz",
@@ -657,7 +721,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.energie-graz.at/egg/strom/produkte-preismodelle"
+    "wechsel_link": "https://www.energie-graz.at/egg/strom/produkte-preismodelle",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_klagenfurt",
@@ -677,7 +743,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stw.at/privat/energie/strom/stromkunde-werden/"
+    "wechsel_link": "https://www.stw.at/privat/energie/strom/stromkunde-werden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_klagenfurt",
@@ -697,7 +765,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stw.at/privat/energie/strom/stromkunde-werden/"
+    "wechsel_link": "https://www.stw.at/privat/energie/strom/stromkunde-werden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "smartenergy",
@@ -717,7 +787,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "stündliche",
-    "wechsel_link": "https://www.smartenergy.at/smartcontrol"
+    "wechsel_link": "https://www.smartenergy.at/smartcontrol",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energie_steiermark",
@@ -737,7 +809,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.e-steiermark.com/privat/produkte/strom"
+    "wechsel_link": "https://www.e-steiermark.com/privat/produkte/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "switch",
@@ -757,7 +831,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://anmeldung.switch.at/?customer_type=0&tariff_type=1"
+    "wechsel_link": "https://anmeldung.switch.at/?customer_type=0&tariff_type=1",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "switch",
@@ -777,7 +853,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://anmeldung.switch.at/?customer_type=0&tariff_type=1"
+    "wechsel_link": "https://anmeldung.switch.at/?customer_type=0&tariff_type=1",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energiedirect",
@@ -797,7 +875,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-48-Fix Fair Play.pdf"
+    "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-48-Fix Fair Play.pdf",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energiedirect",
@@ -817,7 +897,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-4-Flex.pdf"
+    "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-4-Flex.pdf",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "energiedirect",
@@ -837,7 +919,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-15-Flex Start.pdf"
+    "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-15-Flex Start.pdf",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "enstroga",
@@ -857,7 +941,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://enstroga.at/tarife/"
+    "wechsel_link": "https://enstroga.at/tarife/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "hofer_gruenstrom",
@@ -877,7 +963,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.xn--hofer-grnstrom-nsb.at/"
+    "wechsel_link": "https://www.xn--hofer-grnstrom-nsb.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "evn",
@@ -897,7 +985,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://www.evn.at/home/strom"
+    "wechsel_link": "https://www.evn.at/home/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "evn",
@@ -917,7 +1007,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.evn.at/home/strom"
+    "wechsel_link": "https://www.evn.at/home/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "evu_mureck",
@@ -937,7 +1029,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.evu-mureck.at/strombelieferung/"
+    "wechsel_link": "https://www.evu-mureck.at/strombelieferung/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "evu_mureck",
@@ -957,7 +1051,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.evu-mureck.at/strombelieferung/"
+    "wechsel_link": "https://www.evu-mureck.at/strombelieferung/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy_gas",
@@ -965,7 +1061,7 @@
     "tarif_name": "gas",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
-    "energiepreis_ct_kwh": 5.2667,
+    "energiepreis_ct_kwh": 5.75,
     "grundgebuehr_eur_monat": 3.3333,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
@@ -977,7 +1073,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy_gas",
@@ -985,7 +1083,7 @@
     "tarif_name": "gas future",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
-    "energiepreis_ct_kwh": 5.7667,
+    "energiepreis_ct_kwh": 6.25,
     "grundgebuehr_eur_monat": 3.3333,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
@@ -997,7 +1095,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy_gas",
@@ -1005,7 +1105,7 @@
     "tarif_name": "gas plus",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
-    "energiepreis_ct_kwh": 5.2667,
+    "energiepreis_ct_kwh": 5.75,
     "grundgebuehr_eur_monat": 5.0,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
@@ -1017,7 +1117,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy_gas",
@@ -1025,7 +1127,7 @@
     "tarif_name": "gas plus future",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
-    "energiepreis_ct_kwh": 5.7667,
+    "energiepreis_ct_kwh": 6.25,
     "grundgebuehr_eur_monat": 5.0,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
@@ -1037,7 +1139,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?productType=gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy",
@@ -1057,7 +1161,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=OnlineBonus"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=OnlineBonus",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy",
@@ -1077,7 +1183,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cfuture%2COnlineBonus"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cfuture%2COnlineBonus",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy",
@@ -1097,7 +1205,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cplus%2COnlineBonus"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cplus%2COnlineBonus",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "go_green_energy",
@@ -1117,7 +1227,9 @@
     "preisgarantie_monate": 20,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cplus%2Cfuture%2COnlineBonus"
+    "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cplus%2Cfuture%2COnlineBonus",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "goldgas",
@@ -1137,7 +1249,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://goldgas.at/strom/"
+    "wechsel_link": "https://goldgas.at/strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "goldgas",
@@ -1157,7 +1271,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://goldgas.at/strom/"
+    "wechsel_link": "https://goldgas.at/strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "gruenwelt",
@@ -1177,7 +1293,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gruenwelt.at/"
+    "wechsel_link": "https://www.gruenwelt.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "gruenwelt",
@@ -1197,7 +1315,9 @@
     "preisgarantie_monate": 24,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gruenwelt.at/"
+    "wechsel_link": "https://www.gruenwelt.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "gruenwelt",
@@ -1217,7 +1337,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.gruenwelt.at/"
+    "wechsel_link": "https://www.gruenwelt.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "disk_energy_gas",
@@ -1237,7 +1359,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.disk.energy/wechseln"
+    "wechsel_link": "https://www.disk.energy/wechseln",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "disk_energy",
@@ -1257,7 +1381,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.disk.energy/wechseln"
+    "wechsel_link": "https://www.disk.energy/wechseln",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "disk_energy",
@@ -1277,7 +1403,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://www.disk.energy/wechseln"
+    "wechsel_link": "https://www.disk.energy/wechseln",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "vkw",
@@ -1297,7 +1425,9 @@
     "preisgarantie_monate": 9,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.vkw.at/produkte/strom/strom-duo"
+    "wechsel_link": "https://www.vkw.at/produkte/strom/strom-duo",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "vkw",
@@ -1317,7 +1447,9 @@
     "preisgarantie_monate": 9,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.vkw.at/produkte/strom/strom-duo"
+    "wechsel_link": "https://www.vkw.at/produkte/strom/strom-duo",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "ikb",
@@ -1337,7 +1469,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat"
+    "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "ikb",
@@ -1357,7 +1491,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat"
+    "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "ikb",
@@ -1377,7 +1513,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat"
+    "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "kelag",
@@ -1397,7 +1535,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.kelag.at/privatkunden/strom.htm"
+    "wechsel_link": "https://www.kelag.at/privatkunden/strom.htm",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "kelag",
@@ -1417,7 +1557,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.kelag.at/privatkunden/strom"
+    "wechsel_link": "https://www.kelag.at/privatkunden/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "kelag",
@@ -1437,7 +1579,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.kelag.at/privatkunden/strom"
+    "wechsel_link": "https://www.kelag.at/privatkunden/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "linz_ag",
@@ -1457,7 +1601,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.linzag.at/portal/de/privatkunden/zuhause/strom/stromtarife"
+    "wechsel_link": "https://www.linzag.at/portal/de/privatkunden/zuhause/strom/stromtarife",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "linz_ag",
@@ -1477,27 +1623,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.linzag.at/portal/de/privatkunden/zuhause/strom/stromtarife"
-  },
-  {
-    "key": "m4energy",
-    "lieferant": "M4Energy GmbH",
-    "tarif_name": "M4Energy Strom Dynamisch",
-    "tariftyp": "Stundenfloater",
-    "preismodell": "Floater",
-    "energiepreis_ct_kwh": 0.0,
-    "grundgebuehr_eur_monat": 5.1744,
-    "spot_aufschlag_ct": 4.5,
-    "spot_index": "EPEX AT",
-    "ist_oekostrom": false,
-    "energiequellen_erneuerbar_pct": 0.0,
-    "neukundenrabatt_eur": 0.0,
-    "neukundenrabatt_ct_kwh": 0.0,
-    "neukundenrabatt_name": "",
-    "preisgarantie_monate": null,
-    "hat_bindung": false,
-    "preisanpassung": "",
-    "wechsel_link": "https://portal.m4energy.at/"
+    "wechsel_link": "https://www.linzag.at/portal/de/privatkunden/zuhause/strom/stromtarife",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "m4energy",
@@ -1506,7 +1634,7 @@
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
     "energiepreis_ct_kwh": 13.9,
-    "grundgebuehr_eur_monat": 1.6729,
+    "grundgebuehr_eur_monat": 1.6725,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
     "ist_oekostrom": false,
@@ -1514,10 +1642,12 @@
     "neukundenrabatt_eur": 0.0,
     "neukundenrabatt_ct_kwh": 0.0,
     "neukundenrabatt_name": "",
-    "preisgarantie_monate": null,
+    "preisgarantie_monate": 25,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://portal.m4energy.at/"
+    "wechsel_link": "https://portal.m4energy.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "auri",
@@ -1537,7 +1667,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://mein.auri.at/preisvergleich/?invoiceUpload"
+    "wechsel_link": "https://mein.auri.at/preisvergleich/?invoiceUpload",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "maxenergy",
@@ -1557,7 +1689,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/"
+    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "maxenergy",
@@ -1577,7 +1711,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/"
+    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "maxenergy",
@@ -1597,7 +1733,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/"
+    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "maxenergy",
@@ -1617,7 +1755,9 @@
     "preisgarantie_monate": 24,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/"
+    "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "x_powr",
@@ -1637,7 +1777,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.x-powr.at/"
+    "wechsel_link": "https://www.x-powr.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "montana",
@@ -1657,7 +1799,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.montana-energie.at/privatkunden/strom"
+    "wechsel_link": "https://www.montana-energie.at/privatkunden/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "montana",
@@ -1677,7 +1821,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.montana-energie.at/privatkunden/strom"
+    "wechsel_link": "https://www.montana-energie.at/privatkunden/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "myelectric",
@@ -1697,7 +1843,9 @@
     "preisgarantie_monate": 18,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://myelectric.at/strom/"
+    "wechsel_link": "https://myelectric.at/strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "naturkraft",
@@ -1717,7 +1865,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.naturkraft.at/privatkunden.html"
+    "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "naturkraft",
@@ -1737,7 +1887,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.naturkraft.at/privatkunden.html"
+    "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "naturkraft",
@@ -1757,7 +1909,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.naturkraft.at/privatkunden.html"
+    "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "naturkraft",
@@ -1777,7 +1931,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.naturkraft.at/privatkunden.html"
+    "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "oekostrom_ag",
@@ -1797,7 +1953,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "viertelstündliche",
-    "wechsel_link": "https://oekostrom.at/spot-preis/"
+    "wechsel_link": "https://oekostrom.at/spot-preis/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "fairnando_gas",
@@ -1817,7 +1975,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.fairnando.at/index.php?param=offer&produkt=gas"
+    "wechsel_link": "https://www.fairnando.at/index.php?param=offer&produkt=gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "fairnando",
@@ -1837,7 +1997,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.fairnando.at/index.php?param=offer&produkt=strom"
+    "wechsel_link": "https://www.fairnando.at/index.php?param=offer&produkt=strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "redgas_gas",
@@ -1857,7 +2019,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.redgas.at/index.php?param=offer&produkt=gas"
+    "wechsel_link": "https://www.redgas.at/index.php?param=offer&produkt=gas",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "redgas",
@@ -1877,7 +2041,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.redgas.at/index.php?param=offer&produkt=strom"
+    "wechsel_link": "https://www.redgas.at/index.php?param=offer&produkt=strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "rz_pellets",
@@ -1897,7 +2063,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://portal.rz-oekostrom.at/Wechselportal/"
+    "wechsel_link": "https://portal.rz-oekostrom.at/Wechselportal/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "salzburg_ag",
@@ -1917,7 +2085,9 @@
     "preisgarantie_monate": 24,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.salzburg-ag.at/strom/privat/stromprodukte/strom-preisfix.html"
+    "wechsel_link": "https://www.salzburg-ag.at/strom/privat/stromprodukte/strom-preisfix.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "salzburg_ag",
@@ -1937,7 +2107,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.salzburg-ag.at/strom/privat/stromprodukte/strom-privat.html"
+    "wechsel_link": "https://www.salzburg-ag.at/strom/privat/stromprodukte/strom-privat.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_bruck",
@@ -1957,7 +2129,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stadtwerke-bruck.at/strom/"
+    "wechsel_link": "https://www.stadtwerke-bruck.at/strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_hartberg",
@@ -1977,7 +2151,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stadtwerke-hartberg.at/energie/unsere-tarife/privatkunden-3/"
+    "wechsel_link": "https://www.stadtwerke-hartberg.at/energie/unsere-tarife/privatkunden-3/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_judenburg",
@@ -1997,7 +2173,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://stadtwerke.co.at/service-fuer-mich/mein-strom/"
+    "wechsel_link": "https://stadtwerke.co.at/service-fuer-mich/mein-strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_kapfenberg",
@@ -2017,7 +2195,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stadtwerke-kapfenberg.at/strom.html"
+    "wechsel_link": "https://www.stadtwerke-kapfenberg.at/strom.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_kapfenberg",
@@ -2037,7 +2217,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stadtwerke-kapfenberg.at/strom.html"
+    "wechsel_link": "https://www.stadtwerke-kapfenberg.at/strom.html",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "pullstrom",
@@ -2057,7 +2239,9 @@
     "preisgarantie_monate": 14,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.pullstrom.at/tarifvergleich/"
+    "wechsel_link": "https://www.pullstrom.at/tarifvergleich/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "pullstrom",
@@ -2077,7 +2261,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.pullstrom.at/tarifvergleich/"
+    "wechsel_link": "https://www.pullstrom.at/tarifvergleich/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_koeflach",
@@ -2097,7 +2283,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stadtwerke-koeflach.at/stromanbieterwechsel"
+    "wechsel_link": "https://www.stadtwerke-koeflach.at/stromanbieterwechsel",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_muerzzuschlag",
@@ -2117,7 +2305,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/"
+    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_muerzzuschlag",
@@ -2137,7 +2327,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/"
+    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_muerzzuschlag",
@@ -2157,7 +2349,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/"
+    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_muerzzuschlag",
@@ -2177,7 +2371,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/"
+    "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_woergl",
@@ -2197,7 +2393,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stww.at/strom/oekostrom-privat/"
+    "wechsel_link": "https://www.stww.at/strom/oekostrom-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "stw_woergl",
@@ -2217,7 +2415,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.stww.at/strom/oekostrom-privat/"
+    "wechsel_link": "https://www.stww.at/strom/oekostrom-privat/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "tiwag",
@@ -2237,7 +2437,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/"
+    "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "tiwag",
@@ -2257,7 +2459,9 @@
     "preisgarantie_monate": 24,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/"
+    "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "tiwag",
@@ -2277,7 +2481,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/"
+    "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "tulln_energie",
@@ -2297,7 +2503,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.tullnenergie.at/regionaler-okostrom/"
+    "wechsel_link": "https://www.tullnenergie.at/regionaler-okostrom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "tulln_energie",
@@ -2317,7 +2525,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.tullnenergie.at/regionaler-okostrom/"
+    "wechsel_link": "https://www.tullnenergie.at/regionaler-okostrom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "unsere_wasserkraft",
@@ -2337,7 +2547,9 @@
     "preisgarantie_monate": 32,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.wasserkraft.at/strom"
+    "wechsel_link": "https://www.wasserkraft.at/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "unsere_wasserkraft",
@@ -2357,7 +2569,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "monatliche",
-    "wechsel_link": "https://www.wasserkraft.at/strom"
+    "wechsel_link": "https://www.wasserkraft.at/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "verbund",
@@ -2377,7 +2591,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.verbund.com/de-at/privatkunden/strom"
+    "wechsel_link": "https://www.verbund.com/de-at/privatkunden/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "verbund",
@@ -2385,7 +2601,7 @@
     "tarif_name": "V-Strom-SPOT-H-KW4925",
     "tariftyp": "Stundenfloater",
     "preismodell": "",
-    "energiepreis_ct_kwh": 11.1885,
+    "energiepreis_ct_kwh": 10.5403,
     "grundgebuehr_eur_monat": 3.99,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
@@ -2397,7 +2613,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.verbund.com/de-at/privatkunden/strom"
+    "wechsel_link": "https://www.verbund.com/de/privat/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "verbund",
@@ -2417,7 +2635,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.verbund.com/de-at/privatkunden/strom"
+    "wechsel_link": "https://www.verbund.com/de-at/privatkunden/strom",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "web_gruenstrom",
@@ -2437,7 +2657,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat"
+    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "web_gruenstrom",
@@ -2457,7 +2679,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat"
+    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "web_gruenstrom",
@@ -2477,7 +2701,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat"
+    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "web_gruenstrom",
@@ -2497,7 +2723,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat"
+    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "web_gruenstrom",
@@ -2517,7 +2745,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat"
+    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "voltino",
@@ -2537,7 +2767,9 @@
     "preisgarantie_monate": 32,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.voltino.at/"
+    "wechsel_link": "https://www.voltino.at/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "wien_energie",
@@ -2557,7 +2789,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.wienenergie.at/privat/produkte/strom/"
+    "wechsel_link": "https://www.wienenergie.at/privat/produkte/strom/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "wuesterstrom",
@@ -2577,7 +2811,9 @@
     "preisgarantie_monate": 12,
     "hat_bindung": true,
     "preisanpassung": "",
-    "wechsel_link": "https://www.wuesterstrom.at/produkt/one-stromtarif/"
+    "wechsel_link": "https://www.wuesterstrom.at/produkt/one-stromtarif/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "wuesterstrom",
@@ -2597,7 +2833,9 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.wuesterstrom.at/produkt/one-stromtarif/"
+    "wechsel_link": "https://www.wuesterstrom.at/produkt/one-stromtarif/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   },
   {
     "key": "oekoenergie_tirol",
@@ -2617,6 +2855,8 @@
     "preisgarantie_monate": null,
     "hat_bindung": false,
     "preisanpassung": "",
-    "wechsel_link": "https://www.oekoenergie.tirol/oekostrom/private-haushalte/oekostrom-produkte/"
+    "wechsel_link": "https://www.oekoenergie.tirol/oekostrom/private-haushalte/oekostrom-produkte/",
+    "gueltig_ab": "",
+    "gueltig_bis": ""
   }
 ]

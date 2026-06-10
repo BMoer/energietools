@@ -64,6 +64,19 @@ APPS = [
         "tagline": "Regulierte Netzkosten PLZ-scharf — lückenloser Rechenweg mit Preisblatt-Quelle.",
         "author": "Ben Mörzinger",
     },
+    # Externe App (eigener Server): Simba läuft als FastAPI-Container (Beschaffung
+    # via pvtool, Rechenkern auf energietools re-wired). Keine WASM-Karte, sondern
+    # eine externe Link-Karte — demonstriert, dass verschiedene Autor:innen
+    # publishen. ``href`` setzen + ``external: True`` ⇒ kein marimo-Export.
+    {
+        "slug": "simba",
+        "emoji": "🔆",
+        "title": "Simba — PV-Speicher-Simulator",
+        "tagline": "PV + Batterie + Wärmepumpe simulieren: Eigenverbrauch, Spot, Arbitrage, Peak-Shaving.",
+        "author": "Jakob Kreisel",
+        "href": "https://simba.energietools.at",
+        "external": True,
+    },
 ]
 
 
@@ -93,17 +106,25 @@ def export_app(app: dict, outdir: Path) -> None:
     ])
 
 
-def landing_html() -> str:
-    cards = "\n".join(
-        f"""      <a class="card" href="./{a['slug']}/">
-        <div class="emoji">{a['emoji']}</div>
-        <h3>{a['title']}</h3>
-        <p>{a['tagline']}</p>
-        <span class="author">von {a['author']}</span>
-        <span class="go">öffnen →</span>
-      </a>"""
-        for a in APPS
+def _card(a: dict) -> str:
+    ext = a.get("external")
+    href = a.get("href", f"./{a['slug']}/")
+    attrs = ' target="_blank" rel="noopener"' if ext else ""
+    badge = '<span class="ext">externer Server ↗</span>' if ext else ""
+    go = "öffnen ↗" if ext else "öffnen →"
+    return (
+        f'      <a class="card" href="{href}"{attrs}>\n'
+        f'        <div class="emoji">{a["emoji"]}</div>\n'
+        f'        <h3>{a["title"]}{badge}</h3>\n'
+        f'        <p>{a["tagline"]}</p>\n'
+        f'        <span class="author">von {a["author"]}</span>\n'
+        f'        <span class="go">{go}</span>\n'
+        f"      </a>"
     )
+
+
+def landing_html() -> str:
+    cards = "\n".join(_card(a) for a in APPS)
     return f"""<!doctype html>
 <html lang="de">
 <head>
@@ -128,6 +149,7 @@ def landing_html() -> str:
   .card h3 {{ margin:.5em 0 .25em; font-size:1.2rem; }}
   .card p {{ color:var(--muted); font-size:.95rem; margin:0 0 .6em; }}
   .card .author {{ display:block; color:#6b7785; font-size:.78rem; margin:0 0 1em; }}
+  .card .ext {{ font-size:.62rem; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 7px; margin-left:8px; vertical-align:middle; font-weight:400; }}
   .card .go {{ color:var(--accent); font-size:.9rem; font-weight:600; }}
   .principle {{ margin:56px 0 0; padding:24px; border:1px solid var(--line); border-radius:16px; background:#0f141d; }}
   .principle h2 {{ margin:0 0 .4em; font-size:1.1rem; }}
@@ -195,6 +217,9 @@ def main() -> None:
         print(f"  wheel → {wheels_dir / wheel.name}")
 
     for app in APPS:
+        if app.get("external"):
+            print(f"  app  → {app['slug']} (extern: {app['href']}) — kein WASM-Export")
+            continue
         export_app(app, out)
         print(f"  app  → {out / app['slug']}/")
 

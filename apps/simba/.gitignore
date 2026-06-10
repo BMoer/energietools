@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Data uploads (user data, not tracked)
+backend/data/uploads/
+
+# Docker
+pvtool-src/
+
+# OS
+.DS_Store
+Thumbs.db

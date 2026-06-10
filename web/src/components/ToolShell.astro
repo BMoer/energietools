@@ -1,0 +1,75 @@
+---
+// Geteilte Hülle für ein hosted-Tool: Kopf (Name, zurück zur Detailseite,
+// „läuft im Browser"-Hinweis) + Slot für die Tool-UI. Die Tool-Logik selbst
+// (Inputs → energietools → Ergebnis) liegt im Client-Script der jeweiligen Seite.
+interface Props {
+  slug: string;
+  name: string;
+  tagline: string;
+}
+const { slug, name, tagline } = Astro.props;
+---
+
+<section class="tool shell">
+  <div class="tool-head">
+    <a class="back label" href={`/tools/${slug}`}>← {name} · Info</a>
+    <span class="live-badge label">⚡ 100&nbsp;% im Browser · energietools</span>
+  </div>
+  <h1>{name}</h1>
+  <p class="tagline">{tagline}</p>
+  <slot />
+  <footer class="audit">
+    <hr class="rule" />
+    <p class="label">
+      Gerechnet im Browser auf der MIT-Library
+      <a href="https://github.com/BMoer/energietools">energietools</a> — kein Server.
+      Jede Zahl trägt ihren Rechenweg; fehlt eine Eingabe, wird bewusst nicht geschätzt.
+    </p>
+  </footer>
+</section>
+
+<style>
+  .tool { padding: 2rem 24px 0; max-width: 920px; }
+  .tool-head { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.6rem; flex-wrap: wrap; }
+  .back:hover { color: var(--ink); }
+  .live-badge { color: var(--live-deep); }
+  h1 { font-size: clamp(2.2rem, 6vw, 4rem); }
+  .tagline { font-size: 1.15rem; color: var(--ink-2); margin: 0.8rem 0 2rem; max-width: 52ch; }
+  .audit { margin: 2.5rem 0 0; }
+  .audit .label { display: block; line-height: 1.6; margin-top: 1rem; max-width: 70ch; }
+  .audit a { border-bottom: 1px solid var(--live-deep); }
+
+  /* Geteilte Tool-UI-Bausteine (global für die Tool-Seiten) */
+  :global(.t-controls) {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem 1.6rem;
+    padding: 1.4rem; border: 1px solid var(--line-strong); background: var(--paper-2); border-radius: var(--radius);
+  }
+  :global(.t-field) { display: flex; flex-direction: column; gap: 0.4rem; }
+  :global(.t-field > label) {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+  }
+  :global(.t-field input[type="text"]), :global(.t-field input[type="number"]) {
+    font-family: var(--mono); font-size: 1rem; padding: 0.5em 0.6em; border: 1.5px solid var(--line-strong);
+    border-radius: var(--radius); background: var(--paper); color: var(--ink);
+  }
+  :global(.t-field input:focus) { outline: none; border-color: var(--ink); }
+  :global(.t-field input[type="range"]) { accent-color: var(--live-deep); }
+  :global(.t-range-val) { font-family: var(--mono); font-size: 0.85rem; color: var(--ink); }
+
+  :global(.t-stats) { display: flex; flex-wrap: wrap; gap: 0; margin: 1.6rem 0; border: 1px solid var(--line-strong); }
+  :global(.t-stat) { flex: 1 1 160px; padding: 1.1rem 1.2rem; border-right: 1px solid var(--line-strong); }
+  :global(.t-stat:last-child) { border-right: 0; }
+  :global(.t-stat .k) { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 0.35rem; }
+  :global(.t-stat .v) { font-family: var(--display); font-weight: 700; font-size: 1.9rem; line-height: 1; }
+
+  :global(.t-table) { width: 100%; border-collapse: collapse; font-size: 0.94rem; margin: 1rem 0; }
+  :global(.t-table th), :global(.t-table td) { text-align: left; padding: 0.55em 0.7em; border-bottom: 1px solid var(--line); }
+  :global(.t-table th) { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  :global(.t-table td:last-child), :global(.t-table th:last-child) { text-align: right; font-variant-numeric: tabular-nums; }
+  :global(.t-table tr.total td) { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: 0; }
+
+  :global(.t-status) { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); padding: 1.5rem 0; }
+  :global(.t-callout) { padding: 1rem 1.2rem; border: 1px solid var(--line-strong); border-left: 4px solid var(--warn); background: color-mix(in oklab, var(--warn) 5%, var(--paper)); border-radius: var(--radius); }
+  :global(.t-src) { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+  :global(.t-src a) { border-bottom: 1px solid var(--live-deep); }
+</style>

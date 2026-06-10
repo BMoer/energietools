@@ -1,0 +1,107 @@
+---
+import Base from "../layouts/Base.astro";
+import ToolShell from "../components/ToolShell.astro";
+import { getEntry } from "astro:content";
+const t = await getEntry("tools", "rechnung");
+---
+
+<Base title={`${t!.data.name} — energietools.at`} description={t!.data.description}>
+  <ToolShell slug="rechnung" name={t!.data.name} tagline={t!.data.description}>
+    <div class="t-controls">
+      <div class="t-field"><label for="plz">PLZ</label>
+        <input type="text" id="plz" value="1010" inputmode="numeric" /></div>
+      <div class="t-field"><label for="verbrauch">Jahresverbrauch · <span id="verbrauch-val" class="t-range-val">3.500 kWh</span></label>
+        <input type="range" id="verbrauch" min="1000" max="12000" step="100" value="3500" /></div>
+      <div class="t-field"><label for="ep">Dein Energiepreis netto (ct/kWh)</label>
+        <input type="number" id="ep" value="12" step="0.1" min="1" max="60" /></div>
+      <div class="t-field"><label for="gg">Deine Grundgebühr netto (€/Monat)</label>
+        <input type="number" id="gg" value="5" step="0.5" min="0" max="40" /></div>
+      <div class="t-field" style="flex-direction:row;align-items:center;gap:0.6rem">
+        <input type="checkbox" id="oeko" style="accent-color:var(--live-deep)" />
+        <label for="oeko" style="text-transform:none;letter-spacing:0">nur Ökostrom vergleichen</label></div>
+    </div>
+    <div id="result"><p class="t-status">Initialisiere energietools …</p></div>
+  </ToolShell>
+</Base>
+
+<script>
+  import { loadEnergietools, eur } from "../lib/et.js";
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const result = document.getElementById("result")!;
+  let compute: ((p: string, v: number, e: number, g: number, o: boolean) => string) | null = null;
+
+  const PY = `
+from energietools.capabilities.tariffs import TariffCatalog, kosten_rechenweg
+from energietools.capabilities.netz import GesamtkostenCapability, NetzkostenCapability
+import json
+_CAT = TariffCatalog.load()
+def et_rechnung(plz, verbrauch, ep, gg, nur_oeko):
+    ges = GesamtkostenCapability().run(plz=plz, verbrauch_kwh=verbrauch, energiepreis_netto_ct_kwh=10, grundgebuehr_netto_eur_monat=5)
+    gab = ges.data["rechenweg"]["gebrauchsabgabe_rate"]
+    nr = NetzkostenCapability().run(plz=plz, verbrauch_kwh=verbrauch)
+    vnb = nr.data["netzbetreiber"]; netz = nr.data["netzkosten_eur_jahr_brutto"]
+    u = kosten_rechenweg(verbrauch_kwh=verbrauch, netto_ep_ct=ep, netto_gg_eur_monat=gg, gebrauchsabgabe_rate=gab)
+    deine = u.brutto_jahreskosten_eur + u.gebrauchsabgabe_eur + netz
+    rows = []
+    for tr in _CAT.all():
+        if "gas" in tr.tarif_name.lower() or "gas" in tr.lieferant.lower(): continue
+        if tr.tariftyp != "Fixpreis" or tr.energiepreis_ct_kwh <= 0: continue
+        if nur_oeko and not tr.ist_oekostrom: continue
+        rw = kosten_rechenweg(verbrauch_kwh=verbrauch, netto_ep_ct=tr.energiepreis_ct_kwh, netto_gg_eur_monat=tr.grundgebuehr_eur_monat,
+            gebrauchsabgabe_rate=gab, rabatt_ct_kwh=tr.neukundenrabatt_ct_kwh, rabatt_pauschal_eur=tr.neukundenrabatt_eur)
+        rows.append({"total": round(rw.brutto_jahreskosten_eur + rw.gebrauchsabgabe_eur + netz, 2),
+            "lief": tr.lieferant, "name": tr.tarif_name, "oeko": tr.ist_oekostrom, "bind": tr.hat_bindung})
+    rows.sort(key=lambda r: r["total"])
+    return json.dumps({"vnb": vnb, "netz": netz, "gab": gab, "deine": round(deine, 2), "count": len(rows), "top": rows[:5],
+        "u": {"ne": u.netto_energie_eur, "ng": u.netto_grund_eur, "ust": u.ust_eur, "eb": u.brutto_jahreskosten_eur, "gabe": u.gebrauchsabgabe_eur}})
+et_rechnung
+`;
+
+  function render(o: any) {
+    const u = o.u;
+    const breakdown = `<h3 style="font-size:1.4rem;margin:0.5rem 0 0.6rem">Deine Rechnung — Rechenweg</h3>
+      <table class="t-table"><tbody>
+        <tr><td>Energie netto</td><td>${eur(u.ne)}</td></tr>
+        <tr><td>Grundgebühr netto</td><td>${eur(u.ng)}</td></tr>
+        <tr><td>USt (×1,20) auf Energie + Grund</td><td>${eur(u.ust)}</td></tr>
+        <tr><td>Energie + Grund brutto</td><td>${eur(u.eb)}</td></tr>
+        <tr><td>Gebrauchsabgabe (Rate ${o.gab})</td><td>${eur(u.gabe)}</td></tr>
+        <tr><td>Netzkosten brutto · ${o.vnb ?? "PLZ nicht eindeutig"}</td><td>${eur(o.netz)}</td></tr>
+        <tr class="total"><td>Gesamt brutto/Jahr</td><td>${eur(o.deine)}</td></tr>
+      </tbody></table>`;
+    let vergleich = "";
+    if (!o.top.length) {
+      vergleich = `<div class="t-callout">Keine passenden Vergleichstarife (Filter zu eng?).</div>`;
+    } else {
+      const g = o.top[0];
+      const ersparnis = o.deine - g.total;
+      const kind = ersparnis > 30 ? "var(--live-deep)" : "var(--signal)";
+      const spar = ersparnis > 0 ? `<strong>${eur(ersparnis)}/Jahr sparen</strong>` : "deine Rechnung ist bereits günstiger";
+      const rows = o.top.map((r: any, i: number) =>
+        `<tr><td>${i + 1}</td><td>${r.lief} · ${r.name}</td><td>${eur(r.total)}</td><td>${r.oeko ? "✅" : "—"}</td><td>${r.bind ? "⏳" : "frei"}</td></tr>`).join("");
+      vergleich = `
+        <div class="t-callout" style="border-left-color:${kind}">Günstigster Strom-Fixpreis: <strong>${g.lief} · ${g.name}</strong> — <strong>${eur(g.total)}/Jahr</strong>. Gegenüber deiner Rechnung: ${spar}.</div>
+        <h3 style="font-size:1.4rem;margin:1.4rem 0 0.6rem">Günstigste Strom-Fixpreis-Tarife (${o.count} verglichen)</h3>
+        <table class="t-table"><thead><tr><th>#</th><th>Tarif</th><th>Gesamt/Jahr</th><th>Öko</th><th>Bindung</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    result.innerHTML = breakdown + vergleich +
+      `<p class="t-src">Open-Data-Tarifkatalog · Gas per Namensheuristik ausgeschlossen · Spot/Floater nicht gerankt · Netto-Listenpreise, ohne Gewähr</p>`;
+  }
+
+  function run() {
+    if (!compute) return;
+    try { render(JSON.parse(compute($("plz").value.trim() || "1010", +$("verbrauch").value, +$("ep").value, +$("gg").value, $("oeko").checked))); }
+    catch (e) { result.innerHTML = `<p class="t-status">Fehler: ${(e as Error).message}</p>`; }
+  }
+  let timer: number;
+  const debounced = () => { clearTimeout(timer); timer = window.setTimeout(run, 200); };
+  $("verbrauch").addEventListener("input", () => { document.getElementById("verbrauch-val")!.textContent = (+$("verbrauch").value).toLocaleString("de-AT") + " kWh"; debounced(); });
+  ["plz", "ep", "gg"].forEach((id) => $(id).addEventListener("input", debounced));
+  $("oeko").addEventListener("change", run);
+
+  (async () => {
+    const py = await loadEnergietools((m: string) => { if (m) result.innerHTML = `<p class="t-status">${m}</p>`; });
+    compute = py.runPython(PY) as any;
+    run();
+  })();
+</script>

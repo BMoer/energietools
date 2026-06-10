@@ -59,3 +59,6 @@ PVTOOL_INTEGRATION_SURVEY.md
 
 # marimo cache
 __marimo__/
+
+# Ausnahme: das gebündelte energietools-Wheel für die Web-Tools wird committet
+!web/public/wheels/*.whl

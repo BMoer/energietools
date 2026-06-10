@@ -5,7 +5,7 @@ contact: https://moerzinger.eu
 contactLabel: moerzinger.eu
 description: PV-Batteriegröße mit echtem Dispatch und auditierbarem ROI (NPV/Amortisation).
 hosting: hosted
-url: /tools/speicher/
+url: /speicher/
 engineUsage: >-
   Nutzt aus der Engine: den Eigenverbrauchs-Dispatch (`scenarios`, SOC/Wirkungsgrad
   über die Battery-Komponente) und die Finanzkennzahlen (`finance`: NPV/Amortisation/

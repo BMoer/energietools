@@ -5,7 +5,7 @@ contact: https://moerzinger.eu
 contactLabel: moerzinger.eu
 description: Regulierte Netzkosten PLZ-scharf — lückenloser Rechenweg mit Preisblatt-Quelle.
 hosting: hosted
-url: /tools/netzkosten/
+url: /netzkosten/
 engineUsage: >-
   Nutzt aus der Engine: den auditierten Netzentgelt-Snapshot (data/netz) und die
   Capabilities `netzkosten`/`gesamtkosten`/`grid_fees` inkl. PLZ→VNB-Auflösung und

@@ -5,7 +5,7 @@ contact: https://moerzinger.eu
 contactLabel: moerzinger.eu
 description: Stromrechnung in Energie / Netz / Abgaben / USt zerlegen — mit Tarifvergleich.
 hosting: hosted
-url: /tools/rechnung/
+url: /rechnung/
 engineUsage: >-
   Nutzt aus der Engine: `gesamtkosten`/`netzkosten` (auditierter Rechenweg),
   den Open-Data-Tarifkatalog und `kosten_rechenweg`. Eigener Teil: die UI und der

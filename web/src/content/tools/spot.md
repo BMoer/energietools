@@ -5,7 +5,7 @@ contact: https://moerzinger.eu
 contactLabel: moerzinger.eu
 description: Lohnt sich ein dynamischer Tarif für mein Lastprofil? Backtest gegen EPEX 2025.
 hosting: hosted
-url: /tools/spot/
+url: /spot/
 engineUsage: >-
   Nutzt aus der Engine: den gebündelten EPEX-AT-Snapshot, `spot_analysis`
   (Profilkostenfaktor), das H0-Profil und den Netzanteil aus `grid_fees`.

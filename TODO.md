@@ -126,3 +126,17 @@ Bewusst vertagt - hier festgehalten, damit sie nicht erneut diskutiert werden:
   ungenutztes Protokoll auf Vorrat).
 - [ ] **MCP-Server als optionaler Connector.** Wiki und Baukasten als Tools für
   beliebige Agents - später.
+
+## energietools.at — Web-Verzeichnis
+
+- [ ] **Engine/Produkt-Grenze + Publishing-Bedingung fixieren** (Website-Briefing,
+  bewusst offen). Definiert die Aufnahme-Regel der Galerie: was ist geteiltes
+  Engine-Commodity-Fundament (muss zurück ins offene Repo, wenn erweitert) vs.
+  eigene proprietäre Logik (bleibt draußen). Offene Punkte: (1) Linie „allgemein
+  vs. differenziert", (2) Beitrags-Pflicht verbindlich oder Ehrensache, (3) wer
+  kuratiert die Aufnahme. **Solange Platzhalter + TODO** auf der Mitmachen-Seite
+  (`web/src/pages/mitmachen.astro`) und in jedem `engineUsage`
+  (`web/src/content/tools/*.md`). Sobald fixiert: Platzhaltertexte ersetzen.
+- [ ] **Deploy:** Vercel auf `web/`, Domain energietools.at; optional Vercel KV
+  (`KV_REST_API_URL`/`_TOKEN`) für den `/go`-Klickzähler. Simba als eigener Host
+  (`simba.energietools.at`).

@@ -1,0 +1,53 @@
+---
+import type { CollectionEntry } from "astro:content";
+import SchematicThumb from "./SchematicThumb.astro";
+
+interface Props {
+  tool: CollectionEntry<"tools">;
+  index?: number;
+}
+const { tool, index = 0 } = Astro.props;
+const d = tool.data;
+const href = `/tools/${tool.id}/`;
+const hosted = d.hosting === "hosted";
+---
+
+<a class="card rise" href={href} style={`animation-delay:${index * 70}ms`}>
+  <div class="thumb">
+    <SchematicThumb seed={tool.id} variant={d.hosting} />
+    <span class:list={["badge", hosted ? "badge--hosted" : "badge--external"]}>
+      {hosted ? "hosted" : "extern"}
+    </span>
+  </div>
+  <div class="body">
+    <h3>{d.name}</h3>
+    <span class="label op">{d.operator}</span>
+    <p class="desc">{d.description}</p>
+    <div class="tags">
+      {d.tags.slice(0, 3).map((t) => <span class="tag">{t}</span>)}
+    </div>
+    <span class="open">ansehen →</span>
+  </div>
+</a>
+
+<style>
+  .card { display: flex; flex-direction: column; padding: 0; }
+  .card:hover { background: var(--paper-2); }
+  .card:hover .open { color: var(--live-deep); }
+  .thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-bottom: 1px solid var(--line-strong);
+    overflow: hidden;
+  }
+  .badge { position: absolute; top: 12px; right: 12px; background: var(--paper); }
+  .body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  h3 { font-size: 1.5rem; line-height: 0.98; }
+  .op { margin-top: 2px; }
+  .desc { color: var(--ink-2); font-size: 0.95rem; margin: 6px 0 12px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+  .open {
+    font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--ink); margin-top: 16px;
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+// Deterministisches Schaltplan-Thumbnail (Knoten + Leitungen), aus dem Slug
+// abgeleitet — gibt jeder Karte eine eigene Signatur ohne Screenshot.
+interface Props {
+  seed: string;
+  variant?: "hosted" | "external";
+}
+const { seed, variant = "hosted" } = Astro.props;
+
+function hash(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function rng(seedNum: number) {
+  let x = seedNum || 1;
+  return () => {
+    x ^= x << 13; x ^= x >>> 17; x ^= x << 5; x >>>= 0;
+    return x / 0xffffffff;
+  };
+}
+
+const W = 320, H = 180;
+const r = rng(hash(seed));
+const cols = 5, rows = 3;
+const nodes: { x: number; y: number; live: boolean }[] = [];
+for (let c = 0; c < cols; c++) {
+  for (let row = 0; row < rows; row++) {
+    if (r() < 0.32) continue;
+    nodes.push({
+      x: (W / (cols + 1)) * (c + 1) + (r() - 0.5) * 14,
+      y: (H / (rows + 1)) * (row + 1) + (r() - 0.5) * 14,
+      live: r() < 0.34,
+    });
+  }
+}
+// Verbinde jeden Knoten mit dem nächstgelegenen folgenden (sparsamer Graph)
+const edges: [number, number][] = [];
+for (let i = 0; i < nodes.length; i++) {
+  let best = -1, bestd = Infinity;
+  for (let j = i + 1; j < nodes.length; j++) {
+    const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+    const dist = dx * dx + dy * dy;
+    if (dist < bestd) { bestd = dist; best = j; }
+  }
+  if (best >= 0) edges.push([i, best]);
+  if (i + 2 < nodes.length && r() < 0.4) edges.push([i, i + 2]);
+}
+const accent = variant === "hosted" ? "var(--live-deep)" : "var(--signal)";
+---
+
+<svg class="thumb-svg" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <rect width={W} height={H} fill="var(--paper-2)" />
+  {Array.from({ length: 6 }).map((_, i) => (
+    <line x1={(W / 6) * (i + 0.5)} y1="0" x2={(W / 6) * (i + 0.5)} y2={H} stroke="var(--line)" stroke-width="1" />
+  ))}
+  {edges.map(([a, b]) => (
+    <line x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y}
+      stroke="var(--line-strong)" stroke-width="1.5" />
+  ))}
+  {nodes.map((n) => (
+    <circle cx={n.x} cy={n.y} r={n.live ? 6 : 4}
+      fill={n.live ? accent : "var(--paper)"} stroke="var(--ink)" stroke-width="1.5" />
+  ))}
+</svg>
+
+<style>
+  .thumb-svg { display: block; width: 100%; height: 100%; }
+</style>

@@ -1,0 +1,102 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base
+  title="Mitmachen — energietools.at"
+  description="Wie ein Tool in die energietools.at-Galerie aufgenommen wird."
+>
+  <article class="shell page">
+    <a class="back label" href="/#galerie">← Galerie</a>
+    <span class="label">Mitmachen</span>
+    <h1>Bau drauf. Zeig's her.</h1>
+    <p class="lede">
+      energietools.at ist neutraler Boden. Wer ein Tool auf dem offenen
+      <a href="https://github.com/BMoer/energietools">energietools</a>-Paket baut, kann es
+      hier in die Galerie stellen — als Beweis und als Vorlage für andere. Anfragen laufen
+      direkt an dich, nicht über die Plattform.
+    </p>
+
+    <!-- TODO (offene Entscheidung, NICHT raten — vom Betreiber zu fixieren):
+         Engine/Produkt-Grenze + Publishing-Bedingung. Der folgende Rahmen ist ein
+         VORSCHLAG/Platzhalter, bis Ben ihn bestätigt oder anpasst. -->
+    <div class="todo">
+      <span class="todo-tag">Vorschlag · noch nicht final</span>
+      <p>
+        Die genaue Aufnahme-Regel (die Grenze zwischen geteiltem Engine-Fundament und
+        eigener, proprietärer Logik) ist <strong>noch nicht fixiert</strong>. Folgender
+        Rahmen ist ein Platzhalter:
+      </p>
+    </div>
+
+    <ol class="conditions">
+      <li>
+        <h3>Echte Dependency</h3>
+        <p>Das Tool nutzt das energietools-Paket als echte Abhängigkeit — nicht nur als Inspiration.</p>
+      </li>
+      <li>
+        <h3>Erweiterung zurück ins Offene</h3>
+        <p>
+          Wer dabei die Commodity-Schicht erweitert (eine neue allgemeine Rechenfunktion),
+          gibt diese Erweiterung zurück ins offene Repo.
+        </p>
+      </li>
+      <li>
+        <h3>Eigenes bleibt eigen</h3>
+        <p>
+          Die eigene differenzierte Logik (z. B. ein spezifisches Optimierungs-Matching)
+          bleibt proprietär und draußen. Du beschreibst die Bruchlinie selbst — nachprüfbar,
+          weil das Repo offen ist.
+        </p>
+      </li>
+    </ol>
+
+    <div class="how">
+      <h2>So geht's — vorerst per Ansprache</h2>
+      <p>
+        Solange das Self-Service-Formular noch nicht steht, läuft die Aufnahme über
+        persönliche Ansprache: melde dich mit Tool, Betreiber-Kontakt und einer kurzen
+        Engine-↔-Eigenleistung-Beschreibung beim Initiator.
+      </p>
+      <a class="btn btn--live" href="https://moerzinger.eu" target="_blank" rel="noopener">
+        Beim Initiator melden ↗
+      </a>
+      <!-- TODO (später, bewusst aufgeschoben): Self-Service-Eintrag, damit sich auch
+           Leute eintragen können, die der Betreiber nicht persönlich kennt. -->
+      <p class="soon label">Self-Service-Eintrag folgt · bis dahin kuratiert</p>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .page { padding: 2rem 24px 0; max-width: 760px; }
+  .back { display: inline-block; margin-bottom: 2rem; }
+  .back:hover { color: var(--ink); }
+  h1 { font-size: clamp(2.6rem, 7vw, 5rem); margin: 0.6rem 0 1.4rem; }
+  .lede { font-size: 1.25rem; color: var(--ink-2); margin-bottom: 2.5rem; }
+  .lede a { border-bottom: 1px solid var(--live-deep); }
+  .todo {
+    border: 1px dashed var(--warn); border-radius: var(--radius);
+    padding: 1.2rem 1.4rem; margin-bottom: 2.5rem; background: color-mix(in oklab, var(--warn) 6%, var(--paper));
+  }
+  .todo-tag {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--warn); display: inline-block; margin-bottom: 0.6rem;
+  }
+  .todo p { margin: 0; color: var(--ink-2); font-size: 0.96rem; }
+  .conditions { list-style: none; counter-reset: c; padding: 0; margin: 0 0 3rem; }
+  .conditions li {
+    counter-increment: c; padding: 1.4rem 0; border-top: 1px solid var(--line-strong); position: relative; padding-left: 3.2rem;
+  }
+  .conditions li::before {
+    content: counter(c, decimal-leading-zero); position: absolute; left: 0; top: 1.5rem;
+    font-family: var(--mono); color: var(--live-deep); font-size: 0.9rem;
+  }
+  .conditions h3 { margin: 0 0 0.4rem; }
+  .conditions p { color: var(--ink-2); margin: 0; font-size: 0.96rem; }
+  .how { border-top: 1px solid var(--line-strong); padding-top: 2.5rem; }
+  .how h2 { margin-bottom: 1rem; }
+  .how p { color: var(--ink-2); }
+  .how .btn { margin-top: 0.6rem; }
+  .soon { display: block; margin-top: 1rem; }
+</style>

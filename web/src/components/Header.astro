@@ -1,0 +1,73 @@
+---
+const path = Astro.url.pathname;
+const nav = [
+  { href: "/#galerie", label: "Galerie" },
+  { href: "/mitmachen", label: "Mitmachen" },
+  { href: "https://github.com/BMoer/energietools", label: "Repo ↗", external: true },
+];
+---
+
+<header class="site-head">
+  <div class="shell head-inner">
+    <a href="/" class="brand" aria-label="energietools.at — Startseite">
+      <span class="node" aria-hidden="true"></span>
+      <span class="brand-name"><span class="lo">energie</span>tools<span class="dot">.at</span></span>
+    </a>
+    <nav>
+      {nav.map((n) => (
+        <a
+          href={n.href}
+          class:list={["nav-link", { active: !n.external && path === n.href }]}
+          {...(n.external ? { target: "_blank", rel: "noopener" } : {})}
+        >{n.label}</a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-head {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in oklab, var(--paper) 86%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .head-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .brand { display: inline-flex; align-items: center; gap: 0.6em; }
+  .node {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--live); border: 2px solid var(--ink);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--live) 35%, transparent);
+  }
+  .brand-name {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+  }
+  .brand-name .lo { color: var(--live-deep); }
+  .brand-name .dot { color: var(--muted); font-weight: 500; }
+  nav { display: flex; align-items: center; gap: clamp(0.8rem, 3vw, 2rem); }
+  .nav-link {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    padding-bottom: 2px;
+    border-bottom: 1.5px solid transparent;
+  }
+  .nav-link:hover { color: var(--ink); border-color: var(--live-deep); }
+  .nav-link.active { color: var(--ink); border-color: var(--ink); }
+  @media (max-width: 540px) {
+    .nav-link:nth-child(1) { display: none; }
+  }
+</style>

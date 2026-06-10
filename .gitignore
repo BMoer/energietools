@@ -53,3 +53,9 @@ data/*.json
 # third-party repo names, private paths or unlicensed externals).
 *_SURVEY.md
 PVTOOL_INTEGRATION_SURVEY.md
+
+# Generated demo gallery (built by demos/build_site.py / CI)
+/site/
+
+# marimo cache
+__marimo__/

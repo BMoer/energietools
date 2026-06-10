@@ -1,0 +1,62 @@
+name: Deploy Demo Gallery
+
+# Baut die marimo/WASM-Demo-Gallery und deployt sie auf GitHub Pages (energietools.at).
+# Trigger: Änderungen an den Demos, der Library oder dem Build-Script.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "demos/**"
+      - "energietools/**"
+      - "pyproject.toml"
+      - ".github/workflows/demos.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build + marimo + energietools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build marimo
+          pip install -e .
+
+      - name: Smoke-Gate — Tests + eine echte Rechnung müssen grün sein
+        run: |
+          python -m pytest -q
+          python -m energietools netzkosten --json '{"plz":"1010","verbrauch_kwh":3500}'
+
+      - name: Build gallery
+        run: python demos/build_site.py --outdir site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

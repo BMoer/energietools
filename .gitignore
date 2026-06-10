@@ -53,3 +53,6 @@ data/*.json
 # third-party repo names, private paths or unlicensed externals).
 *_SURVEY.md
 PVTOOL_INTEGRATION_SURVEY.md
+
+# Ausnahme: das gebündelte energietools-Wheel für die Web-Tools wird committet
+!web/public/wheels/*.whl

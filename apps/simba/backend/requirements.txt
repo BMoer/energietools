@@ -1,0 +1,12 @@
+# Simba backend — re-wired auf energietools.
+#
+# Rechenkern: energietools (MIT, aus dem Monorepo) wird im Dockerfile ZUERST
+# installiert (pip install /src) und zieht pydantic/pandas/numpy/httpx/… mit.
+# Hier stehen nur die zusätzlichen App-/Server-Abhängigkeiten + die Runtime-Deps
+# des vendored pvtool (requests, python-dotenv) für die Live-Connectoren.
+fastapi>=0.115
+uvicorn[standard]>=0.34
+python-multipart>=0.0.18
+pydantic-settings>=2.0
+python-dotenv>=1.0
+requests>=2.28

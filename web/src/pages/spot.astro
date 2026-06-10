@@ -1,0 +1,96 @@
+---
+import Base from "../layouts/Base.astro";
+import ToolShell from "../components/ToolShell.astro";
+import { getEntry } from "astro:content";
+const t = await getEntry("tools", "spot");
+---
+
+<Base title={`${t!.data.name} — energietools.at`} description={t!.data.description}>
+  <ToolShell slug="spot" name={t!.data.name} tagline={t!.data.description}>
+    <div class="t-controls">
+      <div class="t-field">
+        <label for="verbrauch">Jahresverbrauch · <span id="verbrauch-val" class="t-range-val">3.500 kWh</span></label>
+        <input type="range" id="verbrauch" min="1000" max="12000" step="100" value="3500" />
+      </div>
+      <div class="t-field">
+        <label for="fix">Aktueller Fix-Tarif (all-in brutto ct/kWh) · <span id="fix-val" class="t-range-val">30</span></label>
+        <input type="range" id="fix" min="15" max="45" step="0.5" value="30" />
+      </div>
+      <div class="t-field">
+        <label for="aufschlag">Spot-Aufschlag Lieferant (netto ct/kWh)</label>
+        <input type="number" id="aufschlag" value="1.5" step="0.1" min="0" max="6" />
+      </div>
+    </div>
+    <div id="result"><p class="t-status">Initialisiere energietools …</p></div>
+  </ToolShell>
+</Base>
+
+<script>
+  import { loadEnergietools, eur } from "../lib/et.js";
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const result = document.getElementById("result")!;
+  let compute: ((v: number, f: number, a: number) => string) | null = null;
+
+  const PY = `
+from datetime import datetime
+from energietools.tools.spot_analysis import analyze_spot_tariff
+from energietools.tools.h0_profile import synthesize_h0_consumption
+from energietools.capabilities.spot.data import load_epex_prices
+from energietools.capabilities.netz import default_network_fee_ct_kwh
+import json
+_PRICES = [dict(p) for p in load_epex_prices()]
+def et_spot(verbrauch, fixpreis, aufschlag):
+    cons = synthesize_h0_consumption(verbrauch, datetime(2025,1,1), datetime(2026,1,1))
+    netz = default_network_fee_ct_kwh()
+    r = analyze_spot_tariff(cons, spot_prices=_PRICES, fix_preis_ct=fixpreis, aufschlag_ct=aufschlag, netz_ct=netz)
+    return json.dumps({"pkf": r.profilkostenfaktor_pct, "avg_vol": r.avg_spot_volumengewichtet_ct,
+        "avg_time": r.avg_spot_zeitgewichtet_ct, "voll": r.voll_kosten_eur, "fix": r.fix_kosten_eur,
+        "ersparnis": r.ersparnis_vs_fix_eur, "netz": netz,
+        "monthly": [{"m": m.monat, "avg": m.avg_spot_ct, "voll": m.voll_kosten_eur} for m in r.monthly_breakdown]})
+et_spot
+`;
+
+  function render(o: any) {
+    const e = o.ersparnis;
+    let kind = "var(--warn)", head = "";
+    if (e > 50) { kind = "var(--live-deep)"; head = `Spot lohnt sich — ca. <strong>${eur(e)}/Jahr</strong> günstiger.`; }
+    else if (e > 0) { kind = "var(--signal)"; head = `Spot ist nur <strong>${eur(e)}/Jahr</strong> günstiger — knapp, mit Preisrisiko.`; }
+    else head = `Fix ist für dich <strong>${eur(-e)}/Jahr</strong> günstiger.`;
+    const expl = o.pkf > 0
+      ? "Dein Profil liegt <strong>über</strong> dem Flachprofil-Schnitt — du verbrauchst eher in teuren Stunden (Abend-Peak)."
+      : "Dein Profil liegt <strong>unter</strong> dem Flachprofil-Schnitt — du verbrauchst eher in günstigen Stunden.";
+    const months = o.monthly.map((m: any) =>
+      `<tr><td>${m.m}</td><td>${m.avg.toFixed(2)} ct</td><td>${eur(m.voll)}</td></tr>`).join("");
+    result.innerHTML = `
+      <div class="t-callout" style="border-left-color:${kind}"><span style="font-size:1.05rem">${head}</span></div>
+      <div class="t-stats">
+        <div class="t-stat"><span class="k">Profilkostenfaktor (− ist gut)</span><span class="v">${o.pkf > 0 ? "+" : ""}${o.pkf.toFixed(1)}&nbsp;%</span></div>
+        <div class="t-stat"><span class="k">dein Spotpreis (volumengew.)</span><span class="v">${o.avg_vol.toFixed(2)} ct</span></div>
+        <div class="t-stat"><span class="k">Flachprofil-Schnitt</span><span class="v">${o.avg_time.toFixed(2)} ct</span></div>
+        <div class="t-stat"><span class="k">Spot all-in / Jahr</span><span class="v">${eur(o.voll)}</span></div>
+        <div class="t-stat"><span class="k">Fix all-in / Jahr</span><span class="v">${eur(o.fix)}</span></div>
+      </div>
+      <p style="color:var(--ink-2)"><strong>Profilkostenfaktor ${o.pkf > 0 ? "+" : ""}${o.pkf.toFixed(1)} %.</strong> ${expl}</p>
+      <details><summary class="label" style="cursor:pointer;padding:0.6rem 0">📅 Monatliche Aufschlüsselung</summary>
+        <table class="t-table"><thead><tr><th>Monat</th><th>⌀ Spot</th><th>Spot all-in</th></tr></thead><tbody>${months}</tbody></table>
+      </details>
+      <p class="t-src">EPEX-AT-Snapshot 2025 (8.760 h) · Netzanteil ${o.netz.toFixed(3)} ct/kWh · Backtest, keine Prognose · H0-Profil (Näherung)</p>`;
+  }
+
+  function run() {
+    if (!compute) return;
+    try { render(JSON.parse(compute(+$("verbrauch").value, +$("fix").value, +$("aufschlag").value))); }
+    catch (e) { result.innerHTML = `<p class="t-status">Fehler: ${(e as Error).message}</p>`; }
+  }
+  let timer: number;
+  const debounced = () => { clearTimeout(timer); timer = window.setTimeout(run, 200); };
+  $("verbrauch").addEventListener("input", () => { document.getElementById("verbrauch-val")!.textContent = (+$("verbrauch").value).toLocaleString("de-AT") + " kWh"; debounced(); });
+  $("fix").addEventListener("input", () => { document.getElementById("fix-val")!.textContent = String(+$("fix").value); debounced(); });
+  $("aufschlag").addEventListener("input", debounced);
+
+  (async () => {
+    const py = await loadEnergietools((m: string) => { if (m) result.innerHTML = `<p class="t-status">${m}</p>`; });
+    compute = py.runPython(PY) as any;
+    run();
+  })();
+</script>

@@ -1,0 +1,112 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import ToolCard from "../components/ToolCard.astro";
+
+const tools = (await getCollection("tools")).sort(
+  (a, b) => a.data.order - b.data.order || a.data.name.localeCompare(b.data.name),
+);
+const hostedCount = tools.filter((t) => t.data.hosting === "hosted").length;
+const operators = new Set(tools.map((t) => t.data.operator)).size;
+---
+
+<Base>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="shell">
+      <span class="label rise">Offenes Fundament · Österreichischer Energiemarkt</span>
+      <h1 class="rise" style="animation-delay:60ms">
+        Ein Fundament.<br />
+        <span class="hl">Viele Werkzeuge.</span>
+      </h1>
+      <p class="lede rise" style="animation-delay:140ms">
+        <strong>energietools</strong> ist das offene, auditierbare Rechen-Fundament für
+        Energie-Tools — Tarife, Netzentgelte, Speicher, Spot. Diese Seite zeigt, was Leute
+        darauf bauen. Statt jedes Mal das Fundament neu zu gießen: einmal offen, von vielen
+        genutzt, von jedem nachprüfbar.
+      </p>
+      <div class="cta rise" style="animation-delay:220ms">
+        <a class="btn btn--live" href="#galerie">Galerie ansehen ↓</a>
+        <a class="btn btn--ghost" href="https://github.com/BMoer/energietools" target="_blank" rel="noopener">
+          Das Repo ↗
+        </a>
+      </div>
+      <dl class="stats rise" style="animation-delay:300ms">
+        <div><dt class="label">Tools</dt><dd>{tools.length}</dd></div>
+        <div><dt class="label">davon hosted</dt><dd>{hostedCount}</dd></div>
+        <div><dt class="label">Autor:innen</dt><dd>{operators}</dd></div>
+        <div><dt class="label">Lizenz</dt><dd>MIT</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <hr class="rule shell-rule" />
+
+  <!-- KONZEPT -->
+  <section class="shell concept">
+    <h2>Neutraler Boden, kein Funnel</h2>
+    <div class="concept-grid">
+      <div class="concept-item">
+        <span class="num">01</span>
+        <h3>Offen bewerben</h3>
+        <p>Das energietools-Paket ist Open Source (MIT). Wer baut, baut auf einem geprüften Kern statt bei null.</p>
+      </div>
+      <div class="concept-item">
+        <span class="num">02</span>
+        <h3>Beweis zeigen</h3>
+        <p>Konkrete Tools als Beleg und Vorlage. Die Bruchlinie Engine ↔ proprietär ist offen und nachprüfbar.</p>
+      </div>
+      <div class="concept-item">
+        <span class="num">03</span>
+        <h3>Leads weiterleiten</h3>
+        <p>Anfragen laufen an den jeweiligen Autor — nicht zentral zum Seitenbetreiber. Kein Marktplatz, kein Gate.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALERIE -->
+  <section id="galerie" class="shell gallery">
+    <div class="gallery-head">
+      <h2>Die Galerie</h2>
+      <span class="label">{tools.length} Tools · {operators} Autor:innen</span>
+    </div>
+    <div class="grid">
+      {tools.map((tool, i) => <ToolCard tool={tool} index={i} />)}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { padding: clamp(3rem, 9vw, 7rem) 0 clamp(2.5rem, 6vw, 4.5rem); }
+  .hero .label { display: block; margin-bottom: 1.4rem; }
+  h1 .hl { color: var(--live-deep); }
+  .lede { font-size: clamp(1.05rem, 2.2vw, 1.35rem); max-width: 58ch; margin: 1.6rem 0 2rem; color: var(--ink-2); }
+  .lede strong { color: var(--ink); }
+  .cta { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+  .stats {
+    display: grid; grid-template-columns: repeat(4, max-content); gap: clamp(1.5rem, 5vw, 3.5rem);
+    margin: 3rem 0 0; padding-top: 1.6rem; border-top: 1px solid var(--line-strong);
+  }
+  .stats dt { margin-bottom: 0.3rem; }
+  .stats dd { margin: 0; font-family: var(--display); font-weight: 700; font-size: 2.4rem; line-height: 1; }
+  .shell-rule { max-width: var(--maxw); margin: 0 auto; }
+
+  .concept { padding: clamp(3rem, 7vw, 5rem) 24px; }
+  .concept > h2 { margin-bottom: 2.5rem; }
+  .concept-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--line-strong); }
+  .concept-item { padding: 1.8rem; border-right: 1px solid var(--line-strong); }
+  .concept-item:last-child { border-right: 0; }
+  .num { font-family: var(--mono); font-size: 0.8rem; color: var(--live-deep); letter-spacing: 0.1em; }
+  .concept-item h3 { margin: 0.8rem 0 0.6rem; }
+  .concept-item p { color: var(--ink-2); font-size: 0.96rem; margin: 0; }
+
+  .gallery { padding: clamp(2rem, 5vw, 3.5rem) 24px clamp(3rem, 6vw, 5rem); }
+  .gallery-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: 1.6rem; flex-wrap: wrap; }
+
+  @media (max-width: 760px) {
+    .concept-grid { grid-template-columns: 1fr; }
+    .concept-item { border-right: 0; border-bottom: 1px solid var(--line-strong); }
+    .concept-item:last-child { border-bottom: 0; }
+    .stats { grid-template-columns: repeat(2, max-content); }
+  }
+</style>

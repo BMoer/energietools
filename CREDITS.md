@@ -18,6 +18,23 @@ MIT zugestimmt und wird als **Co-Autor** geführt.
   Component-Schnittstelle und immutable State umgesetzt.
 - **Wärmepumpen-COP (Carnot-Fraktion)** - `energietools/components/heatpump.py`.
   Standard-Physik (Carnot-Wirkungsgrad × Gütegrad), nach dem pvtool-Ansatz.
+- **Preis-getriebener Batterie-Dispatch** (spot_optimized / arbitrage, Tages-
+  Perzentil-Schwellen + FCR-SOC-Reserve) - `energietools/capabilities/scenarios/dispatch.py`
+  (`simulate_battery`). Pandas-/numpy-frei über die Battery-Komponente.
+- **Greedy Peak-Shaving** (Leistungspreis/Demand-Charge) -
+  `energietools/capabilities/scenarios/peak_shaving.py`. Der `optimal`-Modus
+  (CVXPY/LP) wurde NICHT übernommen.
+- **Komponierbares Lastprofil** (Wärmepumpen-/EV-/Warmwasser-Last + Außentemp-
+  Modell) - `energietools/tools/load_builder.py`. Der Haushalt nutzt das
+  bestehende `h0_profile`, die COP die `HeatPump`-Komponente.
+- **Regelenergie-Auswertung** (Balancing-Preis-Summary, FCR/aFRR-Kapazitätserlös)
+  - `energietools/tools/regelenergie.py`. Die stochastische FCR-Aktivierungs-
+  Simulation wurde NICHT übernommen (nicht-deterministisch).
+
+Die Web-App **Simba** (`apps/simba/`, ursprünglich `Simba-webapp`) stammt
+ebenfalls von Jakob und wurde von ihrem `pvtool`-Backend auf energietools
+re-wired (Rechenkern), die Live-Beschaffung bleibt übergangsweise hybrid bei
+pvtool. Alle obigen Ports tragen einen Herkunftsvermerk im Datei-Header.
 
 ### Was clean-room reimplementiert wurde (nicht portiert)
 

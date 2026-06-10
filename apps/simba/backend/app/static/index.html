@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simba — Solar PV Simulator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='30' fill='%230d1117'/><g fill='none' stroke='%2358a6ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 18 L12 8 L20 14' /><path d='M48 18 L52 8 L44 14' /><ellipse cx='32' cy='30' rx='16' ry='14' fill='%23161b22' stroke='%2358a6ff'/><circle cx='26' cy='27' r='2.5' fill='%23e3b341'/><circle cx='38' cy='27' r='2.5' fill='%23e3b341'/><path d='M29 33 Q32 36 35 33' /><path d='M20 35 Q16 38 12 36' /><path d='M44 35 Q48 38 52 36' /><line x1='20' y1='32' x2='12' y2='30' /><line x1='20' y1='34' x2='13' y2='35' /><line x1='44' y1='32' x2='52' y2='30' /><line x1='44' y1='34' x2='51' y2='35' /><path d='M14 16 L18 20' /><path d='M50 16 L46 20' /><path d='M12 10 Q16 14 20 15' stroke-width='1.5'/><path d='M52 10 Q48 14 44 15' stroke-width='1.5'/></g></svg>" type="image/svg+xml">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0d1117; color: #c9d1d9;
+            line-height: 1.6; padding: 2rem;
+        }
+        h1 { color: #58a6ff; margin-bottom: 0.5rem; }
+        h2 { color: #8b949e; font-size: 1.1rem; margin-bottom: 1.5rem; font-weight: normal; }
+        h3 { color: #58a6ff; margin: 1.5rem 0 0.75rem; font-size: 1rem; }
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        /* Layout */
+        .grid { display: grid; grid-template-columns: 340px 1fr; gap: 2rem; margin-top: 1rem; }
+        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+        /* Cards */
+        .card {
+            background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 1.25rem;
+        }
+
+        /* Form */
+        label { display: block; font-size: 0.85rem; color: #8b949e; margin-bottom: 0.25rem; margin-top: 0.75rem; }
+        label:first-child { margin-top: 0; }
+        input, select {
+            width: 100%; padding: 0.5rem; background: #0d1117; border: 1px solid #30363d;
+            border-radius: 4px; color: #c9d1d9; font-size: 0.9rem;
+        }
+        input:focus, select:focus { border-color: #58a6ff; outline: none; }
+
+        .checkbox-group { margin-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .checkbox-group label {
+            display: flex; align-items: center; gap: 0.35rem;
+            background: #0d1117; border: 1px solid #30363d; border-radius: 4px;
+            padding: 0.35rem 0.6rem; cursor: pointer; font-size: 0.85rem; margin: 0;
+        }
+        .checkbox-group input[type="checkbox"] { width: auto; }
+        .checkbox-group label:has(input:checked) { border-color: #58a6ff; background: #161b22; }
+
+        /* Upload area */
+        .upload-area {
+            border: 2px dashed #30363d; border-radius: 6px; padding: 1rem;
+            text-align: center; margin-top: 0.75rem; cursor: pointer; transition: border-color 0.2s;
+        }
+        .upload-area:hover { border-color: #58a6ff; }
+        .upload-area.has-file { border-color: #3fb950; border-style: solid; }
+        .upload-area input { display: none; }
+        .upload-area .hint { font-size: 0.8rem; color: #8b949e; }
+        .upload-status { font-size: 0.8rem; margin-top: 0.5rem; color: #3fb950; }
+
+        /* Button */
+        button.run {
+            width: 100%; margin-top: 1.25rem; padding: 0.7rem;
+            background: #238636; color: #fff; border: none; border-radius: 6px;
+            font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.2s;
+        }
+        button.run:hover { background: #2ea043; }
+        button.run:disabled { background: #21262d; color: #484f58; cursor: not-allowed; }
+
+        /* Results */
+        .results { display: none; }
+        .results.show { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.85rem; }
+        th, td { padding: 0.5rem 0.6rem; text-align: right; border-bottom: 1px solid #21262d; }
+        th { color: #8b949e; font-weight: 600; text-align: right; }
+        th:first-child, td:first-child { text-align: left; }
+        tr:hover td { background: #1c2128; }
+        .positive { color: #3fb950; }
+        .negative { color: #f85149; }
+
+        /* Chart */
+        .chart-container { margin-top: 1rem; }
+        canvas { max-height: 300px; }
+
+        /* Loading */
+        .spinner { display: none; text-align: center; padding: 2rem; color: #8b949e; }
+        .spinner.show { display: block; }
+
+        /* Status bar */
+        .status-bar {
+            display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;
+            font-size: 0.8rem; color: #8b949e;
+        }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #f85149; }
+        .status-dot.ok { background: #3fb950; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 0; border-bottom: 1px solid #30363d; margin-bottom: 1rem; }
+        .tab {
+            padding: 0.5rem 1rem; cursor: pointer; color: #8b949e; font-size: 0.85rem;
+            border-bottom: 2px solid transparent; transition: all 0.2s;
+        }
+        .tab:hover { color: #c9d1d9; }
+        .tab.active { color: #58a6ff; border-bottom-color: #58a6ff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body>
+<div class="container">
+    <div style="display:flex; align-items:center; gap:1rem; margin-bottom:0.5rem;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="52" height="52">
+            <!-- Lynx ears -->
+            <path d="M16 22 L10 6 L22 16" fill="#161b22" stroke="#58a6ff" stroke-width="2.2" stroke-linejoin="round"/>
+            <path d="M48 22 L54 6 L42 16" fill="#161b22" stroke="#58a6ff" stroke-width="2.2" stroke-linejoin="round"/>
+            <!-- Ear tufts -->
+            <line x1="11" y1="7" x2="8" y2="2" stroke="#e3b341" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="13" y1="6" x2="11" y2="1" stroke="#e3b341" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="53" y1="7" x2="56" y2="2" stroke="#e3b341" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="51" y1="6" x2="53" y2="1" stroke="#e3b341" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- Head -->
+            <ellipse cx="32" cy="34" rx="19" ry="16" fill="#161b22" stroke="#58a6ff" stroke-width="2.2"/>
+            <!-- Cheek fur -->
+            <path d="M13 34 Q17 30 20 34 Q17 38 13 34Z" fill="#1c2128" stroke="#58a6ff" stroke-width="1"/>
+            <path d="M51 34 Q47 30 44 34 Q47 38 51 34Z" fill="#1c2128" stroke="#58a6ff" stroke-width="1"/>
+            <!-- Eyes -->
+            <ellipse cx="25" cy="30" rx="3" ry="3.5" fill="#e3b341"/>
+            <ellipse cx="25" cy="30" rx="1.5" ry="2.2" fill="#0d1117"/>
+            <ellipse cx="39" cy="30" rx="3" ry="3.5" fill="#e3b341"/>
+            <ellipse cx="39" cy="30" rx="1.5" ry="2.2" fill="#0d1117"/>
+            <!-- Eye shine -->
+            <circle cx="26.2" cy="28.8" r="0.8" fill="#fff"/>
+            <circle cx="40.2" cy="28.8" r="0.8" fill="#fff"/>
+            <!-- Nose -->
+            <path d="M30 36 L32 38 L34 36Z" fill="#f85149"/>
+            <!-- Mouth -->
+            <path d="M32 38 Q29 41 27 39" fill="none" stroke="#58a6ff" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M32 38 Q35 41 37 39" fill="none" stroke="#58a6ff" stroke-width="1.2" stroke-linecap="round"/>
+            <!-- Whiskers -->
+            <line x1="20" y1="35" x2="8" y2="32" stroke="#8b949e" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="20" y1="37" x2="9" y2="38" stroke="#8b949e" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="20" y1="39" x2="10" y2="43" stroke="#8b949e" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="44" y1="35" x2="56" y2="32" stroke="#8b949e" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="44" y1="37" x2="55" y2="38" stroke="#8b949e" stroke-width="0.8" stroke-linecap="round"/>
+            <line x1="44" y1="39" x2="54" y2="43" stroke="#8b949e" stroke-width="0.8" stroke-linecap="round"/>
+            <!-- Forehead markings -->
+            <path d="M28 24 L32 20 L36 24" fill="none" stroke="#58a6ff" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+        <div>
+            <h1 style="margin:0;">Simba</h1>
+            <h2 style="margin:0;">Solar PV + Battery Simulator</h2>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Checking API...</span>
+    </div>
+
+    <div class="grid">
+        <!-- Left: Config panel -->
+        <div>
+            <!-- System type selector -->
+            <div class="card">
+                <h3 style="margin-top:0">System Type</h3>
+                <div id="systemTypeGroup" class="tabs" style="flex-wrap:wrap; border-bottom:none; gap:0.25rem;">
+                    <div class="tab active" data-type="residential" onclick="applySystemType('residential')" style="font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #30363d; border-radius:4px;">Residential</div>
+                    <div class="tab" data-type="balcony" onclick="applySystemType('balcony')" style="font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #30363d; border-radius:4px; color:#d29922;">Balkon-PV</div>
+                    <div class="tab" data-type="commercial" onclick="applySystemType('commercial')" style="font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #30363d; border-radius:4px;">Commercial</div>
+                    <div class="tab" data-type="industrial" onclick="applySystemType('industrial')" style="font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #30363d; border-radius:4px;">Industrial</div>
+                    <div class="tab" data-type="grid_storage" onclick="applySystemType('grid_storage')" style="font-size:0.8rem; padding:0.35rem 0.6rem; border:1px solid #30363d; border-radius:4px;">Grid Storage</div>
+                </div>
+                <div id="systemTypeDesc" style="font-size:0.75rem; color:#8b949e; margin-top:0.5rem;">
+                    3–20 kWp rooftop PV, household battery 5–20 kWh. Self-consumption + spot market.
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <h3 style="margin-top:0">Data Source</h3>
+
+                <!-- Source selector -->
+                <div class="checkbox-group" style="margin-top:0; margin-bottom:0.75rem;">
+                    <label><input type="radio" name="dataMode" value="sample" checked onclick="setDataMode('sample')" style="width:auto"> Sample</label>
+                    <label><input type="radio" name="dataMode" value="upload" onclick="setDataMode('upload')" style="width:auto"> Upload</label>
+                    <label><input type="radio" name="dataMode" value="pvgis" onclick="setDataMode('pvgis')" style="width:auto"> PVGIS</label>
+                    <label><input type="radio" name="dataMode" value="solis" onclick="setDataMode('solis')" style="width:auto"> Solis</label>
+                    <label><input type="radio" name="dataMode" value="entsoe" onclick="setDataMode('entsoe')" style="width:auto"> ENTSO-E</label>
+                </div>
+
+                <!-- Upload panel -->
+                <div id="panelUpload" style="display:none">
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls,.ods">
+                        <div>Click to upload CSV/Excel</div>
+                    </div>
+                </div>
+
+                <!-- Solis panel -->
+                <div id="panelSolis" style="display:none">
+                    <h3 style="margin-top:0; font-size:0.9rem;">SolisCloud Credentials</h3>
+                    <label>API Key ID</label>
+                    <input type="text" id="solisKeyId" placeholder="e.g. 1300...">
+                    <label>API Key Secret</label>
+                    <input type="password" id="solisKeySecret" placeholder="Secret key">
+                    <h3 style="font-size:0.9rem;">Inverter Serial Numbers</h3>
+                    <label>SN East</label>
+                    <input type="text" id="solisSnEast" placeholder="e.g. 60364...">
+                    <label>SN West</label>
+                    <input type="text" id="solisSnWest" placeholder="e.g. 60364...">
+                    <label>SN EPM (Energy Power Meter)</label>
+                    <input type="text" id="solisSnEpm" placeholder="e.g. 110BC...">
+                    <h3 style="font-size:0.9rem;">Date Range</h3>
+                    <label>Start Date</label>
+                    <input type="date" id="solisStart" value="2025-01-01">
+                    <label>End Date</label>
+                    <input type="date" id="solisEnd">
+
+                    <!-- Progress section -->
+                    <div id="solisProgress" style="display:none; margin-top:0.75rem;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#8b949e; margin-bottom:0.25rem;">
+                            <span id="solisProgressLabel">Fetching...</span>
+                            <span id="solisProgressPct">0%</span>
+                        </div>
+                        <div style="width:100%; height:6px; background:#21262d; border-radius:3px; overflow:hidden;">
+                            <div id="solisProgressBar" style="width:0%; height:100%; background:#1f6feb; border-radius:3px; transition:width 0.3s;"></div>
+                        </div>
+                        <div id="solisLog" style="margin-top:0.5rem; max-height:120px; overflow-y:auto; font-size:0.75rem; color:#8b949e; font-family:monospace; background:#0d1117; border:1px solid #21262d; border-radius:4px; padding:0.4rem;"></div>
+                    </div>
+
+                    <!-- Validation report -->
+                    <div id="solisValidation" style="display:none; margin-top:0.75rem; padding:0.6rem; border:1px solid #30363d; border-radius:6px; font-size:0.8rem;"></div>
+
+                    <div style="font-size:0.75rem; color:#8b949e; margin-top:0.5rem;">
+                        Fetches 5-min interval data (~2s per day due to API rate limits).
+                    </div>
+                    <button class="run" style="margin-top:0.75rem; background:#1f6feb" id="solisFetchBtn" onclick="fetchSolis()">Fetch Data</button>
+                </div>
+
+                <!-- ENTSO-E panel -->
+                <div id="panelEntsoe" style="display:none">
+                    <h3 style="margin-top:0; font-size:0.9rem;">ENTSO-E Transparency Platform</h3>
+                    <div style="display:flex; gap:0.5rem; align-items:flex-end; flex-wrap:wrap;">
+                        <div style="flex:1;">
+                            <label style="margin:0;">Start Date</label>
+                            <input type="date" id="entsoeConnStart">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="margin:0;">End Date</label>
+                            <input type="date" id="entsoeConnEnd">
+                        </div>
+                    </div>
+                    <div style="font-size:0.75rem; color:#d29922; margin-top:0.5rem;">
+                        Settlement prices are published with a significant delay — 2026 data may not be available yet. Use 2025 dates.
+                    </div>
+                    <button class="run" style="margin-top:0.75rem; background:#1f6feb" id="entsoeFetchBtn" onclick="fetchEntsoe()">Fetch Data</button>
+                </div>
+
+                <!-- PVGIS panel -->
+                <div id="panelPvgis" style="display:none">
+                    <!-- Presets -->
+                    <div class="checkbox-group" style="margin-top:0; margin-bottom:0.75rem;">
+                        <label style="border-color:#d29922; color:#d29922;"><input type="radio" name="pvPreset" value="balcony" onclick="applyPreset('balcony')" style="width:auto"> Balkon-PV 800W</label>
+                        <label><input type="radio" name="pvPreset" value="rooftop" onclick="applyPreset('rooftop')" style="width:auto"> Rooftop 10 kWp</label>
+                        <label><input type="radio" name="pvPreset" value="custom" checked onclick="applyPreset('custom')" style="width:auto"> Custom</label>
+                    </div>
+
+                    <h3 style="margin-top:0; font-size:0.9rem;">PV System</h3>
+                    <label>Latitude</label>
+                    <input type="number" id="pvgisLat" value="47.07" step="0.01">
+                    <label>Longitude</label>
+                    <input type="number" id="pvgisLon" value="15.44" step="0.01">
+                    <label>Peak Power (kWp)</label>
+                    <input type="number" id="pvgisPower" value="10" step="0.1" min="0.1">
+                    <label>Panel Tilt</label>
+                    <input type="number" id="pvgisAngle" value="35" step="1">
+                    <label>Azimuth (0=S, -90=E, 90=W)</label>
+                    <input type="number" id="pvgisAspect" value="0" step="5">
+
+                    <h3 style="font-size:0.9rem;">Consumption Profile</h3>
+                    <label>Household (kWh/year)</label>
+                    <input type="number" id="loadHousehold" value="4500" step="100" min="0">
+
+                    <div class="checkbox-group" style="margin-top:0.5rem;">
+                        <label><input type="checkbox" id="loadHP" onchange="toggleLoadSection('hp')"> Heat Pump</label>
+                        <label><input type="checkbox" id="loadEV" onchange="toggleLoadSection('ev')"> EV</label>
+                        <label><input type="checkbox" id="loadDHW" onchange="toggleLoadSection('dhw')"> Hot Water</label>
+                    </div>
+
+                    <!-- Heat pump config -->
+                    <div id="sectionHP" style="display:none; margin-top:0.5rem; padding:0.5rem; border:1px solid #30363d; border-radius:4px;">
+                        <label>Thermal demand (kWh/year)</label>
+                        <input type="number" id="hpThermal" value="20000" step="1000" min="0">
+                        <label>Inlet temperature (°C)</label>
+                        <select id="hpInlet">
+                            <option value="35">35°C — floor heating</option>
+                            <option value="45" selected>45°C — low-temp radiators</option>
+                            <option value="55">55°C — standard radiators</option>
+                            <option value="65">65°C — old radiators</option>
+                        </select>
+                    </div>
+
+                    <!-- EV config -->
+                    <div id="sectionEV" style="display:none; margin-top:0.5rem; padding:0.5rem; border:1px solid #30363d; border-radius:4px;">
+                        <label>Daily km</label>
+                        <input type="number" id="evDailyKm" value="40" step="5" min="0">
+                        <label>Charging power (kW)</label>
+                        <select id="evPower">
+                            <option value="3.7">3.7 kW — single phase</option>
+                            <option value="7.4">7.4 kW — two phase</option>
+                            <option value="11" selected>11 kW — three phase</option>
+                            <option value="22">22 kW — fast</option>
+                        </select>
+                        <label>Charging window</label>
+                        <select id="evWindow">
+                            <option value="18-6" selected>18:00–06:00 (evening)</option>
+                            <option value="8-16">08:00–16:00 (daytime/work)</option>
+                            <option value="12-16">12:00–16:00 (PV peak)</option>
+                        </select>
+                    </div>
+
+                    <!-- DHW config -->
+                    <div id="sectionDHW" style="display:none; margin-top:0.5rem; padding:0.5rem; border:1px solid #30363d; border-radius:4px;">
+                        <label>DHW (kWh/year)</label>
+                        <input type="number" id="dhwAnnual" value="2000" step="100" min="0">
+                    </div>
+
+                    <div id="loadEstimate" style="font-size:0.8rem; color:#8b949e; margin-top:0.5rem;"></div>
+                    <button class="run" style="margin-top:0.75rem; background:#1f6feb" onclick="fetchPvgis()">Generate Data</button>
+                </div>
+
+                <div class="upload-status" id="uploadStatus"></div>
+
+                <!-- Data summary -->
+                <div id="dataSummary" style="display:none; margin-top:0.75rem; font-size:0.8rem; color:#8b949e; border-top:1px solid #21262d; padding-top:0.5rem;"></div>
+            </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <h3 style="margin-top:0">Battery</h3>
+                <label>Sizes (kWh, comma-separated)</label>
+                <input type="text" id="sizes" value="0, 10, 25, 50, 75, 100">
+                <label>C-Rate</label>
+                <input type="number" id="cRate" value="0.5" step="0.1" min="0.1">
+                <label>Cost (EUR/kWh)</label>
+                <input type="number" id="costPerKwh" value="300" step="10" min="0">
+                <label>Efficiency (%)</label>
+                <input type="number" id="efficiency" value="95" step="1" min="50" max="100">
+                <label>Lifetime (years)</label>
+                <input type="number" id="lifetime" value="15" step="1" min="1">
+            </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <h3 style="margin-top:0">Market</h3>
+                <label>Grid Operator</label>
+                <select id="gridOperator" onchange="applyOperator()">
+                    <option value="">Loading...</option>
+                </select>
+                <label>Grid level</label>
+                <select id="gridLevel" onchange="updateGridFees()">
+                    <option value="NE7" selected>NE7 — Residential (&lt;1 kV)</option>
+                    <option value="NE6">NE6 — MV/LV transformer</option>
+                    <option value="NE5">NE5 — Medium voltage (&lt;36 kV)</option>
+                    <option value="NE4">NE4 — HV/MV transformer</option>
+                    <option value="NE3">NE3 — High voltage (&lt;110 kV)</option>
+                </select>
+                <label>Grid buy price (EUR/kWh)</label>
+                <input type="number" id="gridBuy" value="0.25" step="0.01" min="0">
+                <label>Feed-in tariff (EUR/kWh)</label>
+                <input type="number" id="feedin" value="0.08" step="0.01" min="0">
+                <label>Grid fees (EUR/kWh)</label>
+                <input type="number" id="gridFees" value="0.1311" step="0.001" min="0">
+            </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <h3 style="margin-top:0">Scenarios</h3>
+                <div class="checkbox-group" id="scenarioGroup">
+                    <label><input type="checkbox" value="self_consumption" checked> Self-consumption<span class="scenario-tooltip" style="display:none; font-size:0.7rem; color:#d29922; margin-left:0.25rem;"></span></label>
+                    <label><input type="checkbox" value="spot_optimized"> Spot market<span class="scenario-tooltip" style="display:none; font-size:0.7rem; color:#d29922; margin-left:0.25rem;"></span></label>
+                    <label><input type="checkbox" value="arbitrage"> Arbitrage<span class="scenario-tooltip" style="display:none; font-size:0.7rem; color:#d29922; margin-left:0.25rem;"></span></label>
+                    <label><input type="checkbox" value="peak_shaving" onchange="togglePeakShavingCard()"> Peak shaving<span class="scenario-tooltip" style="display:none; font-size:0.7rem; color:#d29922; margin-left:0.25rem;"></span></label>
+                    <label><input type="checkbox" value="heatpump" onchange="toggleHeatPumpCard()"> Heat pump<span class="scenario-tooltip" style="display:none; font-size:0.7rem; color:#d29922; margin-left:0.25rem;"></span></label>
+                </div>
+            </div>
+
+            <!-- Heat Pump Config (shown only when heatpump selected) -->
+            <div class="card" style="margin-top: 1rem; display:none;" id="heatPumpCard">
+                <h3 style="margin-top:0">Heat Pump Config</h3>
+                <p style="font-size:0.75rem; color:#8b949e; margin-bottom:0.75rem;">Compare gas heating vs heat pump — economics across battery sizes</p>
+                <label>Annual thermal demand (kWh)</label>
+                <input type="number" id="hpAnnualThermal" value="20000" step="1000" min="0">
+                <label>Inlet temperature (°C)</label>
+                <select id="hpInletTemp">
+                    <option value="35">35 °C — Underfloor heating</option>
+                    <option value="45" selected>45 °C — Low-temp radiators</option>
+                    <option value="55">55 °C — Standard radiators</option>
+                    <option value="65">65 °C — Old radiators / DHW</option>
+                </select>
+                <label>Thermal storage (kWh)</label>
+                <input type="number" id="hpThermalStorage" value="0" step="5" min="0">
+                <span style="font-size:0.7rem; color:#8b949e;">1000 L tank at ΔT=30 K ≈ 35 kWh</span>
+                <label>Gas price (EUR/kWh)</label>
+                <input type="number" id="hpGasPrice" value="0.08" step="0.01" min="0">
+                <label>Gas boiler efficiency</label>
+                <input type="number" id="hpBoilerEff" value="0.90" step="0.05" min="0.1" max="1.0">
+                <label>HP CAPEX (EUR)</label>
+                <input type="number" id="hpCapex" value="25000" step="1000" min="0">
+                <label style="margin-top:0.75rem;">Bivalent point (°C)</label>
+                <select id="hpBivalent">
+                    <option value="" selected>Monovalent (HP only, no gas backup)</option>
+                    <option value="5">5 °C — Mild bivalent</option>
+                    <option value="2">2 °C — Standard bivalent</option>
+                    <option value="0">0 °C — Aggressive bivalent</option>
+                    <option value="-5">-5 °C — HP covers most demand</option>
+                </select>
+            </div>
+
+            <!-- Peak Shaving Config (shown only when peak_shaving selected + relevant system type) -->
+            <div class="card" style="margin-top: 1rem; display:none;" id="peakShavingCard">
+                <h3 style="margin-top:0">Peak Shaving Config</h3>
+                <label>Peak threshold (kW)</label>
+                <input type="number" id="psThreshold" value="350" step="10" min="1">
+                <label>Demand charge (EUR/kW/year)</label>
+                <input type="number" id="psDemandCharge" value="63" step="1" min="0">
+                <label>Mode</label>
+                <select id="psMode">
+                    <option value="greedy" selected>Greedy (fast)</option>
+                    <option value="optimal">Optimal LP (slow, requires CVXPY)</option>
+                </select>
+                <label style="display:flex; align-items:center; gap:0.35rem; margin-top:0.75rem;">
+                    <input type="checkbox" id="psCombineSC" checked style="width:auto;">
+                    Also optimize self-consumption below threshold
+                </label>
+            </div>
+
+            <button class="run" id="runBtn" onclick="runSimulation()">Run Simulation</button>
+        </div>
+
+        <!-- Right: Profile + Results -->
+        <div>
+            <!-- Energy profile charts (shown after PVGIS generate or upload) -->
+            <div id="profileSection" style="display:none;">
+                <div class="card">
+                    <h3 style="margin-top:0">Monthly Energy Balance</h3>
+                    <div class="chart-container"><canvas id="monthlyChart" style="max-height:320px;"></canvas></div>
+                </div>
+
+                <div class="card" style="margin-top:1rem;">
+                    <h3 style="margin-top:0">PV Coverage per Component</h3>
+                    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+                        <div class="chart-container" style="flex:1; min-width:300px;">
+                            <canvas id="pvCoverageChart" style="max-height:220px;"></canvas>
+                        </div>
+                        <div id="pvCoverageText" style="font-size:0.85rem; flex:0 0 200px;"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:1rem;">
+                    <h3 style="margin-top:0">Typical Day Profile</h3>
+                    <div class="tabs" id="seasonTabs">
+                        <div class="tab active" onclick="switchSeason('summer')">Summer</div>
+                        <div class="tab" onclick="switchSeason('winter')">Winter</div>
+                    </div>
+                    <div class="chart-container"><canvas id="typicalDayChart" style="max-height:280px;"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Spot price section -->
+            <div class="card" style="margin-top:1rem;" id="spotSection">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                    <h3 style="margin-top:0">EPEX Spot Prices (Austria)</h3>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:flex-end; flex-wrap:wrap; margin-top:0.5rem;">
+                    <div>
+                        <label style="margin:0; font-size:0.75rem;">From</label>
+                        <input type="date" id="spotStart" style="width:140px; padding:0.3rem;">
+                    </div>
+                    <div>
+                        <label style="margin:0; font-size:0.75rem;">To</label>
+                        <input type="date" id="spotEnd" style="width:140px; padding:0.3rem;">
+                    </div>
+                    <button class="run" style="margin:0; width:auto; padding:0.35rem 1rem; font-size:0.85rem;" onclick="loadSpotPrices()">Fetch</button>
+                </div>
+                <div id="spotStats" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:0.75rem 0; font-size:0.85rem;"></div>
+                <div class="chart-container"><canvas id="spotChart" style="max-height:250px;"></canvas></div>
+                <h3 style="font-size:0.9rem; margin-top:1rem;">Average Daily Price Pattern</h3>
+                <div class="chart-container"><canvas id="spotPatternChart" style="max-height:200px;"></canvas></div>
+            </div>
+
+            <!-- ENTSO-E Balancing Prices section -->
+            <div class="card" style="margin-top:1rem;" id="entsoeSection">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                    <h3 style="margin-top:0">Balancing Prices — ENTSO-E (Austria)</h3>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:flex-end; flex-wrap:wrap; margin-top:0.5rem;">
+                    <div>
+                        <label style="margin:0; font-size:0.75rem;">From</label>
+                        <input type="date" id="entsoeStart" style="width:140px; padding:0.3rem;">
+                    </div>
+                    <div>
+                        <label style="margin:0; font-size:0.75rem;">To</label>
+                        <input type="date" id="entsoeEnd" style="width:140px; padding:0.3rem;">
+                    </div>
+                    <button class="run" style="margin:0; width:auto; padding:0.35rem 1rem; font-size:0.85rem;" onclick="loadBalancingPrices()">Fetch</button>
+                </div>
+                <div id="entsoeStats" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin:0.75rem 0; font-size:0.85rem;"></div>
+                <div class="chart-container"><canvas id="entsoeChart" style="max-height:250px;"></canvas></div>
+                <h3 style="font-size:0.9rem; margin-top:1rem;">Average Daily Balancing Pattern</h3>
+                <div class="chart-container"><canvas id="entsoePatternChart" style="max-height:200px;"></canvas></div>
+            </div>
+
+            <!-- Simulation results (shown after running simulation) -->
+            <div class="spinner" id="spinner">Running simulation...</div>
+
+            <div class="results" id="results">
+                <div class="tabs" id="tabs"></div>
+
+                <div id="tabContents"></div>
+
+                <!-- Heat Pump Summary (shown when HP scenario included) -->
+                <div id="hpSummaryCard" class="card" style="margin-top:1rem; display:none; border-color:#d29922;">
+                    <h3 style="margin-top:0; color:#d29922;">Heat Pump vs Gas — Summary</h3>
+                    <div id="hpSummaryContent" style="font-size:0.85rem;"></div>
+                </div>
+
+                <!-- Recommendation banner -->
+                <div id="recommendation" class="card" style="margin-top:1rem; display:none; border-color:#3fb950; background:#0d1a0d; font-size:0.9rem; color:#c9d1d9;"></div>
+
+                <div class="card" style="margin-top: 1rem;">
+                    <h3 style="margin-top:0">ROI Comparison</h3>
+                    <table id="roiTable"></table>
+                </div>
+
+                <div class="card" style="margin-top: 1rem;" id="loadBreakdownCard" style="display:none">
+                    <h3 style="margin-top:0">Load Breakdown</h3>
+                    <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+                        <div class="chart-container" style="flex:0 0 220px;">
+                            <canvas id="loadChart" style="max-height:220px;"></canvas>
+                        </div>
+                        <div id="loadBreakdownText" style="font-size:0.85rem; flex:1; min-width:180px;"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 1rem;">
+                    <h3 style="margin-top:0">Annual Savings by Battery Size</h3>
+                    <div class="chart-container">
+                        <canvas id="savingsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const API = '';  // same origin
+let uploadedDataId = null;
+let savingsChart = null;
+let loadChart = null;
+let monthlyChart = null;
+let pvCoverageChart = null;
+let typicalDayChart = null;
+let profileData = null;  // cached profile response
+let spotChart = null;
+let spotPatternChart = null;
+let entsoeChart = null;
+let entsoePatternChart = null;
+
+const COMP_COLORS = {
+    household: '#58a6ff', heatpump: '#f85149', ev: '#3fb950', dhw: '#d29922'
+};
+const COMP_LABELS = {
+    household: 'Household', heatpump: 'Heat Pump', ev: 'EV Charging', dhw: 'Hot Water'
+};
+
+// Data source mode
+function setDataMode(mode) {
+    document.getElementById('panelUpload').style.display = mode === 'upload' ? 'block' : 'none';
+    document.getElementById('panelPvgis').style.display = mode === 'pvgis' ? 'block' : 'none';
+    document.getElementById('panelSolis').style.display = mode === 'solis' ? 'block' : 'none';
+    document.getElementById('panelEntsoe').style.display = mode === 'entsoe' ? 'block' : 'none';
+    if (mode === 'solis') loadSolisDefaults();
+    if (mode === 'sample') {
+        uploadedDataId = null;
+        loadDataSummary('sample');
+    }
+}
+
+// Load data summary
+async function loadDataSummary(dataId) {
+    const el = document.getElementById('dataSummary');
+    try {
+        const r = await fetch(`${API}/api/data/summary?data_source=${encodeURIComponent(dataId)}`);
+        if (!r.ok) { el.style.display = 'none'; return; }
+        const d = await r.json();
+        el.style.display = 'block';
+        let html = `
+            <strong>${d.date_range.days} days</strong> of data (${d.rows.toLocaleString()} rows)<br>
+            ${d.date_range.start.slice(0,10)} to ${d.date_range.end.slice(0,10)}
+            ${d.total_production_kwh ? `<br>Production: ${d.total_production_kwh.toLocaleString()} kWh` : ''}
+            ${d.total_consumption_kwh ? `<br>Consumption: ${d.total_consumption_kwh.toLocaleString()} kWh` : ''}
+            ${d.avg_spot_price_eur_kwh ? `<br>Avg spot: ${(d.avg_spot_price_eur_kwh * 100).toFixed(1)} ct/kWh` : ''}
+        `;
+        if (d.load_breakdown) {
+            const labels = { household_kwh: 'Household', heatpump_kwh: 'Heat Pump', ev_kwh: 'EV Charging', dhw_kwh: 'Hot Water' };
+            const parts = Object.entries(d.load_breakdown)
+                .map(([k, v]) => `${labels[k] || k}: ${v.toLocaleString()} kWh`);
+            html += `<br><span style="color:#58a6ff">Components:</span> ${parts.join(' | ')}`;
+            // Store for chart rendering later
+            window._loadBreakdown = d.load_breakdown;
+        } else {
+            window._loadBreakdown = null;
+        }
+        el.innerHTML = html;
+    } catch { el.style.display = 'none'; }
+}
+
+// System type presets (applied globally, not just to PVGIS)
+const SYSTEM_TYPES = {
+    residential: {
+        label: 'Residential (3–20 kWp)',
+        pvgisPower: 10, pvgisAngle: 35, pvgisAspect: 0,
+        loadHousehold: 4500,
+        loadHP: false, loadEV: false, loadDHW: false,
+        sizes: '0, 5, 10, 15, 20',
+        costPerKwh: 300,
+        cRate: 0.5,
+        gridLevel: 'NE7',
+        scenarios: ['self_consumption', 'spot_optimized'],
+        disabledScenarios: { arbitrage: 'Requires min. 1 MW (grid-scale storage)', peak_shaving: 'NE7 residential has no Leistungspreis' },
+        peakShaving: null,
+        heatpump: { thermal: 20000, inlet: 45, storage: 0, gasPrice: 0.08, boilerEff: 0.90, capex: 25000 },
+    },
+    balcony: {
+        label: 'Balcony PV (0.3–2 kWp)',
+        pvgisPower: 0.8, pvgisAngle: 70, pvgisAspect: 0,
+        loadHousehold: 2500,
+        loadHP: false, loadEV: false, loadDHW: false,
+        sizes: '0, 0.5, 1, 1.5, 2',
+        costPerKwh: 500,
+        cRate: 0.5,
+        feedin: 0,
+        gridLevel: 'NE7',
+        scenarios: ['self_consumption'],
+        disabledScenarios: { spot_optimized: 'Too small for dynamic tariff benefit', arbitrage: 'Requires min. 1 MW (grid-scale storage)', peak_shaving: 'NE7 residential has no Leistungspreis', heatpump: 'System too small for heat pump analysis' },
+        peakShaving: null,
+        heatpump: null,
+    },
+    commercial: {
+        label: 'Commercial (30–500 kWp)',
+        pvgisPower: 100, pvgisAngle: 15, pvgisAspect: 0,
+        loadHousehold: 80000,
+        loadHP: false, loadEV: false, loadDHW: false,
+        sizes: '0, 50, 100, 200, 300, 500',
+        costPerKwh: 250,
+        cRate: 0.5,
+        gridLevel: 'NE6',
+        scenarios: ['self_consumption', 'spot_optimized', 'peak_shaving'],
+        disabledScenarios: { arbitrage: 'Requires min. 1 MW (grid-scale storage)' },
+        peakShaving: { threshold: 150, demandCharge: 63, mode: 'greedy', combineSC: true },
+        heatpump: { thermal: 100000, inlet: 55, storage: 35, gasPrice: 0.08, boilerEff: 0.90, capex: 40000 },
+    },
+    industrial: {
+        label: 'Industrial (500+ kWp)',
+        pvgisPower: 500, pvgisAngle: 10, pvgisAspect: 0,
+        loadHousehold: 500000,
+        loadHP: false, loadEV: false, loadDHW: false,
+        sizes: '0, 200, 500, 1000, 2000',
+        costPerKwh: 200,
+        cRate: 1.0,
+        gridLevel: 'NE5',
+        scenarios: ['self_consumption', 'spot_optimized', 'peak_shaving'],
+        disabledScenarios: { arbitrage: 'Requires min. 1 MW (grid-scale storage)' },
+        peakShaving: { threshold: 500, demandCharge: 63, mode: 'greedy', combineSC: true },
+        heatpump: { thermal: 500000, inlet: 55, storage: 70, gasPrice: 0.08, boilerEff: 0.90, capex: 80000 },
+    },
+    grid_storage: {
+        label: 'Grid Storage (no PV)',
+        pvgisPower: 0, pvgisAngle: 0, pvgisAspect: 0,
+        loadHousehold: 0,
+        loadHP: false, loadEV: false, loadDHW: false,
+        sizes: '0, 500, 1000, 5000, 10000',
+        costPerKwh: 200,
+        cRate: 1.0,
+        gridLevel: 'NE4',
+        scenarios: ['arbitrage'],
+        disabledScenarios: { self_consumption: 'No PV system — no self-consumption', spot_optimized: 'Use arbitrage for standalone storage', peak_shaving: 'No local load to peak-shave', heatpump: 'No local load — heat pump not applicable' },
+        peakShaving: null,
+        heatpump: null,
+    },
+};
+
+// PVGIS presets (subset for PV panel config only)
+const PRESETS = {
+    balcony: { pvgisPower: 0.8, pvgisAngle: 70, pvgisAspect: 0, loadHousehold: 2500, loadHP: false, loadEV: false, loadDHW: false },
+    rooftop: { pvgisPower: 10, pvgisAngle: 35, pvgisAspect: 0, loadHousehold: 4500, loadHP: false, loadEV: false, loadDHW: false },
+};
+
+let currentSystemType = 'residential';  // default
+
+function applyPreset(name) {
+    if (name === 'custom') return;
+    const p = PRESETS[name];
+    if (!p) return;
+
+    document.getElementById('pvgisPower').value = p.pvgisPower;
+    document.getElementById('pvgisAngle').value = p.pvgisAngle;
+    document.getElementById('pvgisAspect').value = p.pvgisAspect;
+    document.getElementById('loadHousehold').value = p.loadHousehold;
+
+    // Toggle load components
+    document.getElementById('loadHP').checked = p.loadHP;
+    document.getElementById('loadEV').checked = p.loadEV;
+    document.getElementById('loadDHW').checked = p.loadDHW;
+    toggleLoadSection('hp');
+    toggleLoadSection('ev');
+    toggleLoadSection('dhw');
+
+    updateLoadEstimate();
+}
+
+// Apply system type — sets battery, market, scenario config globally
+function applySystemType(type) {
+    const st = SYSTEM_TYPES[type];
+    if (!st) return;
+    currentSystemType = type;
+
+    // Battery config
+    document.getElementById('sizes').value = st.sizes;
+    document.getElementById('costPerKwh').value = st.costPerKwh;
+    document.getElementById('cRate').value = st.cRate;
+    if (st.feedin !== undefined) document.getElementById('feedin').value = st.feedin;
+
+    // Grid level → auto-compute grid fees
+    const gridLevelSelect = document.getElementById('gridLevel');
+    if (gridLevelSelect) {
+        gridLevelSelect.value = st.gridLevel;
+        updateGridFees();
+    }
+
+    // Scenarios: check relevant, uncheck + disable irrelevant
+    const scenarioCheckboxes = document.querySelectorAll('#scenarioGroup input[type="checkbox"]');
+    scenarioCheckboxes.forEach(cb => {
+        const name = cb.value;
+        const disabled = st.disabledScenarios && st.disabledScenarios[name];
+        cb.disabled = !!disabled;
+        cb.checked = st.scenarios.includes(name);
+        // Show/hide tooltip
+        const tooltip = cb.parentElement.querySelector('.scenario-tooltip');
+        if (tooltip) tooltip.textContent = disabled || '';
+        if (tooltip) tooltip.style.display = disabled ? 'block' : 'none';
+        // Visual dimming
+        cb.parentElement.style.opacity = disabled ? '0.5' : '1';
+    });
+
+    // Peak shaving config card
+    const psCard = document.getElementById('peakShavingCard');
+    if (psCard) {
+        if (st.peakShaving) {
+            psCard.style.display = 'block';
+            document.getElementById('psThreshold').value = st.peakShaving.threshold;
+            document.getElementById('psDemandCharge').value = st.peakShaving.demandCharge;
+            document.getElementById('psMode').value = st.peakShaving.mode;
+            document.getElementById('psCombineSC').checked = st.peakShaving.combineSC;
+        } else {
+            psCard.style.display = 'none';
+        }
+    }
+
+    // PVGIS preset sync (if PVGIS panel is visible)
+    if (document.getElementById('panelPvgis').style.display !== 'none') {
+        document.getElementById('pvgisPower').value = st.pvgisPower;
+        document.getElementById('pvgisAngle').value = st.pvgisAngle;
+        document.getElementById('pvgisAspect').value = st.pvgisAspect;
+        document.getElementById('loadHousehold').value = st.loadHousehold;
+        document.getElementById('loadHP').checked = st.loadHP;
+        document.getElementById('loadEV').checked = st.loadEV;
+        document.getElementById('loadDHW').checked = st.loadDHW;
+        toggleLoadSection('hp');
+        toggleLoadSection('ev');
+        toggleLoadSection('dhw');
+        updateLoadEstimate();
+    }
+
+    // Heat pump config card
+    const hpCard = document.getElementById('heatPumpCard');
+    if (hpCard) {
+        if (st.heatpump) {
+            document.getElementById('hpAnnualThermal').value = st.heatpump.thermal;
+            document.getElementById('hpInletTemp').value = st.heatpump.inlet;
+            document.getElementById('hpThermalStorage').value = st.heatpump.storage;
+            document.getElementById('hpGasPrice').value = st.heatpump.gasPrice;
+            document.getElementById('hpBoilerEff').value = st.heatpump.boilerEff;
+            document.getElementById('hpCapex').value = st.heatpump.capex;
+        }
+    }
+
+    // Show/hide peak shaving card based on scenario state
+    togglePeakShavingCard();
+    toggleHeatPumpCard();
+
+    // Update description text
+    const descEl = document.getElementById('systemTypeDesc');
+    if (descEl) descEl.textContent = SYSTEM_TYPE_DESCS[type] || '';
+
+    // Highlight active system type button
+    document.querySelectorAll('#systemTypeGroup .tab').forEach(t => t.classList.remove('active'));
+    const btn = document.querySelector(`#systemTypeGroup .tab[data-type="${type}"]`);
+    if (btn) btn.classList.add('active');
+}
+
+// Show/hide peak shaving card based on checkbox
+function togglePeakShavingCard() {
+    const cb = document.querySelector('#scenarioGroup input[value="peak_shaving"]');
+    const card = document.getElementById('peakShavingCard');
+    if (card) card.style.display = (cb && cb.checked && !cb.disabled) ? 'block' : 'none';
+}
+
+// Show/hide heat pump card based on checkbox
+function toggleHeatPumpCard() {
+    const cb = document.querySelector('#scenarioGroup input[value="heatpump"]');
+    const card = document.getElementById('heatPumpCard');
+    if (card) card.style.display = (cb && cb.checked && !cb.disabled) ? 'block' : 'none';
+}
+
+// System type descriptions
+const SYSTEM_TYPE_DESCS = {
+    residential: '3\u201320 kWp rooftop PV, household battery 5\u201320 kWh. Self-consumption + spot market.',
+    balcony: '0.3\u20132 kWp balcony PV, portable batteries 0.5\u20132 kWh. Self-consumption only, no feed-in tariff.',
+    commercial: '30\u2013500 kWp, battery 50\u2013500 kWh. Self-consumption + peak shaving (Leistungspreis).',
+    industrial: '500+ kWp, battery 200\u20132,000 kWh. Peak shaving + self-consumption + spot market.',
+    grid_storage: 'Standalone battery 0.5\u201310 MWh, no PV. Arbitrage + FCR/aFRR (coming soon).',
+};
+
+// Fetch grid fees for selected NE level from backend
+let gridOperators = [];
+
+async function loadGridOperators() {
+    try {
+        const r = await fetch(`${API}/api/grid-operators`);
+        if (!r.ok) return;
+        gridOperators = await r.json();
+        const sel = document.getElementById('gridOperator');
+        sel.innerHTML = gridOperators.map(op =>
+            `<option value="${op.id}" ${op.id === 'steiermark' ? 'selected' : ''}>${op.name} (${op.bundesland})</option>`
+        ).join('');
+        // Don't auto-apply — keep current value
+    } catch {}
+}
+
+function applyOperator() {
+    const id = document.getElementById('gridOperator').value;
+    const op = gridOperators.find(o => o.id === id);
+    if (!op) return;
+    document.getElementById('gridFees').value = op.ne7_total_eur_kwh.toFixed(4);
+}
+
+async function updateGridFees() {
+    const level = document.getElementById('gridLevel').value;
+    const neNum = parseInt(level.replace('NE', ''));
+    try {
+        const r = await fetch(`${API}/api/grid-fees?ne_level=${neNum}`);
+        if (!r.ok) return;
+        const d = await r.json();
+        document.getElementById('gridFees').value = d.consumption_fee_eur_kwh.toFixed(4);
+    } catch {}
+}
+
+// Load profile toggles
+function toggleLoadSection(section) {
+    const map = { hp: 'sectionHP', ev: 'sectionEV', dhw: 'sectionDHW' };
+    const chk = { hp: 'loadHP', ev: 'loadEV', dhw: 'loadDHW' };
+    document.getElementById(map[section]).style.display =
+        document.getElementById(chk[section]).checked ? 'block' : 'none';
+    updateLoadEstimate();
+}
+
+function updateLoadEstimate() {
+    let total = parseFloat(document.getElementById('loadHousehold').value) || 0;
+    const parts = [`Household: ${total.toLocaleString()} kWh`];
+    if (document.getElementById('loadHP').checked) {
+        const thermal = parseFloat(document.getElementById('hpThermal').value) || 0;
+        const est = Math.round(thermal / 3); // rough COP estimate
+        total += est;
+        parts.push(`HP: ~${est.toLocaleString()} kWh`);
+    }
+    if (document.getElementById('loadEV').checked) {
+        const km = parseFloat(document.getElementById('evDailyKm').value) || 0;
+        const est = Math.round(km * 18 / 100 * 365 * 0.85);
+        total += est;
+        parts.push(`EV: ~${est.toLocaleString()} kWh`);
+    }
+    if (document.getElementById('loadDHW').checked) {
+        const dhw = parseFloat(document.getElementById('dhwAnnual').value) || 0;
+        total += dhw;
+        parts.push(`DHW: ${dhw.toLocaleString()} kWh`);
+    }
+    document.getElementById('loadEstimate').innerHTML =
+        `Est. total: <strong>${total.toLocaleString()} kWh/year</strong><br><span style="font-size:0.75rem">${parts.join(' + ')}</span>`;
+}
+
+// Fetch PVGIS synthetic data
+async function fetchPvgis() {
+    const status = document.getElementById('uploadStatus');
+    status.textContent = 'Generating PVGIS data (may take 10-20s)...';
+    status.style.color = '#8b949e';
+
+    // Parse EV charging window
+    const evWindowVal = document.getElementById('evWindow').value;
+    const [evStart, evEnd] = evWindowVal.split('-').map(Number);
+
+    const body = {
+        lat: parseFloat(document.getElementById('pvgisLat').value),
+        lon: parseFloat(document.getElementById('pvgisLon').value),
+        peakpower: parseFloat(document.getElementById('pvgisPower').value),
+        angle: parseFloat(document.getElementById('pvgisAngle').value),
+        aspect: parseFloat(document.getElementById('pvgisAspect').value),
+        load: {
+            household_annual_kwh: parseFloat(document.getElementById('loadHousehold').value),
+            has_heatpump: document.getElementById('loadHP').checked,
+            hp_annual_thermal_kwh: parseFloat(document.getElementById('hpThermal').value),
+            hp_inlet_temp_c: parseFloat(document.getElementById('hpInlet').value),
+            has_ev: document.getElementById('loadEV').checked,
+            ev: {
+                daily_km: parseFloat(document.getElementById('evDailyKm').value),
+                charging_power_kw: parseFloat(document.getElementById('evPower').value),
+                charging_start_hour: evStart,
+                charging_end_hour: evEnd,
+            },
+            has_dhw: document.getElementById('loadDHW').checked,
+            dhw_annual_kwh: parseFloat(document.getElementById('dhwAnnual').value),
+        },
+    };
+
+    try {
+        const r = await fetch(`${API}/api/connect/pvgis`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        const d = await r.json();
+        if (r.ok) {
+            uploadedDataId = d.data_id;
+            const ls = d.load_summary;
+            let msg = `${d.rows.toLocaleString()} rows | ${ls.total_annual_kwh.toLocaleString()} kWh consumption`;
+            status.textContent = msg;
+            status.style.color = '#3fb950';
+            loadDataSummary(d.data_id);
+            loadProfile(d.data_id);
+        } else {
+            status.textContent = d.detail || 'PVGIS failed';
+            status.style.color = '#f85149';
+        }
+    } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+        status.style.color = '#f85149';
+    }
+}
+
+// Load Solis defaults from env
+async function loadSolisDefaults() {
+    try {
+        const r = await fetch(`${API}/api/connect/solis/defaults`);
+        if (!r.ok) return;
+        const d = await r.json();
+        if (d.key_id) document.getElementById('solisKeyId').value = d.key_id;
+        if (d.key_secret) document.getElementById('solisKeySecret').value = d.key_secret;
+        if (d.sn_east) document.getElementById('solisSnEast').value = d.sn_east;
+        if (d.sn_west) document.getElementById('solisSnWest').value = d.sn_west;
+        if (d.sn_epm) document.getElementById('solisSnEpm').value = d.sn_epm;
+    } catch {}
+}
+
+// Fetch Solis data with SSE progress
+async function fetchSolis() {
+    const status = document.getElementById('uploadStatus');
+    const btn = document.getElementById('solisFetchBtn');
+    const progressDiv = document.getElementById('solisProgress');
+    const progressBar = document.getElementById('solisProgressBar');
+    const progressLabel = document.getElementById('solisProgressLabel');
+    const progressPct = document.getElementById('solisProgressPct');
+    const logDiv = document.getElementById('solisLog');
+    const validationDiv = document.getElementById('solisValidation');
+
+    const keyId = document.getElementById('solisKeyId').value.trim();
+    const keySecret = document.getElementById('solisKeySecret').value.trim();
+    const snEast = document.getElementById('solisSnEast').value.trim();
+    const snWest = document.getElementById('solisSnWest').value.trim();
+    const snEpm = document.getElementById('solisSnEpm').value.trim();
+    const startDate = document.getElementById('solisStart').value;
+    const endDate = document.getElementById('solisEnd').value;
+
+    if (!keyId || !keySecret || !snEast || !snWest || !snEpm) {
+        status.textContent = 'Please fill in all credential fields.';
+        status.style.color = '#f85149';
+        return;
+    }
+    if (!startDate || !endDate) {
+        status.textContent = 'Please select start and end dates.';
+        status.style.color = '#f85149';
+        return;
+    }
+
+    // Reset UI
+    btn.disabled = true;
+    btn.textContent = 'Fetching...';
+    progressDiv.style.display = 'block';
+    validationDiv.style.display = 'none';
+    progressBar.style.width = '0%';
+    progressBar.style.background = '#1f6feb';
+    logDiv.innerHTML = '';
+    status.textContent = '';
+
+    let totalRows = 0;
+    let dayErrors = 0;
+
+    try {
+        const r = await fetch(`${API}/api/connect/solis`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                key_id: keyId,
+                key_secret: keySecret,
+                sn_east: snEast,
+                sn_west: snWest,
+                sn_epm: snEpm,
+                start_date: startDate,
+                end_date: endDate,
+            }),
+        });
+
+        const reader = r.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep incomplete line
+
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                const evt = JSON.parse(line.slice(6));
+
+                if (evt.type === 'start') {
+                    progressLabel.textContent = `Fetching ${evt.total_days} days...`;
+                    logDiv.innerHTML += `<div style="color:#58a6ff;">Starting fetch: ${evt.total_days} days</div>`;
+                }
+                else if (evt.type === 'progress') {
+                    const pct = Math.round(((evt.day - 1) / evt.total) * 100);
+                    progressBar.style.width = pct + '%';
+                    progressPct.textContent = pct + '%';
+                    progressLabel.textContent = `Fetching ${evt.date}... (${evt.day}/${evt.total})`;
+                }
+                else if (evt.type === 'day_done') {
+                    const pct = Math.round((evt.day / (evt.day + (parseInt(document.getElementById('solisEnd').value.split('-').join('')) - parseInt(evt.date.split('-').join(''))) || 1)) * 100);
+                    totalRows += evt.rows;
+                    const color = evt.rows > 0 ? '#3fb950' : '#d29922';
+                    const icon = evt.rows > 0 ? '+' : '-';
+                    logDiv.innerHTML += `<div><span style="color:${color};">${icon}</span> ${evt.date}: ${evt.rows} rows</div>`;
+                    logDiv.scrollTop = logDiv.scrollHeight;
+                }
+                else if (evt.type === 'day_error') {
+                    dayErrors++;
+                    logDiv.innerHTML += `<div><span style="color:#f85149;">x</span> ${evt.date}: ${evt.error}</div>`;
+                    logDiv.scrollTop = logDiv.scrollHeight;
+                }
+                else if (evt.type === 'error') {
+                    status.textContent = evt.message;
+                    status.style.color = '#f85149';
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = '#f85149';
+                    progressPct.textContent = 'Error';
+                    progressLabel.textContent = 'Failed';
+                }
+                else if (evt.type === 'complete') {
+                    progressBar.style.width = '100%';
+                    progressBar.style.background = '#3fb950';
+                    progressPct.textContent = '100%';
+                    progressLabel.textContent = `Done — ${evt.rows.toLocaleString()} rows`;
+                    status.textContent = `${evt.rows.toLocaleString()} rows fetched (${evt.date_range})`;
+                    status.style.color = '#3fb950';
+                    uploadedDataId = evt.data_id;
+                    renderValidation(evt.validation);
+                    loadDataSummary(evt.data_id);
+                    loadProfile(evt.data_id);
+                }
+            }
+        }
+    } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+        status.style.color = '#f85149';
+        progressBar.style.background = '#f85149';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Fetch Data';
+    }
+}
+
+function renderValidation(v) {
+    const el = document.getElementById('solisValidation');
+    el.style.display = 'block';
+
+    const coverageColor = v.coverage_pct >= 95 ? '#3fb950' : v.coverage_pct >= 80 ? '#d29922' : '#f85149';
+    const missingCount = v.missing_days.length;
+    const sparseCount = v.sparse_days.length;
+
+    let html = `
+        <h3 style="margin-top:0; font-size:0.9rem; color:#58a6ff;">Data Validation</h3>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:0.5rem;">
+            <div style="background:#0d1117; padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #30363d;">
+                <span style="color:#8b949e; font-size:0.7rem;">Coverage</span><br>
+                <span style="color:${coverageColor}; font-weight:600;">${v.coverage_pct}%</span>
+            </div>
+            <div style="background:#0d1117; padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #30363d;">
+                <span style="color:#8b949e; font-size:0.7rem;">Rows</span><br>
+                <span style="font-weight:600;">${v.total_rows.toLocaleString()} / ${v.expected_rows.toLocaleString()}</span>
+            </div>
+            <div style="background:#0d1117; padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #30363d;">
+                <span style="color:#8b949e; font-size:0.7rem;">Days</span><br>
+                <span style="font-weight:600;">${v.days_with_data} / ${v.total_days_requested}</span>
+            </div>
+            <div style="background:#0d1117; padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #30363d;">
+                <span style="color:#8b949e; font-size:0.7rem;">Production</span><br>
+                <span style="color:#e3b341; font-weight:600;">${v.total_production_kwh.toLocaleString()} kWh</span>
+            </div>
+            <div style="background:#0d1117; padding:0.3rem 0.5rem; border-radius:4px; border:1px solid #30363d;">
+                <span style="color:#8b949e; font-size:0.7rem;">Consumption</span><br>
+                <span style="color:#58a6ff; font-weight:600;">${v.total_consumption_kwh.toLocaleString()} kWh</span>
+            </div>
+        </div>`;
+
+    if (missingCount > 0) {
+        const shown = v.missing_days.slice(0, 5).join(', ');
+        const more = missingCount > 5 ? ` + ${missingCount - 5} more` : '';
+        html += `<div style="color:#f85149; margin-bottom:0.3rem;">Missing ${missingCount} day${missingCount > 1 ? 's' : ''}: ${shown}${more}</div>`;
+    }
+    if (sparseCount > 0) {
+        const shown = v.sparse_days.slice(0, 5).join(', ');
+        const more = sparseCount > 5 ? ` + ${sparseCount - 5} more` : '';
+        html += `<div style="color:#d29922; margin-bottom:0.3rem;">Sparse ${sparseCount} day${sparseCount > 1 ? 's' : ''} (&lt;50% intervals): ${shown}${more}</div>`;
+    }
+
+    // Column quality table
+    const cols = Object.entries(v.column_quality);
+    if (cols.length > 0) {
+        html += `<table style="width:100%; font-size:0.75rem; margin-top:0.4rem;">
+            <tr><th style="text-align:left;">Column</th><th>Nulls</th><th>Zero%</th><th>Min</th><th>Max</th><th>Mean</th></tr>
+            ${cols.map(([col, q]) => `
+                <tr>
+                    <td style="text-align:left; color:#c9d1d9;">${col}</td>
+                    <td style="color:${q.null_count > 0 ? '#f85149' : '#3fb950'};">${q.null_count}</td>
+                    <td>${q.zero_pct}%</td>
+                    <td>${q.min}</td>
+                    <td>${q.max}</td>
+                    <td>${q.mean}</td>
+                </tr>`).join('')}
+        </table>`;
+    }
+
+    if (missingCount === 0 && sparseCount === 0 && v.coverage_pct >= 95) {
+        html += `<div style="color:#3fb950; margin-top:0.3rem;">Data quality: excellent</div>`;
+    } else if (v.coverage_pct >= 80) {
+        html += `<div style="color:#d29922; margin-top:0.3rem;">Data quality: good (some gaps)</div>`;
+    } else {
+        html += `<div style="color:#f85149; margin-top:0.3rem;">Data quality: check missing days</div>`;
+    }
+
+    el.innerHTML = html;
+}
+
+// Fetch ENTSO-E as data source
+async function fetchEntsoe() {
+    const status = document.getElementById('uploadStatus');
+    const btn = document.getElementById('entsoeFetchBtn');
+    const startDate = document.getElementById('entsoeConnStart').value;
+    const endDate = document.getElementById('entsoeConnEnd').value;
+
+    if (!startDate || !endDate) {
+        status.textContent = 'Please select start and end dates.';
+        status.style.color = '#f85149';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Fetching...';
+    status.textContent = 'Fetching from ENTSO-E...';
+    status.style.color = '#8b949e';
+
+    try {
+        const r = await fetch(`${API}/api/balancing-prices?start=${startDate}&end=${endDate}`);
+        const d = await r.json();
+        if (!r.ok) {
+            status.textContent = d.detail || 'ENTSO-E fetch failed';
+            status.style.color = '#f85149';
+            return;
+        }
+        if (!d.prices || d.prices.length === 0) {
+            status.textContent = 'No data returned. Settlement prices are published with a 1–2 day delay.';
+            status.style.color = '#d29922';
+            return;
+        }
+        // Save as CSV via a dedicated endpoint
+        const saveR = await fetch(`${API}/api/connect/entsoe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ start_date: startDate, end_date: endDate }),
+        });
+        const saveD = await saveR.json();
+        if (saveR.ok) {
+            uploadedDataId = saveD.data_id;
+            status.textContent = `${saveD.rows.toLocaleString()} rows (${saveD.date_range})`;
+            status.style.color = '#3fb950';
+            loadDataSummary(saveD.data_id);
+        } else {
+            status.textContent = saveD.detail || 'Save failed';
+            status.style.color = '#f85149';
+        }
+    } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+        status.style.color = '#f85149';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Fetch Data';
+    }
+}
+
+// Check API health on load
+async function checkHealth() {
+    try {
+        const r = await fetch(`${API}/api/health`);
+        const d = await r.json();
+        document.getElementById('statusDot').classList.toggle('ok', d.status === 'ok');
+        document.getElementById('statusText').textContent = d.pvtool
+            ? `API online — pvtool v${d.pvtool_version}`
+            : 'API online — pvtool not available';
+    } catch {
+        document.getElementById('statusText').textContent = 'API offline';
+    }
+}
+checkHealth();
+loadDataSummary('sample');
+updateLoadEstimate();
+applySystemType('residential');  // set initial defaults
+
+// Set default dates
+const today = new Date().toISOString().slice(0, 10);
+const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+const monthAgo = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+document.getElementById('solisEnd').value = today;
+document.getElementById('spotStart').value = weekAgo;
+document.getElementById('spotEnd').value = today;
+// ENTSO-E settlement data lags behind current date — default to 2025
+document.getElementById('entsoeStart').value = '2025-01-01';
+document.getElementById('entsoeEnd').value = '2025-12-31';
+// ENTSO-E settlement data lags ~months behind — default to 2025 range
+document.getElementById('entsoeConnStart').value = '2025-01-01';
+document.getElementById('entsoeConnEnd').value = '2025-12-31';
+loadSpotPrices();
+loadGridOperators();
+
+// Live estimate update
+['loadHousehold', 'hpThermal', 'evDailyKm', 'dhwAnnual'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateLoadEstimate);
+});
+
+// File upload
+document.getElementById('fileInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const area = document.getElementById('uploadArea');
+    const status = document.getElementById('uploadStatus');
+    status.textContent = 'Uploading...';
+    status.style.color = '#8b949e';
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    try {
+        const r = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+        const d = await r.json();
+        if (r.ok) {
+            uploadedDataId = d.data_id;
+            area.classList.add('has-file');
+            status.textContent = `${file.name} — ${d.rows} rows, ${d.columns.length} columns`;
+            status.style.color = '#3fb950';
+            loadDataSummary(d.data_id);
+            loadProfile(d.data_id);
+        } else {
+            status.textContent = d.detail || 'Upload failed';
+            status.style.color = '#f85149';
+        }
+    } catch (err) {
+        status.textContent = 'Upload error: ' + err.message;
+        status.style.color = '#f85149';
+    }
+});
+
+// Run simulation
+async function runSimulation() {
+    const btn = document.getElementById('runBtn');
+    const spinner = document.getElementById('spinner');
+    const results = document.getElementById('results');
+
+    btn.disabled = true;
+    spinner.classList.add('show');
+    results.classList.remove('show');
+
+    const scenarios = [...document.querySelectorAll('#scenarioGroup input:checked')]
+        .filter(cb => !cb.disabled)
+        .map(cb => cb.value);
+
+    if (scenarios.length === 0) {
+        alert('Select at least one scenario.');
+        btn.disabled = false;
+        spinner.classList.remove('show');
+        return;
+    }
+
+    const eff = parseFloat(document.getElementById('efficiency').value) / 100;
+    const sizes = document.getElementById('sizes').value.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+
+    const body = {
+        battery: {
+            sizes_kwh: sizes,
+            c_rate: parseFloat(document.getElementById('cRate').value),
+            cost_eur_per_kwh: parseFloat(document.getElementById('costPerKwh').value),
+            charge_efficiency: eff,
+            discharge_efficiency: eff,
+            lifetime_years: parseInt(document.getElementById('lifetime').value),
+        },
+        market: {
+            grid_buy_price_eur: parseFloat(document.getElementById('gridBuy').value),
+            feedin_tariff_eur: parseFloat(document.getElementById('feedin').value),
+            grid_fees_eur_per_kwh: parseFloat(document.getElementById('gridFees').value),
+        },
+        scenarios: scenarios,
+        data_source: uploadedDataId || 'sample',
+    };
+
+    // Include peak shaving params if selected
+    if (scenarios.includes('peak_shaving')) {
+        body.peak_shaving = {
+            peak_threshold_kw: parseFloat(document.getElementById('psThreshold').value),
+            demand_charge_eur_per_kw_year: parseFloat(document.getElementById('psDemandCharge').value),
+            mode: document.getElementById('psMode').value,
+            combine_self_consumption: document.getElementById('psCombineSC').checked,
+        };
+    }
+
+    // Include heat pump params if selected
+    if (scenarios.includes('heatpump')) {
+        const bivalent = document.getElementById('hpBivalent').value;
+        body.heatpump = {
+            annual_thermal_kwh: parseFloat(document.getElementById('hpAnnualThermal').value),
+            inlet_temp_c: parseFloat(document.getElementById('hpInletTemp').value),
+            thermal_storage_kwh: parseFloat(document.getElementById('hpThermalStorage').value),
+            gas_price_eur_per_kwh: parseFloat(document.getElementById('hpGasPrice').value),
+            gas_boiler_efficiency: parseFloat(document.getElementById('hpBoilerEff').value),
+            hp_capex_eur: parseFloat(document.getElementById('hpCapex').value),
+            bivalent_point_c: bivalent ? parseFloat(bivalent) : null,
+        };
+    }
+
+    try {
+        const r = await fetch(`${API}/api/simulate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        const data = await r.json();
+
+        if (!r.ok) {
+            alert(data.detail || 'Simulation failed');
+            return;
+        }
+
+        renderResults(data);
+    } catch (err) {
+        alert('Error: ' + err.message);
+    } finally {
+        btn.disabled = false;
+        spinner.classList.remove('show');
+    }
+}
+
+function renderResults(data) {
+    const results = document.getElementById('results');
+    const tabsEl = document.getElementById('tabs');
+    const contentsEl = document.getElementById('tabContents');
+
+    results.classList.add('show');
+    tabsEl.innerHTML = '';
+    contentsEl.innerHTML = '';
+
+    const scenarioNames = Object.keys(data.scenarios);
+
+    // Build tabs + tables
+    scenarioNames.forEach((name, i) => {
+        const tab = document.createElement('div');
+        tab.className = 'tab' + (i === 0 ? ' active' : '');
+        tab.textContent = name.replace(/_/g, ' ');
+        tab.onclick = () => switchTab(name);
+        tabsEl.appendChild(tab);
+
+        const content = document.createElement('div');
+        content.className = 'tab-content card' + (i === 0 ? ' active' : '');
+        content.id = `tab-${name}`;
+
+        const rows = data.scenarios[name];
+
+        if (name === 'heatpump') {
+            // HP-specific table: gas savings focus
+            content.innerHTML = `
+                <table>
+                    <tr>
+                        <th>Battery (kWh)</th>
+                        <th>Grid Purchase (kWh)</th>
+                        <th>Grid Feed-in (kWh)</th>
+                        <th>Cycles</th>
+                        <th>HP Elec. Cost (EUR)</th>
+                        <th>Gas Savings (EUR/yr)</th>
+                        <th>+ Battery (EUR/yr)</th>
+                    </tr>
+                    ${rows.map(r => `
+                        <tr>
+                            <td style="text-align:left">${r.capacity_kwh}</td>
+                            <td>${r.grid_purchase_kwh.toFixed(1)}</td>
+                            <td>${r.grid_feedin_kwh.toFixed(1)}</td>
+                            <td>${r.cycles.toFixed(1)}</td>
+                            <td>${r.cost_eur.toFixed(2)}</td>
+                            <td class="${r.net_benefit_eur >= 0 ? 'positive' : 'negative'}">${r.net_benefit_eur.toFixed(2)}</td>
+                            <td class="${r.annual_savings_eur >= 0 ? 'positive' : 'negative'}">${r.annual_savings_eur.toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+        } else {
+            content.innerHTML = `
+                <table>
+                    <tr>
+                        <th>Size (kWh)</th>
+                        <th>Grid Purchase (kWh)</th>
+                        <th>Grid Feed-in (kWh)</th>
+                        <th>Cycles</th>
+                        <th>Net Benefit (EUR)</th>
+                        <th>Savings (EUR)</th>
+                    </tr>
+                    ${rows.map(r => `
+                        <tr>
+                            <td style="text-align:left">${r.capacity_kwh}</td>
+                            <td>${r.grid_purchase_kwh.toFixed(1)}</td>
+                            <td>${r.grid_feedin_kwh.toFixed(1)}</td>
+                            <td>${r.cycles.toFixed(1)}</td>
+                            <td>${r.net_benefit_eur.toFixed(2)}</td>
+                            <td class="${r.annual_savings_eur >= 0 ? 'positive' : 'negative'}">${r.annual_savings_eur.toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </table>
+            `;
+        }
+        contentsEl.appendChild(content);
+    });
+
+    // HP Summary card
+    const hpCard = document.getElementById('hpSummaryCard');
+    if (data.heatpump_summary) {
+        const hp = data.heatpump_summary;
+        hpCard.style.display = 'block';
+        document.getElementById('hpSummaryContent').innerHTML = `
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem 2rem;">
+                <div><span style="color:#8b949e;">Inlet temperature:</span> ${hp.inlet_temp_c} °C</div>
+                <div><span style="color:#8b949e;">Average COP:</span> <strong>${hp.average_cop.toFixed(2)}</strong></div>
+                <div><span style="color:#8b949e;">Gas baseline cost:</span> <strong>${hp.gas_cost_baseline_eur.toLocaleString()} EUR/yr</strong></div>
+                <div><span style="color:#8b949e;">HP electricity:</span> ${hp.hp_annual_electricity_kwh.toLocaleString()} kWh/yr</div>
+                <div><span style="color:#8b949e;">HP thermal coverage:</span> ${hp.hp_covered_thermal_kwh.toLocaleString()} kWh</div>
+                <div><span style="color:#8b949e;">Residual gas:</span> ${hp.residual_gas_kwh.toLocaleString()} kWh (${hp.residual_gas_cost_eur.toLocaleString()} EUR)</div>
+                <div><span style="color:#8b949e;">PV → HP:</span> ${hp.pv_to_hp_kwh.toLocaleString()} kWh</div>
+                <div><span style="color:#8b949e;">Grid → HP:</span> ${hp.grid_to_hp_kwh.toLocaleString()} kWh</div>
+                <div><span style="color:#8b949e;">Self-consumption before:</span> ${(hp.self_consumption_rate_before * 100).toFixed(1)}%</div>
+                <div><span style="color:#8b949e;">Self-consumption after:</span> ${(hp.self_consumption_rate_after * 100).toFixed(1)}%</div>
+                ${hp.thermal_storage_kwh > 0 ? `<div><span style="color:#8b949e;">Thermal storage:</span> ${hp.thermal_storage_kwh} kWh</div>` : ''}
+            </div>
+        `;
+    } else {
+        hpCard.style.display = 'none';
+    }
+
+    // ROI table — find best NPV row
+    const roiTable = document.getElementById('roiTable');
+    const recommendationEl = document.getElementById('recommendation');
+    if (data.roi && data.roi.length > 0) {
+        // Find the row with the best (highest) NPV
+        let bestIdx = 0;
+        data.roi.forEach((r, i) => {
+            if (r.npv_eur > data.roi[bestIdx].npv_eur) bestIdx = i;
+        });
+        const best = data.roi[bestIdx];
+
+        roiTable.innerHTML = `
+            <tr>
+                <th>Scenario</th>
+                <th>Size (kWh)</th>
+                <th>CAPEX (EUR)</th>
+                <th>Savings/yr (EUR)</th>
+                <th>Payback (yrs)</th>
+                <th>NPV (EUR)</th>
+            </tr>
+            ${data.roi.map((r, i) => `
+                <tr style="${i === bestIdx ? 'background:#1a2e1a; border-left:3px solid #3fb950;' : ''}">
+                    <td style="text-align:left">${r.label}${i === bestIdx ? ' \u2605' : ''}</td>
+                    <td>${r.capacity_kwh}</td>
+                    <td>${r.capex_eur.toLocaleString()}</td>
+                    <td>${r.annual_savings_eur.toLocaleString()}</td>
+                    <td>${r.payback_years != null ? r.payback_years.toFixed(1) : 'n/a'}</td>
+                    <td class="${r.npv_eur >= 0 ? 'positive' : 'negative'}">${r.npv_eur.toLocaleString()}</td>
+                </tr>
+            `).join('')}
+        `;
+
+        // Show recommendation
+        if (recommendationEl && best.npv_eur > 0) {
+            const scenarioLabel = best.label.replace(/_/g, ' ').replace(/\d+kWh$/, '').trim();
+            recommendationEl.style.display = 'block';
+            recommendationEl.innerHTML = `
+                <strong>Recommended: ${best.capacity_kwh} kWh</strong> (${scenarioLabel})<br>
+                Best NPV: <span class="positive">${best.npv_eur.toLocaleString()} EUR</span>
+                ${best.payback_years != null ? ` | Payback: ${best.payback_years.toFixed(1)} years` : ''}
+                ${best.annual_savings_eur > 0 ? ` | Savings: ${best.annual_savings_eur.toLocaleString()} EUR/year` : ''}
+            `;
+        } else if (recommendationEl) {
+            recommendationEl.style.display = 'none';
+        }
+    } else {
+        roiTable.innerHTML = '<tr><td>No ROI data</td></tr>';
+        if (recommendationEl) recommendationEl.style.display = 'none';
+    }
+
+    // Charts
+    renderChart(data);
+    renderLoadBreakdown();
+}
+
+function switchTab(name) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+    const tabs = document.querySelectorAll('.tab');
+    const names = [...tabs].map(t => t.textContent.replace(/ /g, '_'));
+    const idx = names.indexOf(name);
+    if (idx >= 0) tabs[idx].classList.add('active');
+
+    const content = document.getElementById(`tab-${name}`);
+    if (content) content.classList.add('active');
+}
+
+function renderChart(data) {
+    const ctx = document.getElementById('savingsChart');
+    if (savingsChart) savingsChart.destroy();
+
+    const datasets = [];
+    const colors = ['#58a6ff', '#3fb950', '#d29922', '#f85149', '#bc8cff'];
+
+    let allLabels = new Set();
+    Object.values(data.scenarios).forEach(rows => {
+        rows.forEach(r => allLabels.add(r.capacity_kwh));
+    });
+    const labels = [...allLabels].sort((a, b) => a - b);
+
+    Object.keys(data.scenarios).forEach((name, i) => {
+        const rows = data.scenarios[name];
+        const savingsMap = {};
+        rows.forEach(r => { savingsMap[r.capacity_kwh] = r.annual_savings_eur; });
+
+        datasets.push({
+            label: name.replace(/_/g, ' '),
+            data: labels.map(l => savingsMap[l] || 0),
+            backgroundColor: colors[i % colors.length] + '99',
+            borderColor: colors[i % colors.length],
+            borderWidth: 1,
+        });
+    });
+
+    savingsChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels.map(l => l + ' kWh'), datasets },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#8b949e' } },
+            },
+            scales: {
+                x: { ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+                y: {
+                    ticks: { color: '#8b949e', callback: v => v + ' EUR' },
+                    grid: { color: '#21262d' },
+                    title: { display: true, text: 'Annual Savings (EUR)', color: '#8b949e' }
+                },
+            },
+        },
+    });
+}
+
+// --- Profile charts ---
+
+async function loadProfile(dataId) {
+    const section = document.getElementById('profileSection');
+    try {
+        const r = await fetch(`${API}/api/data/profile?data_source=${encodeURIComponent(dataId)}`);
+        if (!r.ok) { section.style.display = 'none'; return; }
+        profileData = await r.json();
+        section.style.display = 'block';
+        renderMonthlyChart();
+        renderPvCoverage();
+        renderTypicalDay('summer');
+    } catch { section.style.display = 'none'; }
+}
+
+function renderMonthlyChart() {
+    if (!profileData) return;
+    const m = profileData.monthly;
+    const ctx = document.getElementById('monthlyChart');
+    if (monthlyChart) monthlyChart.destroy();
+
+    const datasets = [];
+
+    // Stacked bars for each consumption component
+    profileData.components.forEach(name => {
+        if (m[name]) {
+            datasets.push({
+                label: COMP_LABELS[name] || name,
+                data: m[name],
+                backgroundColor: COMP_COLORS[name] || '#8b949e',
+                stack: 'consumption',
+                order: 2,
+            });
+        }
+    });
+
+    // PV production as a line on top
+    datasets.push({
+        label: 'PV Production',
+        data: m.production,
+        type: 'line',
+        borderColor: '#e3b341',
+        backgroundColor: '#e3b34133',
+        fill: false,
+        borderWidth: 2,
+        pointRadius: 3,
+        order: 1,
+    });
+
+    monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: m.months, datasets },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { labels: { color: '#8b949e', usePointStyle: true } },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toLocaleString()} kWh`
+                    }
+                }
+            },
+            scales: {
+                x: { stacked: true, ticks: { color: '#8b949e' }, grid: { color: '#21262d' } },
+                y: {
+                    stacked: true,
+                    ticks: { color: '#8b949e', callback: v => v + ' kWh' },
+                    grid: { color: '#21262d' },
+                },
+            },
+        },
+    });
+}
+
+function renderPvCoverage() {
+    if (!profileData) return;
+    const cov = profileData.pv_coverage;
+    const ctx = document.getElementById('pvCoverageChart');
+    const textEl = document.getElementById('pvCoverageText');
+    if (pvCoverageChart) pvCoverageChart.destroy();
+
+    const names = Object.keys(cov);
+    const labels = names.map(n => COMP_LABELS[n] || n);
+    const pvData = names.map(n => cov[n].from_pv_kwh);
+    const gridData = names.map(n => cov[n].from_grid_kwh);
+
+    pvCoverageChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'From PV',
+                    data: pvData,
+                    backgroundColor: '#e3b341cc',
+                },
+                {
+                    label: 'From Grid',
+                    data: gridData,
+                    backgroundColor: '#484f5899',
+                },
+            ],
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#8b949e' } },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toLocaleString()} kWh`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    stacked: true,
+                    ticks: { color: '#8b949e', callback: v => v + ' kWh' },
+                    grid: { color: '#21262d' },
+                },
+                y: { stacked: true, ticks: { color: '#8b949e' }, grid: { display: false } },
+            },
+        },
+    });
+
+    // Text summary
+    textEl.innerHTML = names.map(n => {
+        const c = cov[n];
+        const color = COMP_COLORS[n] || '#8b949e';
+        return `<div style="margin-bottom:0.4rem;">
+            <span style="color:${color};font-weight:600;">${COMP_LABELS[n] || n}</span><br>
+            <span style="color:#e3b341;">${c.pv_coverage_pct}%</span> from PV
+            (${c.from_pv_kwh.toLocaleString()} kWh)<br>
+            <span style="color:#484f58;">${(100 - c.pv_coverage_pct).toFixed(0)}%</span> from grid
+            (${c.from_grid_kwh.toLocaleString()} kWh)
+        </div>`;
+    }).join('');
+}
+
+function switchSeason(season) {
+    document.querySelectorAll('#seasonTabs .tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    renderTypicalDay(season);
+}
+
+function renderTypicalDay(season) {
+    if (!profileData || !profileData.typical_day[season]) return;
+    const day = profileData.typical_day[season];
+    const ctx = document.getElementById('typicalDayChart');
+    if (typicalDayChart) typicalDayChart.destroy();
+
+    const datasets = [];
+
+    // Stacked consumption components: manually sum for stacked area effect
+    // Build cumulative data for each component
+    const compNames = profileData.components.filter(name => day[name]);
+    const cumulative = [];
+    compNames.forEach((name, i) => {
+        const prev = i > 0 ? cumulative[i - 1] : day.hours.map(() => 0);
+        cumulative.push(day[name].map((v, j) => v + prev[j]));
+    });
+
+    // Add in reverse order so the last component draws first (at the bottom)
+    for (let i = compNames.length - 1; i >= 0; i--) {
+        datasets.push({
+            label: COMP_LABELS[compNames[i]] || compNames[i],
+            data: cumulative[i],
+            backgroundColor: COMP_COLORS[compNames[i]] + '55',
+            borderColor: COMP_COLORS[compNames[i]],
+            borderWidth: 1,
+            fill: true,
+            pointRadius: 0,
+        });
+    }
+
+    // PV production line on top
+    datasets.push({
+        label: 'PV Production',
+        data: day.production,
+        borderColor: '#e3b341',
+        backgroundColor: 'transparent',
+        fill: false,
+        borderWidth: 2.5,
+        pointRadius: 2,
+    });
+
+    typicalDayChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: day.hours.map(h => h + ':00'),
+            datasets,
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { labels: { color: '#8b949e', usePointStyle: true } },
+                title: {
+                    display: true,
+                    text: `Average ${season.charAt(0).toUpperCase() + season.slice(1)} Day`,
+                    color: '#8b949e',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => `${c.dataset.label}: ${c.raw.toFixed(0)} Wh`
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: '#8b949e', maxTicksLimit: 12 }, grid: { color: '#21262d' } },
+                y: {
+                    ticks: { color: '#8b949e', callback: v => v + ' Wh' },
+                    grid: { color: '#21262d' },
+                },
+            },
+        },
+    });
+}
+
+function renderLoadBreakdown() {
+    const card = document.getElementById('loadBreakdownCard');
+    const textEl = document.getElementById('loadBreakdownText');
+    const bd = window._loadBreakdown;
+
+    if (!bd || Object.keys(bd).length === 0) {
+        card.style.display = 'none';
+        return;
+    }
+    card.style.display = 'block';
+
+    const labelMap = { household_kwh: 'Household', heatpump_kwh: 'Heat Pump', ev_kwh: 'EV Charging', dhw_kwh: 'Hot Water' };
+    const colorMap = { household_kwh: '#58a6ff', heatpump_kwh: '#f85149', ev_kwh: '#3fb950', dhw_kwh: '#d29922' };
+
+    const entries = Object.entries(bd);
+    const labels = entries.map(([k]) => labelMap[k] || k);
+    const values = entries.map(([, v]) => v);
+    const colors = entries.map(([k]) => colorMap[k] || '#8b949e');
+    const total = values.reduce((a, b) => a + b, 0);
+
+    // Text breakdown
+    textEl.innerHTML = entries.map(([k, v]) => {
+        const pct = total > 0 ? ((v / total) * 100).toFixed(0) : 0;
+        const color = colorMap[k] || '#8b949e';
+        return `<div style="margin-bottom:0.3rem;">
+            <span style="display:inline-block;width:10px;height:10px;background:${color};border-radius:2px;margin-right:0.4rem;"></span>
+            <strong>${labelMap[k] || k}</strong>: ${v.toLocaleString()} kWh (${pct}%)
+        </div>`;
+    }).join('') + `<div style="margin-top:0.4rem; border-top:1px solid #30363d; padding-top:0.3rem;">
+        <strong>Total: ${total.toLocaleString()} kWh/year</strong>
+    </div>`;
+
+    // Doughnut chart
+    const ctx = document.getElementById('loadChart');
+    if (loadChart) loadChart.destroy();
+
+    loadChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderColor: '#161b22',
+                borderWidth: 2,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.label}: ${ctx.raw.toLocaleString()} kWh (${((ctx.raw / total) * 100).toFixed(0)}%)`
+                    }
+                }
+            },
+            cutout: '55%',
+        },
+    });
+}
+
+// --- Spot price charts ---
+
+async function loadSpotPrices() {
+    const startVal = document.getElementById('spotStart').value;
+    const endVal = document.getElementById('spotEnd').value;
+    if (!startVal || !endVal) return;
+
+    const start = new Date(startVal + 'T00:00:00Z');
+    const end = new Date(endVal + 'T23:59:59Z');
+
+    const statsEl = document.getElementById('spotStats');
+    statsEl.innerHTML = '<span style="color:#8b949e;">Loading prices...</span>';
+
+    try {
+        const r = await fetch(`${API}/api/spot-prices?start=${start.toISOString()}&end=${end.toISOString()}`);
+        if (!r.ok) { statsEl.innerHTML = '<span style="color:#f85149;">Failed to load prices</span>'; return; }
+        const d = await r.json();
+        if (!d.prices || d.prices.length === 0) {
+            statsEl.innerHTML = '<span style="color:#8b949e;">No price data available</span>';
+            return;
+        }
+        renderSpotStats(d.prices);
+        renderSpotChart(d.prices);
+        renderSpotPattern(d.prices);
+    } catch(e) {
+        statsEl.innerHTML = '<span style="color:#f85149;">Error: ' + e.message + '</span>';
+    }
+}
+
+function renderSpotStats(prices) {
+    const el = document.getElementById('spotStats');
+    const values = prices.map(p => p.price_eur_kwh * 100);
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const current = values[values.length - 1];
+    const negHours = values.filter(v => v < 0).length;
+
+    const stat = (label, value, color) => `
+        <div style="background:#0d1117; padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #30363d; min-width:80px;">
+            <div style="color:#8b949e; font-size:0.7rem;">${label}</div>
+            <div style="color:${color}; font-weight:600; font-size:1rem;">${value}</div>
+        </div>`;
+
+    el.innerHTML =
+        stat('Current', current.toFixed(1) + ' ct', current < mean ? '#3fb950' : '#d29922') +
+        stat('Average', mean.toFixed(1) + ' ct', '#8b949e') +
+        stat('Min', min.toFixed(1) + ' ct', '#3fb950') +
+        stat('Max', max.toFixed(1) + ' ct', '#f85149') +
+        (negHours > 0 ? stat('Neg. hours', negHours + 'h', '#3fb950') : '');
+}
+
+function renderSpotChart(prices) {
+    const ctx = document.getElementById('spotChart');
+    if (spotChart) spotChart.destroy();
+
+    const labels = prices.map(p => {
+        const d = new Date(p.timestamp);
+        return d.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' }) +
+               ' ' + d.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
+    });
+    const values = prices.map(p => p.price_eur_kwh * 100);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+    spotChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Spot Price',
+                    data: values,
+                    borderColor: '#58a6ff',
+                    backgroundColor: '#58a6ff18',
+                    fill: true,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    tension: 0.3,
+                    segment: {
+                        borderColor: (c) => {
+                            const v = c.p1.parsed.y;
+                            if (v < 0) return '#3fb950';
+                            if (v > mean * 1.5) return '#f85149';
+                            return '#58a6ff';
+                        },
+                    },
+                },
+                {
+                    label: 'Average',
+                    data: values.map(() => mean),
+                    borderColor: '#8b949e44',
+                    borderDash: [6, 4],
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    fill: false,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => c.dataset.label === 'Average'
+                            ? `Avg: ${c.raw.toFixed(1)} ct/kWh`
+                            : `${c.raw.toFixed(2)} ct/kWh (${(c.raw * 10).toFixed(1)} EUR/MWh)`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#8b949e', maxTicksLimit: 8, maxRotation: 0 },
+                    grid: { color: '#21262d' },
+                },
+                y: {
+                    ticks: { color: '#8b949e', callback: v => v.toFixed(0) + ' ct' },
+                    grid: { color: '#21262d' },
+                    title: { display: true, text: 'ct/kWh', color: '#8b949e' },
+                },
+            },
+        },
+    });
+}
+
+function renderSpotPattern(prices) {
+    const ctx = document.getElementById('spotPatternChart');
+    if (spotPatternChart) spotPatternChart.destroy();
+
+    // Group prices by hour of day
+    const byHour = {};
+    prices.forEach(p => {
+        const h = new Date(p.timestamp).getHours();
+        if (!byHour[h]) byHour[h] = [];
+        byHour[h].push(p.price_eur_kwh * 100);
+    });
+
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const avgByHour = hours.map(h => {
+        const vals = byHour[h] || [];
+        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+    });
+    const overallMean = avgByHour.reduce((a, b) => a + b, 0) / 24;
+
+    // Color bars: green for cheap hours, red for expensive
+    const barColors = avgByHour.map(v => {
+        if (v < overallMean * 0.8) return '#3fb95099';
+        if (v > overallMean * 1.2) return '#f8514999';
+        return '#58a6ff77';
+    });
+
+    spotPatternChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: hours.map(h => h + ':00'),
+            datasets: [{
+                label: 'Avg Price',
+                data: avgByHour,
+                backgroundColor: barColors,
+                borderRadius: 3,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => `${c.raw.toFixed(1)} ct/kWh (${(c.raw * 10).toFixed(1)} EUR/MWh)`
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: '#8b949e', maxTicksLimit: 12 }, grid: { display: false } },
+                y: {
+                    ticks: { color: '#8b949e', callback: v => v.toFixed(0) + ' ct' },
+                    grid: { color: '#21262d' },
+                },
+            },
+        },
+    });
+}
+
+// --- ENTSO-E Balancing price charts ---
+
+async function loadBalancingPrices() {
+    const startVal = document.getElementById('entsoeStart').value;
+    const endVal = document.getElementById('entsoeEnd').value;
+    if (!startVal || !endVal) return;
+
+    const statsEl = document.getElementById('entsoeStats');
+    statsEl.innerHTML = '<span style="color:#8b949e;">Fetching from ENTSO-E (may take a moment)...</span>';
+
+    try {
+        const r = await fetch(`${API}/api/balancing-prices?start=${startVal}&end=${endVal}`);
+        const d = await r.json();
+        if (!r.ok) {
+            statsEl.innerHTML = `<span style="color:#f85149;">${d.detail || 'Failed'}</span>`;
+            return;
+        }
+        if (!d.prices || d.prices.length === 0) {
+            statsEl.innerHTML = '<span style="color:#8b949e;">No balancing data available</span>';
+            return;
+        }
+        renderEntsoeStats(d.summary);
+        renderEntsoeChart(d.prices);
+        renderEntsoePattern(d.prices);
+    } catch(e) {
+        statsEl.innerHTML = '<span style="color:#f85149;">Error: ' + e.message + '</span>';
+    }
+}
+
+function renderEntsoeStats(s) {
+    const el = document.getElementById('entsoeStats');
+    const stat = (label, value, color) => `
+        <div style="background:#0d1117; padding:0.4rem 0.6rem; border-radius:4px; border:1px solid #30363d; min-width:80px;">
+            <div style="color:#8b949e; font-size:0.7rem;">${label}</div>
+            <div style="color:${color}; font-weight:600; font-size:1rem;">${value}</div>
+        </div>`;
+
+    el.innerHTML =
+        stat('Days', s.days, '#8b949e') +
+        stat('Mean', s.mean_eur_mwh.toFixed(1) + ' EUR', '#8b949e') +
+        stat('Median', s.median_eur_mwh.toFixed(1) + ' EUR', '#58a6ff') +
+        stat('Min', s.min_eur_mwh.toFixed(1) + ' EUR', '#3fb950') +
+        stat('Max', s.max_eur_mwh.toFixed(1) + ' EUR', '#f85149') +
+        stat('Std Dev', s.std_eur_mwh.toFixed(1), '#d29922');
+}
+
+function renderEntsoeChart(prices) {
+    const ctx = document.getElementById('entsoeChart');
+    if (entsoeChart) entsoeChart.destroy();
+
+    const labels = prices.map(p => {
+        const d = new Date(p.timestamp);
+        return d.toLocaleDateString('de-AT', { day: 'numeric', month: 'short' }) +
+               ' ' + d.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
+    });
+    const values = prices.map(p => p.price_eur_mwh);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+
+    entsoeChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Settlement Price',
+                    data: values,
+                    borderColor: '#bc8cff',
+                    backgroundColor: '#bc8cff18',
+                    fill: true,
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    tension: 0.3,
+                    segment: {
+                        borderColor: (c) => {
+                            const v = c.p1.parsed.y;
+                            if (v < 0) return '#3fb950';
+                            if (v > mean * 2) return '#f85149';
+                            return '#bc8cff';
+                        },
+                    },
+                },
+                {
+                    label: 'Average',
+                    data: values.map(() => mean),
+                    borderColor: '#8b949e44',
+                    borderDash: [6, 4],
+                    borderWidth: 1,
+                    pointRadius: 0,
+                    fill: false,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => c.dataset.label === 'Average'
+                            ? `Avg: ${c.raw.toFixed(1)} EUR/MWh`
+                            : `${c.raw.toFixed(1)} EUR/MWh (${(c.raw / 10).toFixed(2)} ct/kWh)`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#8b949e', maxTicksLimit: 8, maxRotation: 0 },
+                    grid: { color: '#21262d' },
+                },
+                y: {
+                    ticks: { color: '#8b949e', callback: v => v + ' EUR' },
+                    grid: { color: '#21262d' },
+                    title: { display: true, text: 'EUR/MWh', color: '#8b949e' },
+                },
+            },
+        },
+    });
+}
+
+function renderEntsoePattern(prices) {
+    const ctx = document.getElementById('entsoePatternChart');
+    if (entsoePatternChart) entsoePatternChart.destroy();
+
+    const byHour = {};
+    prices.forEach(p => {
+        const h = new Date(p.timestamp).getHours();
+        if (!byHour[h]) byHour[h] = [];
+        byHour[h].push(p.price_eur_mwh);
+    });
+
+    const hours = Array.from({ length: 24 }, (_, i) => i);
+    const avgByHour = hours.map(h => {
+        const vals = byHour[h] || [];
+        return vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
+    });
+    const overallMean = avgByHour.reduce((a, b) => a + b, 0) / 24;
+
+    const barColors = avgByHour.map(v => {
+        if (v < overallMean * 0.8) return '#3fb95099';
+        if (v > overallMean * 1.2) return '#f8514999';
+        return '#bc8cff77';
+    });
+
+    entsoePatternChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: hours.map(h => h + ':00'),
+            datasets: [{
+                label: 'Avg Price',
+                data: avgByHour,
+                backgroundColor: barColors,
+                borderRadius: 3,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (c) => `${c.raw.toFixed(1)} EUR/MWh (${(c.raw / 10).toFixed(2)} ct/kWh)`
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: '#8b949e', maxTicksLimit: 12 }, grid: { display: false } },
+                y: {
+                    ticks: { color: '#8b949e', callback: v => v + ' EUR' },
+                    grid: { color: '#21262d' },
+                },
+            },
+        },
+    });
+}
+</script>
+</body>
+</html>

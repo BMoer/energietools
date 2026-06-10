@@ -1,0 +1,28 @@
+# Build-Context für das Simba-Image ist der Repo-Root — hier wird alles
+# ausgeschlossen, was das Image NICHT braucht (es braucht nur pyproject.toml,
+# energietools/ und apps/simba/).
+.git
+.github
+**/__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.venv
+venv
+*.egg-info
+build
+dist
+
+# Web-Frontend (eigenes Vercel-Deploy, nicht im Simba-Image)
+web
+
+# Tests, Wiki, Docs, Beispiele — nicht im Laufzeit-Image nötig
+tests
+wiki
+examples
+*.md
+!apps/simba/README.md
+
+# Andere Apps / Daten
+data
+site

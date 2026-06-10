@@ -1,0 +1,56 @@
+---
+const year = 2026;
+---
+
+<footer class="site-foot">
+  <hr class="rule" />
+  <div class="shell foot-inner">
+    <div class="foot-brand">
+      <span class="brand-name"><span class="lo">energie</span>tools<span class="dot">.at</span></span>
+      <p class="foot-note">
+        Neutrales Verzeichnis für Tools auf dem offenen
+        <a href="https://github.com/BMoer/energietools">energietools</a>-Paket (MIT).
+        Kein Marktplatz, kein Bezahl-Gate — Anfragen laufen direkt an den jeweiligen Autor.
+      </p>
+    </div>
+    <div class="foot-links">
+      <a class="label" href="/#galerie">Galerie</a>
+      <a class="label" href="/mitmachen">Mitmachen</a>
+      <a class="label" href="https://github.com/BMoer/energietools">Repo ↗</a>
+      <a class="label" href="https://moerzinger.eu">Initiator: moerzinger.eu ↗</a>
+    </div>
+  </div>
+  <div class="shell foot-base">
+    <span class="label">© {year} · MIT-Lizenz · Netto-Listenpreise, ohne Gewähr</span>
+    <span class="label">AT · Energiemarkt</span>
+  </div>
+</footer>
+
+<style>
+  .site-foot { margin-top: 7rem; }
+  .foot-inner {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 2rem;
+    padding: 2.5rem 24px 1.5rem;
+  }
+  .brand-name {
+    font-family: var(--display); font-weight: 800; font-size: 1.4rem;
+    text-transform: uppercase;
+  }
+  .brand-name .lo { color: var(--live-deep); }
+  .brand-name .dot { color: var(--muted); font-weight: 500; }
+  .foot-note { color: var(--muted); font-size: 0.95rem; max-width: 46ch; margin-top: 0.6rem; }
+  .foot-note a { border-bottom: 1px solid var(--live-deep); }
+  .foot-links { display: flex; flex-direction: column; gap: 0.7rem; align-items: flex-start; }
+  .foot-links a:hover { color: var(--ink); }
+  .foot-base {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: 1rem 24px 2.5rem;
+    border-top: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+  @media (max-width: 640px) {
+    .foot-inner { grid-template-columns: 1fr; }
+  }
+</style>

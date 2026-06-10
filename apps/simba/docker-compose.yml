@@ -1,0 +1,13 @@
+# Lokaler Container-Test. Build-Context = Repo-Root (energietools/ wird gebraucht).
+# Aus apps/simba/:  docker compose up --build
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: apps/simba/backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - PVTOOL_DATA_DIR=/app/data
+      - PVTOOL_UPLOAD_DIR=/app/data/uploads
+      - SIMBA_CORS_ORIGINS=http://localhost:8000

@@ -1,0 +1,15 @@
+# build output
+dist/
+.output/
+.vercel/
+# astro generated
+.astro/
+# deps
+node_modules/
+# env
+.env
+.env.production
+.env.*.local
+# os
+.DS_Store
+.vercel

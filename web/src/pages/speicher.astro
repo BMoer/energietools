@@ -1,0 +1,108 @@
+---
+import Base from "../layouts/Base.astro";
+import ToolShell from "../components/ToolShell.astro";
+import { getEntry } from "astro:content";
+const t = await getEntry("tools", "speicher");
+---
+
+<Base title={`${t!.data.name} — energietools.at`} description={t!.data.description}>
+  <ToolShell slug="speicher" name={t!.data.name} tagline={t!.data.description}>
+    <div class="t-controls">
+      <div class="t-field"><label for="verbrauch">Jahresverbrauch · <span id="verbrauch-val" class="t-range-val">4.500 kWh</span></label>
+        <input type="range" id="verbrauch" min="2000" max="10000" step="250" value="4500" /></div>
+      <div class="t-field"><label for="kwp">PV-Anlage · <span id="kwp-val" class="t-range-val">6 kWp</span></label>
+        <input type="range" id="kwp" min="2" max="15" step="0.5" value="6" /></div>
+      <div class="t-field"><label for="preis">Speicherpreis · <span id="preis-val" class="t-range-val">550 €/kWh</span></label>
+        <input type="range" id="preis" min="300" max="900" step="25" value="550" /></div>
+      <div class="t-field"><label for="bezug">Strom-Bezugspreis (brutto ct/kWh)</label>
+        <input type="number" id="bezug" value="25" step="0.5" min="10" max="50" /></div>
+      <div class="t-field"><label for="einsp">Einspeisetarif (ct/kWh)</label>
+        <input type="number" id="einsp" value="7" step="0.5" min="0" max="20" /></div>
+      <div class="t-field"><label for="nutz">Nutzungsdauer (Jahre)</label>
+        <input type="number" id="nutz" value="15" step="1" min="8" max="20" /></div>
+    </div>
+    <div id="result"><p class="t-status">Initialisiere energietools …</p></div>
+  </ToolShell>
+</Base>
+
+<script>
+  import { loadEnergietools, eur } from "../lib/et.js";
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const result = document.getElementById("result")!;
+  let compute: ((...a: number[]) => string) | null = null;
+
+  const PY = `
+import math
+from datetime import datetime, timedelta
+from energietools.tools.h0_profile import synthesize_h0_consumption
+from energietools.capabilities.scenarios.capability import ScenariosCapability
+import json
+def _pv(kwp, sy, start, end):
+    pts = []; cur = start
+    while cur < end:
+        h = cur.hour; doy = cur.timetuple().tm_yday
+        day = max(0.0, math.sin(math.pi*(h-6)/12)) if 6 <= h <= 18 else 0.0
+        seas = 0.55 + 0.45*math.cos(2*math.pi*(doy-172)/365)
+        pts.append((cur, day*seas)); cur += timedelta(hours=1)
+    tot = sum(w for _, w in pts) or 1.0
+    return [{"kwh": kwp*sy*w/tot} for _, w in pts]
+def et_speicher(verbrauch, kwp, preis, bezug, einsp, nutz):
+    s, e = datetime(2025,1,1), datetime(2026,1,1)
+    cons = synthesize_h0_consumption(verbrauch, s, e); prod = _pv(kwp, 1000.0, s, e)
+    res = ScenariosCapability().run(production_data=prod, consumption_data=cons,
+        energiepreis_ct_kwh=bezug, einspeisung_ct_kwh=einsp, speicher_kosten_eur_pro_kwh=preis,
+        nutzungsdauer_jahre=int(nutz), diskontrate=0.04, dt_hours=1.0, sizes_kwh=[0,5,7.5,10,15])
+    d = res.data
+    return json.dumps({"szen": d["szenarien"], "best": d["bestes_szenario"], "hinweis": d["hinweis"]})
+et_speicher
+`;
+
+  const amort = (x: number | null) => (x === null ? "amortisiert nie" : `${x.toFixed(1)} J`);
+  function render(o: any) {
+    const best = o.best;
+    const rows = o.szen.map((s: any) => {
+      const star = s.kapazitaet_kwh === best.kapazitaet_kwh && s.kapazitaet_kwh > 0 ? " ⭐" : "";
+      return `<tr${star ? ' style="background:var(--paper-2)"' : ""}>
+        <td>${s.kapazitaet_kwh} kWh${star}</td>
+        <td>${Math.round(s.eigenverbrauchsquote*100)} %</td>
+        <td>${Math.round(s.autarkiegrad*100)} %</td>
+        <td>${eur(s.ersparnis_jahr_eur_schaetzung)}</td>
+        <td>${amort(s.amortisation_jahre)}</td>
+        <td>${eur(s.npv_eur)}</td></tr>`;
+    }).join("");
+    let head, kind;
+    if (best.kapazitaet_kwh === 0 || best.npv_eur <= 0) {
+      kind = "var(--warn)";
+      head = "Bei diesen Annahmen <strong>amortisiert sich kein Speicher</strong> (bester NPV ≤ 0). Senke den Speicherpreis oder erhöhe den Preis-Spread.";
+    } else {
+      kind = "var(--live-deep)";
+      head = `Wirtschaftlich beste Größe: <strong>${best.kapazitaet_kwh} kWh</strong> (NPV <strong>+${eur(best.npv_eur)}</strong>, Amortisation ${amort(best.amortisation_jahre)}).`;
+    }
+    result.innerHTML = `
+      <div class="t-callout" style="border-left-color:${kind}"><span style="font-size:1.05rem">${head}</span></div>
+      <table class="t-table"><thead><tr><th>Speichergröße</th><th>Eigenverbrauch</th><th>Autarkie</th><th>Ersparnis/Jahr</th><th>Amortisation</th><th>NPV</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      <p class="t-src">Echter Eigenverbrauchs-Dispatch (SOC/Wirkungsgrad) + Finanzkennzahlen (4&nbsp;% Diskont). ${o.hinweis}</p>`;
+  }
+
+  function run() {
+    if (!compute) return;
+    try { render(JSON.parse(compute(+$("verbrauch").value, +$("kwp").value, +$("preis").value, +$("bezug").value, +$("einsp").value, +$("nutz").value))); }
+    catch (e) { result.innerHTML = `<p class="t-status">Fehler: ${(e as Error).message}</p>`; }
+  }
+  let timer: number;
+  const debounced = () => { clearTimeout(timer); timer = window.setTimeout(run, 220); };
+  const ranges: [string, (v: number) => string][] = [
+    ["verbrauch", (v) => v.toLocaleString("de-AT") + " kWh"],
+    ["kwp", (v) => v + " kWp"],
+    ["preis", (v) => v + " €/kWh"],
+  ];
+  ranges.forEach(([id, fmt]) => $(id).addEventListener("input", () => { document.getElementById(id + "-val")!.textContent = fmt(+$(id).value); debounced(); }));
+  ["bezug", "einsp", "nutz"].forEach((id) => $(id).addEventListener("input", debounced));
+
+  (async () => {
+    const py = await loadEnergietools((m: string) => { if (m) result.innerHTML = `<p class="t-status">${m}</p>`; });
+    compute = py.runPython(PY) as any;
+    run();
+  })();
+</script>

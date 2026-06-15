@@ -1,0 +1,114 @@
+---
+import Base from "../layouts/Base.astro";
+import ToolShell from "../components/ToolShell.astro";
+import { getEntry } from "astro:content";
+const t = await getEntry("tools", "netzkosten");
+---
+
+<Base title={`${t!.data.name} — energietools.at`} description={t!.data.description}>
+  <ToolShell slug="netzkosten" name={t!.data.name} tagline={t!.data.description}>
+    <div class="t-controls">
+      <div class="t-field">
+        <label for="plz">PLZ</label>
+        <input type="text" id="plz" value="1010" inputmode="numeric" autocomplete="postal-code" />
+      </div>
+      <div class="t-field">
+        <label for="verbrauch">Jahresverbrauch · <span id="verbrauch-val" class="t-range-val">3.500 kWh</span></label>
+        <input type="range" id="verbrauch" min="1000" max="15000" step="100" value="3500" />
+      </div>
+      <div class="t-field">
+        <label for="ep">Energiepreis netto (ct/kWh)</label>
+        <input type="number" id="ep" value="9.5" step="0.1" min="1" max="80" />
+      </div>
+      <div class="t-field">
+        <label for="gg">Grundgebühr netto (€/Monat)</label>
+        <input type="number" id="gg" value="4.5" step="0.5" min="0" max="60" />
+      </div>
+    </div>
+    <div id="result"><p class="t-status">Initialisiere energietools …</p></div>
+  </ToolShell>
+</Base>
+
+<script>
+  import { loadEnergietools, eur } from "../lib/et.js";
+
+  const $ = (id: string) => document.getElementById(id) as HTMLInputElement;
+  const result = document.getElementById("result")!;
+  const ct = (x: number) => `${x.toLocaleString("de-AT", { maximumFractionDigits: 3 })} ct/kWh`;
+  let compute: ((p: string, v: number, e: number, g: number) => string) | null = null;
+
+  const PY = `
+from energietools.capabilities.netz import NetzkostenCapability, GesamtkostenCapability
+import json
+def et_netzkosten(plz, verbrauch, ep, gg):
+    netz = NetzkostenCapability().run(plz=plz, verbrauch_kwh=verbrauch)
+    ges = GesamtkostenCapability().run(plz=plz, verbrauch_kwh=verbrauch,
+        energiepreis_netto_ct_kwh=ep, grundgebuehr_netto_eur_monat=gg)
+    return json.dumps({"netz_ok": netz.ok, "netz": netz.data, "ges": ges.data})
+et_netzkosten
+`;
+
+  function render(out: any) {
+    const vnb = out.netz_ok ? out.netz.netzbetreiber : null;
+    if (!vnb) {
+      result.innerHTML = `<div class="t-callout"><strong>Für diese PLZ kein eindeutiger Netzbereich.</strong>
+        Geteilte PLZ oder (noch) nicht im NE7-Snapshot. energietools schätzt bewusst nicht —
+        probier 1010 (Wien), 8020 (Graz), 5020 (Salzburg) oder 3100 (St.&nbsp;Pölten).</div>`;
+      return;
+    }
+    const k = out.netz.rechenweg.komponenten;
+    const gesamt = out.ges.gesamtkosten_eur_jahr_brutto;
+    const netzBrutto = out.netz.netzkosten_eur_jahr_brutto;
+    const anteil = gesamt > 0 ? Math.round((netzBrutto / gesamt) * 100) : 0;
+    const eag = (k.eag_foerderbeitrag_ap_ct_kwh + k.eag_foerderbeitrag_verlust_ct_kwh);
+    const q = out.netz.quelle;
+    result.innerHTML = `
+      <div class="t-stats">
+        <div class="t-stat"><span class="k">Netzkosten/Jahr · ${vnb}</span><span class="v">${eur(netzBrutto)}</span></div>
+        <div class="t-stat"><span class="k">Gesamt-Stromkosten/Jahr</span><span class="v">${eur(gesamt)}</span></div>
+        <div class="t-stat"><span class="k">Netzanteil</span><span class="v">${anteil}&nbsp;%</span></div>
+      </div>
+      <table class="t-table">
+        <thead><tr><th>Komponente</th><th>Wert</th></tr></thead>
+        <tbody>
+          <tr><td>Netznutzung Arbeitspreis</td><td>${ct(k.netznutzung_arbeitspreis_ct_kwh)}</td></tr>
+          <tr><td>Netzverlust</td><td>${ct(k.netzverlust_ct_kwh)}</td></tr>
+          <tr><td>EAG-Förderbeitrag (AP + Verlust)</td><td>${ct(eag)}</td></tr>
+          <tr><td>Elektrizitätsabgabe</td><td>${ct(k.elektrizitaetsabgabe_haushalt_ct_kwh)}</td></tr>
+          <tr><td><strong>Arbeitspreis gesamt</strong></td><td><strong>${ct(k.arbeitspreis_summe_ct_kwh)}</strong></td></tr>
+          <tr><td>Netznutzung Pauschale</td><td>${eur(k.netznutzung_pauschale_eur_jahr)}/Jahr</td></tr>
+          <tr><td>EAG-Förderpauschale</td><td>${eur(k.eag_foerderpauschale_eur_jahr)}/Jahr</td></tr>
+          <tr><td>Netto/Jahr</td><td>${eur(k.netto_eur_jahr)}</td></tr>
+          <tr><td>USt ×${k.ust_faktor}</td><td></td></tr>
+          <tr class="total"><td>Netzkosten brutto/Jahr</td><td>${eur(k.brutto_eur_jahr)}</td></tr>
+        </tbody>
+      </table>
+      <p class="t-src">Quelle: <a href="${q}" target="_blank" rel="noopener">offizielles Preisblatt</a>
+        · gültig ab ${out.netz.gueltig_ab} · regulierte Netzkosten + Abgaben, ohne Gewähr</p>`;
+  }
+
+  function run() {
+    if (!compute) return;
+    try {
+      render(JSON.parse(compute($("plz").value.trim() || "1010", +$("verbrauch").value, +$("ep").value, +$("gg").value)));
+    } catch (e) {
+      result.innerHTML = `<p class="t-status">Fehler: ${(e as Error).message}</p>`;
+    }
+  }
+
+  let timer: number;
+  const debounced = () => { clearTimeout(timer); timer = window.setTimeout(run, 180); };
+  $("verbrauch").addEventListener("input", () => {
+    document.getElementById("verbrauch-val")!.textContent = (+$("verbrauch").value).toLocaleString("de-AT") + " kWh";
+    debounced();
+  });
+  ["plz", "ep", "gg"].forEach((id) => $(id).addEventListener("input", debounced));
+
+  (async () => {
+    const py = await loadEnergietools((m: string) => {
+      if (m) result.innerHTML = `<p class="t-status">${m}</p>`;
+    });
+    compute = py.runPython(PY) as any;
+    run();
+  })();
+</script>

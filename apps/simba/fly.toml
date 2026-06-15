@@ -1,0 +1,46 @@
+# Fly.io-Deploy für Simba (FastAPI auf energietools).
+#
+# WICHTIG: Der Build-Context muss der REPO-ROOT sein (das Dockerfile installiert
+# energietools/ aus dem Monorepo). Deshalb aus dem Repo-Root deployen:
+#
+#   fly launch --no-deploy --copy-config --name simba-energietools   # einmalig (App anlegen)
+#   fly deploy --config apps/simba/fly.toml --dockerfile apps/simba/backend/Dockerfile .
+#
+# Danach die Subdomain anhängen:
+#   fly certs add simba.energietools.at
+#   → dann beim DNS-Provider: CNAME simba → <app>.fly.dev  (Fly zeigt die genauen Records)
+#
+# Solis-Credentials NUR als Secret, nie im Image:
+#   fly secrets set SOLIS_KEY_ID=… SOLIS_KEY_SECRET=… SOLIS_SN_EAST=… SOLIS_SN_WEST=… SOLIS_SN_EPM=…
+
+app = "simba-energietools"        # ← ggf. anpassen (muss global eindeutig sein)
+primary_region = "fra"            # Frankfurt — nah an Österreich
+
+[build]
+  # Pfad relativ zu DIESER fly.toml (apps/simba/). Der Build-Context ist beim
+  # Deploy der Repo-Root: fly deploy . --config apps/simba/fly.toml
+  dockerfile = "backend/Dockerfile"
+
+[env]
+  PVTOOL_DATA_DIR = "/app/data"
+  PVTOOL_UPLOAD_DIR = "/app/data/uploads"
+  # Nur die echten Origins zulassen (CORS) — kein Wildcard.
+  SIMBA_CORS_ORIGINS = "https://energietools.at,https://simba.energietools.at"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_start_machines = true
+  auto_stop_machines = false
+  min_machines_running = 1        # kein Cold-Start für eine user-facing App (security.md)
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/api/health"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "15s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

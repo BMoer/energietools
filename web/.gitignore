@@ -12,3 +12,4 @@ node_modules/
 .env.*.local
 # os
 .DS_Store
+.vercel

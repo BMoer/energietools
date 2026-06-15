@@ -17,7 +17,9 @@ app = "simba-energietools"        # ← ggf. anpassen (muss global eindeutig sei
 primary_region = "fra"            # Frankfurt — nah an Österreich
 
 [build]
-  dockerfile = "apps/simba/backend/Dockerfile"
+  # Pfad relativ zu DIESER fly.toml (apps/simba/). Der Build-Context ist beim
+  # Deploy der Repo-Root: fly deploy . --config apps/simba/fly.toml
+  dockerfile = "backend/Dockerfile"
 
 [env]
   PVTOOL_DATA_DIR = "/app/data"

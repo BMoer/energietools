@@ -1,12 +1,12 @@
 {
   "catalog_version": "2",
-  "generated_at": "2026-06-24T06:57:47.654643+00:00",
+  "generated_at": "2026-06-25T06:57:40.325291+00:00",
   "market": "AT",
   "energy_type": "POWER",
   "price_basis": "netto_listenpreis",
   "tariff_count": 130,
-  "stand": "2026-06-24",
-  "versionen_gesamt": 130,
+  "stand": "2026-06-25",
+  "versionen_gesamt": 132,
   "provider_coverage": {
     "ok": 65,
     "total": 65,

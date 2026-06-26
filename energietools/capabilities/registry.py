@@ -23,6 +23,7 @@ from energietools.capabilities.netz.capability import (
     VerfuegbarkeitCapability,
 )
 from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
+from energietools.capabilities.providers.capability import VersorgerAbdeckungCapability
 from energietools.capabilities.scenarios.capability import ScenariosCapability
 from energietools.capabilities.tariffs.capability import TariffCatalogCapability
 from energietools.capabilities.tools_bridge import register_tool_capabilities
@@ -40,6 +41,8 @@ def default_registry() -> CapabilityRegistry:
     registry.register(NetzkostenCapability())
     registry.register(GesamtkostenCapability())
     registry.register(VerfuegbarkeitCapability())
+    # Versorger-Abdeckung je Netzgebiet (welche Lieferanten sind an der PLZ verfügbar).
+    registry.register(VersorgerAbdeckungCapability())
     # Rechenmodule: Netzentgelt je Betreiber/Land (per kWh) + Investitionskennzahlen.
     registry.register(GridFeesCapability())
     registry.register(FinanceCapability())

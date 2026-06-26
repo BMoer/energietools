@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from collections.abc import Iterable
 from datetime import date
 from functools import lru_cache
@@ -28,6 +29,37 @@ _DATA_PACKAGE = "energietools.data.tariffs"
 # keinen strukturierten Typ trägt).
 _FLOATER_KEYWORDS = ("floater", "flex", "float", "monatsfloater", "variable")
 _SPOT_KEYWORDS = ("spot", "stundenfloater", "hourly", "dynamic", "dynamisch")
+
+# --- Gas-Schutz: der Open-Data-Katalog ist Strom-only (MANIFEST.energy_type=POWER).
+# Der Scraper-Stack mischt vereinzelt Gas-Produkte ein (z.B. "go green gas",
+# "E1 Gas Fix", Gas-Spot mit EEX-THE-Index). Die werden beim Laden gefiltert, damit
+# ein 5-ct-Gas-Arbeitspreis nie als "günstigster Stromtarif" rankt.
+_GAS_SPOT_INDEX = {"eex the"}  # Trading Hub Europe = Gas-Großhandelsindex
+# Fixer Strom-Arbeitspreis unter dieser Schwelle ist in AT nicht plausibel
+# (Großhandel ~9 ct + Netz/Abgaben/Marge) → solche Fixpreise sind faktisch Gas.
+_STROM_FIXPREIS_UNTERGRENZE_CT = 8.5
+_GAS_NAME = re.compile(r"\bgas\b")  # "gas" als WORT (matcht NICHT Marken wie "goldgas"/"redgas")
+
+
+def _ist_gas_eintrag(entry: dict) -> bool:
+    """True, wenn ein Roh-Katalogeintrag ein Gas-Produkt ist (≠ Strom).
+
+    Signale in Reihenfolge (robust gegen Firmennamen mit "gas"):
+    1. explizites ``energy_type`` ≠ POWER → vertrauen (zukunftssicher).
+    2. Gas-Börsenindex (EEX THE).
+    3. "gas" als eigenes Wort im **Tarifnamen** (nicht Lieferant — "goldgas"/"redgas"
+       verkaufen auch Strom: "goldgas strom: derFixe" bleibt Strom).
+    4. fixer Arbeitspreis unter der Strom-Plausibilitätsgrenze (Gas ist deutlich billiger).
+    """
+    et = str(entry.get("energy_type", "")).strip().upper()
+    if et:
+        return et != "POWER"
+    if str(entry.get("spot_index", "")).strip().lower() in _GAS_SPOT_INDEX:
+        return True
+    if _GAS_NAME.search(str(entry.get("tarif_name", "")).lower()):
+        return True
+    ep = entry.get("energiepreis_ct_kwh", 0.0) or 0.0
+    return 0.0 < ep < _STROM_FIXPREIS_UNTERGRENZE_CT
 
 
 def _ist_gueltig_am(tariff: CatalogTariff, stand: str) -> bool:
@@ -64,11 +96,22 @@ def _read_data(filename: str) -> str:
 
 @lru_cache(maxsize=1)
 def _load_raw() -> tuple[CatalogTariff, ...]:
-    """Lädt + parst catalog.json (gecacht; Tupel = immutable)."""
+    """Lädt + parst catalog.json (gecacht; Tupel = immutable).
+
+    Gas-Einträge werden hier gefiltert (Strom-only-Katalog). Kein stilles
+    Verwerfen: die übersprungenen Produkte werden geloggt.
+    """
     raw = json.loads(_read_data("catalog.json"))
     if not isinstance(raw, list):
         raise CapabilityError("catalog.json: erwartet eine Liste von Tarifen")
-    return tuple(CatalogTariff(**entry) for entry in raw)
+    strom = [e for e in raw if not _ist_gas_eintrag(e)]
+    if len(strom) != len(raw):
+        gas = [f"{e.get('lieferant', '?')} — {e.get('tarif_name', '?')}" for e in raw if _ist_gas_eintrag(e)]
+        log.warning(
+            "catalog.json: %d Nicht-Strom-Tarife (Gas) übersprungen — Strom-only-Katalog: %s",
+            len(gas), ", ".join(gas),
+        )
+    return tuple(CatalogTariff(**entry) for entry in strom)
 
 
 @lru_cache(maxsize=1)

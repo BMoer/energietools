@@ -4,7 +4,7 @@
   "market": "AT",
   "energy_type": "POWER",
   "price_basis": "netto_listenpreis",
-  "tariff_count": 131,
+  "tariff_count": 122,
   "provider_coverage": {
     "ok": 65,
     "total": 65,

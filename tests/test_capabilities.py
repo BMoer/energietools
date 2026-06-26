@@ -14,7 +14,11 @@ from energietools.capabilities.base import (
     CapabilityResult,
 )
 from energietools.capabilities.registry import default_registry
-from energietools.capabilities.tariffs.catalog import TariffCatalog, detect_tariftyp
+from energietools.capabilities.tariffs.catalog import (
+    TariffCatalog,
+    _ist_gas_eintrag,
+    detect_tariftyp,
+)
 from energietools.capabilities.tariffs.compare import kosten_rechenweg
 from energietools.capabilities.tariffs.models import CatalogTariff
 
@@ -143,6 +147,50 @@ class TestTariffCatalog:
         assert detect_tariftyp("aWATTar HOURLY Spot") == "Stundenfloater"
         assert detect_tariftyp("Easy Flex") == "Monatsfloater"
         assert detect_tariftyp("Optima Fix 2025") == "Fixpreis"
+
+
+class TestGasFilter:
+    """Der Strom-only-Katalog darf keine fehl-gescrapten Gas-Tarife enthalten."""
+
+    def test_gas_durch_index(self):
+        assert _ist_gas_eintrag({"tarif_name": "E1 Smart Gas", "spot_index": "EEX THE"})
+
+    def test_gas_durch_namen_als_wort(self):
+        assert _ist_gas_eintrag({"tarif_name": "E1 Gas Fix", "energiepreis_ct_kwh": 6.5})
+        assert _ist_gas_eintrag({"tarif_name": "go green gas plus", "energiepreis_ct_kwh": 5.3})
+
+    def test_gas_durch_implausiblen_strompreis(self):
+        # "redgas Optimal 2026" trägt kein "gas" als Wort, aber 7,99 ct ist kein Strompreis.
+        assert _ist_gas_eintrag({"tarif_name": "redgas Optimal 2026", "energiepreis_ct_kwh": 7.99})
+
+    def test_strom_von_anbieter_mit_gas_im_namen_bleibt(self):
+        # "goldgas"/"redgas" verkaufen auch Strom — Lieferantenname darf NICHT triggern.
+        assert not _ist_gas_eintrag(
+            {"lieferant": "goldgas GmbH", "tarif_name": "strom: derFixe", "energiepreis_ct_kwh": 15.0},
+        )
+        assert not _ist_gas_eintrag(
+            {"lieferant": "redgas GmbH", "tarif_name": "redgas red strom optimal 2025", "energiepreis_ct_kwh": 18.99},
+        )
+
+    def test_strom_spot_ist_kein_gas(self):
+        # Strom-Spot hat energiepreis 0 (Aufschlag-Modell) → darf nicht als Gas gelten.
+        assert not _ist_gas_eintrag(
+            {"tarif_name": "aWATTar HOURLY", "energiepreis_ct_kwh": 0.0, "spot_index": "EPEX AT"},
+        )
+
+    def test_explizites_energy_type_gewinnt(self):
+        assert _ist_gas_eintrag({"tarif_name": "Irgendwas", "energy_type": "GAS", "energiepreis_ct_kwh": 20.0})
+        assert not _ist_gas_eintrag({"tarif_name": "Fix Gas-Schein", "energy_type": "POWER", "energiepreis_ct_kwh": 5.0})
+
+    def test_geladener_katalog_ist_gasfrei(self):
+        """Regression: kein geladener Tarif ist Gas (Index/Name/Preis)."""
+        for t in TariffCatalog.load().all():
+            assert not _ist_gas_eintrag(t.model_dump()), f"Gas im Strom-Katalog: {t.lieferant} — {t.tarif_name}"
+
+    def test_keine_unplausiblen_strom_fixpreise(self):
+        fix = TariffCatalog.load().filter(nur_fixpreis=True)
+        for t in fix.all():
+            assert t.energiepreis_ct_kwh == 0.0 or t.energiepreis_ct_kwh >= 8.5
 
 
 # =============================================================================

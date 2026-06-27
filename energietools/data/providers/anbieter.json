@@ -4,7 +4,7 @@
     "brand": "Wien Energie",
     "aliases": ["wien energie", "wienenergie", "wien-energie", "optima"],
     "type": "strom-gas",
-    "region": ["Wien"]
+    "region": ["Wien", "Niederösterreich"]
   },
   {
     "canonical": "EVN Energievertrieb GmbH & Co KG",
@@ -25,7 +25,7 @@
       "e-steiermark"
     ],
     "type": "strom-gas",
-    "region": ["Steiermark"]
+    "region": ["AT"]
   },
   {
     "canonical": "Energie Burgenland Vertrieb GmbH & Co KG",
@@ -39,7 +39,7 @@
     "brand": "KELAG",
     "aliases": ["kelag", "kärntner elektrizitäts"],
     "type": "strom-gas",
-    "region": ["Kärnten"]
+    "region": ["AT"]
   },
   {
     "canonical": "TIWAG-Tiroler Wasserkraft AG",
@@ -60,7 +60,7 @@
     "brand": "Energie AG OÖ",
     "aliases": ["energie ag", "eag", "energie ag oö", "energie ag vertrieb"],
     "type": "strom-gas",
-    "region": ["OÖ"]
+    "region": ["AT"]
   },
   {
     "canonical": "Innsbrucker Kommunalbetriebe AG",
@@ -74,7 +74,7 @@
     "brand": "STW Klagenfurt",
     "aliases": ["stadtwerke klagenfurt", "stw klagenfurt", "pull"],
     "type": "strom-gas",
-    "region": ["Kärnten"]
+    "region": ["AT"]
   },
   {
     "canonical": "VKW Vorarlberger Kraftwerke AG",
@@ -207,13 +207,13 @@
     "brand": "STW Bruck",
     "aliases": ["stadtwerke bruck"],
     "type": "strom-gas",
-    "region": ["Steiermark"]
+    "region": ["AT"]
   },
   {
     "canonical": "Energie Graz GmbH & Co KG",
     "brand": "Energie Graz",
     "aliases": ["energie graz"],
     "type": "strom-gas",
-    "region": ["Steiermark"]
+    "region": ["AT"]
   }
 ]

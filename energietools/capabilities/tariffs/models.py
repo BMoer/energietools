@@ -26,6 +26,11 @@ class CatalogTariff(BaseModel):
     key: str = Field(description="Anbieter-Key (Scraper-Quelle)")
     lieferant: str
     tarif_name: str
+    energy_type: str = Field(
+        default="POWER",
+        description="POWER (Strom) | GAS — der Open-Data-Katalog ist Strom-only; "
+        "Gas-Einträge werden beim Laden gefiltert (siehe catalog._ist_gas_eintrag).",
+    )
     tariftyp: str = Field(
         default="Fixpreis", description="Fixpreis | Monatsfloater | Stundenfloater",
     )

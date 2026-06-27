@@ -87,6 +87,16 @@ def _norm(name: str) -> str:
     return " ".join(s.split())
 
 
+# Zu generische Tokens würden quer durch alle Anbieter matchen ("energie ag" → "energie").
+_GENERISCH = {"energie", "strom", "gas", "ag", "gmbh", "kraft", "kraftwerke", "vertrieb"}
+
+
+def _versorger_needles(v: Versorger) -> list[str]:
+    """Normalisierte, nicht-generische Match-Tokens eines Versorgers (Brand/Canonical/Aliases)."""
+    needles = [_norm(v.brand), _norm(v.canonical), *[_norm(a) for a in v.aliases]]
+    return [n for n in needles if n and n not in _GENERISCH]
+
+
 @lru_cache(maxsize=1)
 def lade_anbieter() -> tuple[Versorger, ...]:
     """Lädt ``anbieter.json`` als Versorger-Tupel (nur Strom-fähige)."""
@@ -142,14 +152,10 @@ def versorger_abdeckung(
 
         katalog_lieferanten = [t.lieferant for t in TariffCatalog.load().all()]
     kat_norm = {_norm(name) for name in katalog_lieferanten}
-    # Zu generische Tokens würden quer durch den Katalog matchen ("energie ag" → "energie").
-    _GENERISCH = {"energie", "strom", "gas", "ag", "gmbh", "kraft", "kraftwerke", "vertrieb"}
 
     def _im_katalog(v: Versorger) -> bool:
         # EIN-direktional (Anbieter-Bezeichner IN Katalogname) + generische Tokens raus.
-        needles = [_norm(v.brand), _norm(v.canonical), *[_norm(a) for a in v.aliases]]
-        needles = [n for n in needles if n and n not in _GENERISCH]
-        return any(any(n in k for k in kat_norm) for n in needles)
+        return any(any(n in k for k in kat_norm) for n in _versorger_needles(v))
 
     im_katalog = sorted({v.brand for v in verfuegbar if _im_katalog(v)})
     return VersorgerAbdeckung(
@@ -160,3 +166,21 @@ def versorger_abdeckung(
         nicht_verfuegbar=ausgeschlossen,
         im_katalog=im_katalog,
     )
+
+
+def ist_lieferant_verfuegbar(lieferant: str, plz: str) -> bool:
+    """True, wenn ein Lieferant (per Name) an dieser PLZ beziehbar ist.
+
+    Fail-open: bundesweite Anbieter, unbekannte Namen und lokal passende
+    Landesversorger → ``True``. ``False`` NUR, wenn der Name einen Landesversorger/
+    Stadtwerke-Anbieter trifft, dessen Bundesland die PLZ NICHT deckt (z.B. TIWAG
+    an einer NÖ-Adresse). Damit verschwindet aus dem Tarifvergleich genau das, was
+    der Kunde dort nicht abschließen kann — nicht mehr.
+    """
+    if not lieferant:
+        return True
+    name = _norm(lieferant)
+    for v in versorger_abdeckung(plz, katalog_lieferanten=[]).nicht_verfuegbar:
+        if any(n in name for n in _versorger_needles(v)):
+            return False
+    return True

@@ -5,7 +5,11 @@
 
 from __future__ import annotations
 
-from energietools.capabilities.providers import lade_anbieter, versorger_abdeckung
+from energietools.capabilities.providers import (
+    ist_lieferant_verfuegbar,
+    lade_anbieter,
+    versorger_abdeckung,
+)
 from energietools.capabilities.registry import default_registry
 
 
@@ -76,6 +80,24 @@ class TestVersorgerAbdeckung:
         a = versorger_abdeckung("2103")
         assert a.anzahl_verfuegbar == a.anzahl_bundesweit + a.anzahl_regional
         assert a.anzahl_verfuegbar == len(a.verfuegbar)
+
+
+class TestIstLieferantVerfuegbar:
+    """Filter-Helper für den Tarifvergleich (fail-open)."""
+
+    def test_landesversorger_fremdes_bundesland_raus(self) -> None:
+        # NÖ-Adresse: TIWAG (Tirol) + VKW (Vorarlberg) nicht abschließbar.
+        assert not ist_lieferant_verfuegbar("TIWAG-Tiroler Wasserkraft AG", "2103")
+        assert not ist_lieferant_verfuegbar("illwerke vkw AG", "2103")
+
+    def test_bundesweit_und_lokal_bleiben(self) -> None:
+        assert ist_lieferant_verfuegbar("VERBUND Energy4Business GmbH", "2103")
+        assert ist_lieferant_verfuegbar("EVN Energievertrieb GmbH & Co KG", "2103")  # NÖ
+        assert ist_lieferant_verfuegbar("TIWAG-Tiroler Wasserkraft AG", "6020")  # in Tirol ok
+
+    def test_unbekannter_anbieter_fail_open(self) -> None:
+        assert ist_lieferant_verfuegbar("Irgendein Kleiner Stromhändler GmbH", "2103")
+        assert ist_lieferant_verfuegbar("", "2103")
 
 
 class TestCapabilityRegistriert:

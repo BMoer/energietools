@@ -11,8 +11,15 @@ ihrem Bundesland (``region`` aus ``data/providers/anbieter.json``).
 from energietools.capabilities.providers.abdeckung import (
     Versorger,
     VersorgerAbdeckung,
+    ist_lieferant_verfuegbar,
     lade_anbieter,
     versorger_abdeckung,
 )
 
-__all__ = ["Versorger", "VersorgerAbdeckung", "lade_anbieter", "versorger_abdeckung"]
+__all__ = [
+    "Versorger",
+    "VersorgerAbdeckung",
+    "ist_lieferant_verfuegbar",
+    "lade_anbieter",
+    "versorger_abdeckung",
+]

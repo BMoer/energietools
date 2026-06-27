@@ -29,15 +29,16 @@ class TestLadeAnbieter:
 
 class TestVersorgerAbdeckung:
     def test_noe_schliesst_fremde_landesversorger_aus(self) -> None:
-        """Langenzersdorf (NÖ): EVN verfügbar, TIWAG (Tirol)/VKW (Vbg) ausgeschlossen."""
+        """Langenzersdorf (NÖ): EVN + Wien Energie (Wien+NÖ) verfügbar; TIWAG/VKW raus."""
         a = versorger_abdeckung("2103")
         assert "Niederösterreich" in a.bundeslaender
         verf = {v.brand for v in a.verfuegbar}
         ausg = {v.brand for v in a.nicht_verfuegbar}
         assert "EVN" in verf
         assert "VERBUND" in verf  # bundesweit immer
-        assert "TIWAG" in ausg and "VKW" in ausg
-        assert "Wien Energie" in ausg  # region Wien ⊅ NÖ
+        assert "Wien Energie" in verf  # E-Control: Wien Energie liefert auch in NÖ
+        # E-Control-bestätigt regional-only: an einer NÖ-Adresse nicht abschließbar.
+        assert "TIWAG" in ausg and "VKW" in ausg and "Salzburg AG" in ausg
 
     def test_tirol_schaltet_tiwag_frei(self) -> None:
         a = versorger_abdeckung("6020")  # Innsbruck
@@ -64,11 +65,12 @@ class TestVersorgerAbdeckung:
         assert "TIWAG" not in a.im_katalog
 
     def test_ooe_abkuerzung_wird_normalisiert(self) -> None:
-        # Energie AG OÖ (region "OÖ") muss in OÖ verfügbar, in NÖ ausgeschlossen sein.
+        # LINZ AG (region "OÖ", E-Control-bestätigt OÖ-only) muss in OÖ verfügbar,
+        # in NÖ ausgeschlossen sein — prüft die OÖ→Oberösterreich-Normalisierung.
         ooe = {v.brand for v in versorger_abdeckung("4020").verfuegbar}  # Linz
         noe = {v.brand for v in versorger_abdeckung("2103").nicht_verfuegbar}
-        assert "Energie AG OÖ" in ooe
-        assert "Energie AG OÖ" in noe
+        assert "LINZ AG" in ooe
+        assert "LINZ AG" in noe
 
     def test_unbekannte_plz_fail_open(self) -> None:
         # Unbekannte PLZ: fail-open → keine fälschlichen Ausschlüsse, bundesweite da.

@@ -2461,6 +2461,28 @@
     "preisanpassung": "",
     "wechsel_link": "https://www.verbund.com/de/privat/strom",
     "gueltig_ab": "",
+    "gueltig_bis": "2026-07-08"
+  },
+  {
+    "key": "verbund",
+    "lieferant": "VERBUND Energy4Business GmbH",
+    "tarif_name": "V-Strom-SPOT-H-KW4925",
+    "tariftyp": "Stundenfloater",
+    "preismodell": "",
+    "energiepreis_ct_kwh": 10.5228,
+    "grundgebuehr_eur_monat": 3.99,
+    "spot_aufschlag_ct": 0.0,
+    "spot_index": "",
+    "ist_oekostrom": true,
+    "energiequellen_erneuerbar_pct": 0.0,
+    "neukundenrabatt_eur": 0.0,
+    "neukundenrabatt_ct_kwh": 0.0,
+    "neukundenrabatt_name": "",
+    "preisgarantie_monate": null,
+    "hat_bindung": false,
+    "preisanpassung": "",
+    "wechsel_link": "https://www.verbund.com/de/privat/strom",
+    "gueltig_ab": "2026-07-09",
     "gueltig_bis": ""
   },
   {
@@ -2532,6 +2554,28 @@
   {
     "key": "web_gruenstrom",
     "lieferant": "WEB Windenergie AG",
+    "tarif_name": "W.E.B. grünstrom gruenstrom-spot",
+    "tariftyp": "Fixpreis",
+    "preismodell": "Festpreis",
+    "energiepreis_ct_kwh": 12.9,
+    "grundgebuehr_eur_monat": 5.0,
+    "spot_aufschlag_ct": 0.0,
+    "spot_index": "",
+    "ist_oekostrom": true,
+    "energiequellen_erneuerbar_pct": 0.0,
+    "neukundenrabatt_eur": 0.0,
+    "neukundenrabatt_ct_kwh": 0.0,
+    "neukundenrabatt_name": "",
+    "preisgarantie_monate": null,
+    "hat_bindung": false,
+    "preisanpassung": "",
+    "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "gueltig_ab": "2026-07-09",
+    "gueltig_bis": ""
+  },
+  {
+    "key": "web_gruenstrom",
+    "lieferant": "WEB Windenergie AG",
     "tarif_name": "W.E.B. grünstrom mobility",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis",
@@ -2571,7 +2615,7 @@
     "preisanpassung": "",
     "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
     "gueltig_ab": "",
-    "gueltig_bis": ""
+    "gueltig_bis": "2026-07-08"
   },
   {
     "key": "web_gruenstrom",

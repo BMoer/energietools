@@ -65,6 +65,6 @@ Aus einer im Chat hochgeladenen Stromrechnung die Ist-Kosten verstehen und bezif
 ## Caveats (MÜSSEN in die Antwort)
 
 - **Trigger `immer`:** Alle verglichenen Tarife sind Netto-Listenpreise (ohne befristete Rabatte), tagesaktueller Katalogstand laut tariff_compare-Result.
-- **Trigger `abdeckung.im_katalog_fehlend > 0`:** Für deine Region gibt es Anbieter, die (noch) nicht im Katalog stehen — der Vergleich ist insofern unvollständig.
+- **Trigger `versorger_abdeckung.im_katalog_fehlend_anzahl > 0`:** Für deine Region gibt es Anbieter, die (noch) nicht im Katalog stehen — der Vergleich ist insofern unvollständig.
 - **Trigger `invoice.rejected == true`:** Die Rechnungsangaben konnten nicht validiert werden — bitte die genannten Felder korrigieren, bevor ein Vergleich möglich ist.
 

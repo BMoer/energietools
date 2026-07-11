@@ -21,7 +21,12 @@ from energietools.capabilities.tariff_compare.sources import (
     CatalogTariffSource,
     SnapshotSpotPriceSource,
 )
-from energietools.models import Rechenweg, Tariff, TariffComparison
+from energietools.models import (
+    Rechenweg,
+    Tariff,
+    TariffComparison,
+    VersorgerAbdeckungBlock,
+)
 
 _DEFAULT_TOP_N = 10
 _MAX_TOP_N = 100
@@ -33,6 +38,31 @@ _MAX_TOP_N = 100
 # Fehlerklasse wie bei der Rechnung).
 _EP_MIN_CT, _EP_MAX_CT = _INVOICE_PLAUSIBILITAET["arbeitspreis_ct_kwh"]
 _GG_MIN_EUR, _GG_MAX_EUR = _INVOICE_PLAUSIBILITAET["grundgebuehr_eur_monat"]
+
+
+def _feld_art(annotation: Any) -> str:
+    """Grobe Art-Klassifikation eines Feld-Typs für das Linter-Schema."""
+    import typing
+
+    if typing.get_origin(annotation) in (list, tuple, set):
+        return "list"
+    if annotation in (int, float):
+        return "number"
+    if annotation is bool:
+        return "bool"
+    return "str"
+
+
+def _versorger_abdeckung_pfade() -> dict[str, str]:
+    """Trigger-adressierbare Feldpfade des ``versorger_abdeckung``-Blocks —
+    aus dem Modell abgeleitet, damit ein Feld-Rename hier automatisch mitzieht
+    (und ein veralteter Trigger dann sauber vom Linter gefangen wird)."""
+    pfade: dict[str, str] = {}
+    for name, feld in VersorgerAbdeckungBlock.model_fields.items():
+        pfade[f"versorger_abdeckung.{name}"] = _feld_art(feld.annotation)
+    for name in getattr(VersorgerAbdeckungBlock, "model_computed_fields", {}):
+        pfade[f"versorger_abdeckung.{name}"] = "number"  # im_katalog_fehlend_anzahl (int)
+    return pfade
 
 
 def rechenweg_kurzform(rechenweg: Rechenweg | None, verbrauch_kwh: float) -> str:
@@ -182,6 +212,23 @@ class TariffCompareCapability(Capability):
             "aktuelle_grundgebuehr_brutto_eur_monat",
         ],
     }
+
+    def result_field_paths(self) -> dict[str, str]:
+        """Reale Result-Felder (Top-Level-Skalare + versorger_abdeckung.*), gegen
+        die ein Prozess-Caveat-Trigger gelintet wird (siehe ``_result_dict``)."""
+        pfade: dict[str, str] = {
+            "plz": "str",
+            "jahresverbrauch_kwh": "number",
+            "anzahl_alternativen_gesamt": "number",
+            "anzahl_im_result": "number",
+            "max_ersparnis_eur": "number",
+            "netzkosten_eur_jahr": "number",
+            "netzbetreiber": "str",
+            "gebrauchsabgabe_rate": "number",
+            "bester_gesamt": "str",
+        }
+        pfade.update(_versorger_abdeckung_pfade())
+        return pfade
 
     def __init__(
         self,

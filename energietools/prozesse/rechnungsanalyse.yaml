@@ -78,7 +78,7 @@ caveats:
     text: >
       Alle verglichenen Tarife sind Netto-Listenpreise (ohne befristete
       Rabatte), tagesaktueller Katalogstand laut tariff_compare-Result.
-  - trigger: "abdeckung.im_katalog_fehlend > 0"
+  - trigger: "versorger_abdeckung.im_katalog_fehlend_anzahl > 0"
     text: >
       Für deine Region gibt es Anbieter, die (noch) nicht im Katalog stehen —
       der Vergleich ist insofern unvollständig.

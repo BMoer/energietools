@@ -106,6 +106,17 @@ class Capability(ABC):
     def _run(self, **kwargs: Any) -> Any:
         """Eigentliche Logik. Gibt die Nutzlast zurück oder wirft CapabilityError."""
 
+    def result_field_paths(self) -> dict[str, str]:
+        """Trigger-adressierbare Result-Feldpfade dieser Capability.
+
+        Mapping ``dotted.path -> art`` (``"number"|"bool"|"str"|"list"``). Der
+        Prozess-Linter prüft damit, dass ein Caveat-Trigger nur reale
+        Result-Felder referenziert (und Ordnungsvergleiche nur auf numerischen).
+        Default leer: das Result kann dann nicht in einem Caveat-Trigger
+        referenziert werden — der Linter lehnt es ab (fail-closed).
+        """
+        return {}
+
     def _meta(self, **kwargs: Any) -> dict[str, Any]:
         """Meta-Infos fürs Result-Envelope (``stand``, ``quelle``, ``snapshot_version``).
 

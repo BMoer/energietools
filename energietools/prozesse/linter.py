@@ -11,7 +11,11 @@ Prüft deterministisch, was ein Reviewer sonst von Hand nachschlagen müsste:
 (b) jeder Pflicht-Input einer referenzierten energietools-Capability ist
     durch ``benoetigte_daten`` oder eine ``frage`` (per ``feld``) gedeckt;
 (c) die Pflichtblöcke ``tool_mapping`` und ``caveats`` sind nicht leer;
-(d) die Block-Reihenfolge der Rohdatei folgt dem D7-Kanon.
+(d) die Block-Reihenfolge der Rohdatei folgt dem D7-Kanon;
+(e) jeder Caveat-Trigger-Feldpfad zeigt auf ein reales Result-Feld einer aktiv
+    aufgerufenen Capability (oder einen bekannten Kontext-Namespace), und ein
+    Ordnungsvergleich (``>`` etc.) steht nur auf einem numerischen Feld — damit
+    die 'abdeckung'-vs-'versorger_abdeckung'-Drift nicht wiederkommt.
 
 SemVer wird schon beim Laden geprüft (``ProzessMeta``, wirft dort) — ein
 Verstoß erscheint hier nicht als ``LintFehler``, sondern als Exception beim
@@ -94,6 +98,69 @@ def lint_prozess(
                         "WP-G1) — Tippfehler oder fehlende Katalog-Pflege?",
                     ),
                 )
+
+    fehler.extend(_lint_caveat_pfade(prozess, reg))
+    return fehler
+
+
+_ORDNUNGS_OPS = frozenset({">", "<", ">=", "<="})
+
+
+def _bekannte_result_pfade(
+    prozess: Prozess, reg: CapabilityRegistry,
+) -> tuple[dict[str, str], set[str]]:
+    """Result-Feldpfade (+Art) und deren Wurzel-Namespaces aller AKTIV
+    aufgerufenen energietools-Capabilities des Prozesses."""
+    bekannt: dict[str, str] = {}
+    roots: set[str] = set()
+    for schritt in prozess.tool_mapping:
+        if (
+            schritt.quelle == "energietools"
+            and schritt.rolle == "aktiv"
+            and schritt.capability in reg.names
+        ):
+            pfade = reg.get(schritt.capability).result_field_paths()
+            bekannt.update(pfade)
+            roots |= {p.split(".", 1)[0] for p in pfade}
+    return bekannt, roots
+
+
+def _lint_caveat_pfade(prozess: Prozess, reg: CapabilityRegistry) -> list[LintFehler]:
+    """Regel (e): Caveat-Trigger-Feldpfade gegen die realen Result-Felder linten."""
+    from energietools.prozesse.caveats import KONTEXT_NAMESPACES, zerlege_trigger
+
+    bekannt, kap_roots = _bekannte_result_pfade(prozess, reg)
+    fehler: list[LintFehler] = []
+    for caveat in prozess.caveats:
+        zerlegt = zerlege_trigger(caveat.trigger)
+        if zerlegt is None:  # "immer" oder Nicht-Vergleich → nichts zu prüfen
+            continue
+        pfad, op, _ = zerlegt
+        root = pfad.split(".", 1)[0]
+        if root in KONTEXT_NAMESPACES:
+            continue
+        if root not in kap_roots:
+            fehler.append(LintFehler(
+                prozess.meta.id, None, "caveat.trigger_pfad",
+                f"Trigger '{caveat.trigger}': Namespace '{root}' ist weder ein "
+                f"Result-Feld einer aktiv aufgerufenen Capability noch ein bekannter "
+                f"Kontext-Namespace ({sorted(KONTEXT_NAMESPACES)})",
+            ))
+            continue
+        if pfad not in bekannt:
+            bekannt_unter_root = sorted(p for p in bekannt if p.split(".", 1)[0] == root)
+            fehler.append(LintFehler(
+                prozess.meta.id, None, "caveat.trigger_pfad",
+                f"Trigger '{caveat.trigger}': Feldpfad '{pfad}' existiert nicht im "
+                f"Result (bekannt: {bekannt_unter_root})",
+            ))
+            continue
+        if op in _ORDNUNGS_OPS and bekannt[pfad] != "number":
+            fehler.append(LintFehler(
+                prozess.meta.id, None, "caveat.trigger_typ",
+                f"Trigger '{caveat.trigger}': Ordnungsvergleich '{op}' auf nicht-"
+                f"numerischem Feld '{pfad}' (Art '{bekannt[pfad]}')",
+            ))
     return fehler
 
 

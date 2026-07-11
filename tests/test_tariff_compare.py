@@ -288,7 +288,12 @@ class TestAbdeckungsBlock:
         )
         assert result.ok
         block = result.data["versorger_abdeckung"]
-        assert set(block) == {"verfuegbar", "nicht_verfuegbar", "im_katalog_fehlend"}
+        assert set(block) == {
+            "verfuegbar", "nicht_verfuegbar", "im_katalog_fehlend",
+            "im_katalog_fehlend_anzahl",
+        }
+        # Fund 9: der skalare Zähler trägt die Länge der Lücken-Liste (für Caveat-Trigger).
+        assert block["im_katalog_fehlend_anzahl"] == len(block["im_katalog_fehlend"])
 
 
 # =============================================================================

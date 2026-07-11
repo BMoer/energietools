@@ -10,7 +10,12 @@
     }
   ],
   "kontext": {
-    "abdeckung": {"im_katalog_fehlend": 1},
+    "versorger_abdeckung": {
+      "verfuegbar": ["Wien Energie Vertrieb GmbH & Co KG", "VERBUND Energy4Business GmbH"],
+      "nicht_verfuegbar": [],
+      "im_katalog_fehlend": ["Tibber"],
+      "im_katalog_fehlend_anzahl": 1
+    },
     "invoice": {"rejected": false}
   },
   "erwartete_frage_ids": ["f1_zieltarif"],
@@ -19,5 +24,5 @@
     {"schritt": "rechnung_abschliessen", "capability": "finalize_invoice", "quelle": "energietools"},
     {"schritt": "vergleich", "capability": "tariff_compare", "quelle": "energietools"}
   ],
-  "erwartete_caveats_trigger": ["immer", "abdeckung.im_katalog_fehlend > 0"]
+  "erwartete_caveats_trigger": ["immer", "versorger_abdeckung.im_katalog_fehlend_anzahl > 0"]
 }

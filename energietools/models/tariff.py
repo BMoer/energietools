@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 class Rechenweg(BaseModel):
@@ -133,6 +133,13 @@ class VersorgerAbdeckungBlock(BaseModel):
         default_factory=list,
         description="Verfügbare Lieferanten OHNE Tarif im verglichenen Katalog (Abdeckungslücke)",
     )
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def im_katalog_fehlend_anzahl(self) -> int:
+        """Skalarer Zähler der Abdeckungslücke — für numerische Caveat-Trigger
+        (ein '> 0'-Vergleich auf der Liste selbst wäre ein Typfehler)."""
+        return len(self.im_katalog_fehlend)
 
 
 class TariffComparison(BaseModel):

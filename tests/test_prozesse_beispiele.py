@@ -6,7 +6,17 @@
 from __future__ import annotations
 
 from energietools.prozesse.beispiel_check import pruefe_beispiel
+from energietools.prozesse.caveats import aktive_caveats
 from energietools.prozesse.loader import list_beispiele, load_beispiel, load_prozess
+from energietools.prozesse.models import Caveat
+
+
+def test_aktive_caveats_ueberspringt_kaputten_trigger_ohne_alle_zu_verlieren():
+    """Fund 9 (Runtime-Guard): ein Trigger, der zur Laufzeit wirft (z.B. '>' auf
+    einer Liste), darf nicht alle Caveats — inkl. des Pflicht-'immer' — kippen."""
+    caveats = [Caveat(trigger="immer", text="A"), Caveat(trigger="x.y > 0", text="B")]
+    aktiv = aktive_caveats(caveats, {"x": {"y": ["a", "b"]}})
+    assert [c.text for c in aktiv] == ["A"]
 
 
 class TestBeispielDialoge:

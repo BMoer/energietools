@@ -19,14 +19,54 @@ from energietools.prozesse.models import Caveat, Prozess, ProzessMeta, ToolMappi
 _STAND = date(2026, 7, 11)
 
 
-def _prozess(tool_mapping, *, benoetigte_daten=None) -> Prozess:
+def _prozess(tool_mapping, *, benoetigte_daten=None, caveats=None) -> Prozess:
     return Prozess(
         meta=ProzessMeta(id="kaputter_test", prozess_version="1.0.0", stand=_STAND),
         ziel="Test.",
         benoetigte_daten=benoetigte_daten or [],
         tool_mapping=tool_mapping,
-        caveats=[Caveat(trigger="immer", text="Test.")],
+        caveats=caveats or [Caveat(trigger="immer", text="Test.")],
     )
+
+
+_TARIFF_COMPARE_BENOETIGT = [
+    {"feld": f, "quelle": "rechnung", "pflicht": True}
+    for f in (
+        "plz", "jahresverbrauch_kwh", "aktueller_lieferant",
+        "aktueller_energiepreis_brutto_ct_kwh", "aktuelle_grundgebuehr_brutto_eur_monat",
+    )
+]
+
+
+class TestCaveatTriggerPfade:
+    """Fund 9: caveat-Trigger-Feldpfade werden gegen die realen Result-Felder der
+    aktiv aufgerufenen Capability gelintet — damit die 'abdeckung'-vs-
+    'versorger_abdeckung'-Drift-Fehlerklasse nicht wiederkommt."""
+
+    def _mit_caveat(self, trigger: str) -> Prozess:
+        schritt = ToolMappingSchritt(
+            schritt="vergleich", capability="tariff_compare", quelle="energietools",
+        )
+        return _prozess(
+            [schritt],
+            benoetigte_daten=_TARIFF_COMPARE_BENOETIGT,
+            caveats=[Caveat(trigger="immer", text="A"), Caveat(trigger=trigger, text="B")],
+        )
+
+    def test_falscher_feld_namespace_wird_erkannt(self):
+        fehler = lint_prozess(self._mit_caveat("abdeckung.im_katalog_fehlend > 0"))
+        assert any(f.regel == "caveat.trigger_pfad" for f in fehler), fehler
+
+    def test_realer_output_pfad_lintet_sauber(self):
+        fehler = lint_prozess(
+            self._mit_caveat("versorger_abdeckung.im_katalog_fehlend_anzahl > 0"),
+        )
+        assert fehler == [], fehler
+
+    def test_ordnungsvergleich_auf_liste_wird_erkannt(self):
+        # im_katalog_fehlend ist eine Liste — '>' darauf ist ein Typfehler (crasht sonst).
+        fehler = lint_prozess(self._mit_caveat("versorger_abdeckung.im_katalog_fehlend > 0"))
+        assert any(f.regel == "caveat.trigger_typ" for f in fehler), fehler
 
 
 class TestEchteProzesse:

@@ -13,12 +13,38 @@ Code ausführen (Eingaben an Systemgrenzen nie vertrauen).
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Any
 
 from energietools.prozesse.models import Caveat
 
+log = logging.getLogger(__name__)
+
 _TRIGGER_RE = re.compile(r"^([\w.]+)\s*(==|!=|>=|<=|>|<)\s*(.+)$")
+
+# Kontext-Namespaces, die NICHT aus einem Capability-Result stammen, sondern vom
+# Gateway/Runtime in den Auswertungs-Kontext gesetzt werden (z.B. der
+# Rejection-Status von validate_invoice_facts unter 'invoice', oder der
+# Katalog-Abgleich einer Erstkontakt-Anfrage unter 'anfrage'). Der Struktur-
+# Linter kann ihre Felder nicht gegen ein Capability-Schema prüfen und lässt sie
+# deshalb bewusst zu — ihre Herkunft ist außerhalb dieses Repos dokumentiert.
+KONTEXT_NAMESPACES = frozenset({"invoice", "anfrage"})
+
+
+def zerlege_trigger(trigger: str) -> tuple[str, str, str] | None:
+    """Zerlegt einen Vergleichs-Trigger in ``(pfad, operator, wert_text)``.
+
+    ``None`` für das Literal ``"immer"`` oder jedes nicht als Vergleich
+    parsebare Format (die Laufzeit-Auswertung löst dann konservativ nicht aus).
+    """
+    if trigger.strip() == "immer":
+        return None
+    match = _TRIGGER_RE.match(trigger.strip())
+    if not match:
+        return None
+    pfad, op, wert_text = match.groups()
+    return pfad, op, wert_text
 
 _OPS: dict[str, Any] = {
     "==": lambda a, b: a == b,
@@ -71,5 +97,17 @@ def trigger_aktiv(trigger: str, context: dict[str, Any] | None = None) -> bool:
 
 
 def aktive_caveats(caveats: list[Caveat], context: dict[str, Any] | None = None) -> list[Caveat]:
-    """Alle Caveats, deren Trigger im gegebenen Kontext zutrifft."""
-    return [c for c in caveats if trigger_aktiv(c.trigger, context)]
+    """Alle Caveats, deren Trigger im gegebenen Kontext zutrifft.
+
+    Jeder Trigger wird einzeln ausgewertet und gekapselt: ein zur Laufzeit
+    werfender Trigger (z.B. ein Ordnungsvergleich gegen eine Liste) darf niemals
+    die übrigen Caveats — insbesondere das Pflicht-``"immer"`` — mitkippen (D7).
+    """
+    aktiv: list[Caveat] = []
+    for c in caveats:
+        try:
+            if trigger_aktiv(c.trigger, context):
+                aktiv.append(c)
+        except Exception:  # Ein kaputter Trigger darf die Antwort nicht entwerten.
+            log.warning("Caveat-Trigger %r nicht auswertbar — übersprungen", c.trigger)
+    return aktiv

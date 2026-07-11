@@ -158,6 +158,15 @@ def _aktueller_tarif(
         nb_key=nb_key,
         quelle="rechnung",
     )
+    # Gas hat keine Strom-Gebrauchsabgabe: wie in ``_tariff_from_row`` müssen die
+    # GA-Felder AUCH im Rechenweg genullt werden — sonst widerspricht der
+    # auditierbare Rechenweg dem (korrekt genullten) ``gebrauchsabgabe_eur``-Feld
+    # (No-LLM-Math: kein erfundener GA-Posten, Fund gridbert-Gegenlese).
+    rechenweg = res["rechenweg"]
+    if not mit_gebrauchsabgabe:
+        rechenweg = rechenweg.model_copy(
+            update={"gebrauchsabgabe_eur": 0.0, "gebrauchsabgabe_rate": 0.0},
+        )
     return Tariff(
         lieferant=lieferant,
         tarif_name="Aktueller Tarif",
@@ -165,7 +174,7 @@ def _aktueller_tarif(
         grundgebuehr_eur_monat=grundgebuehr_brutto,
         jahreskosten_eur=res["jahreskosten_energie_brutto_eur"],
         gebrauchsabgabe_eur=res["gebrauchsabgabe_eur"] if mit_gebrauchsabgabe else 0.0,
-        rechenweg=res["rechenweg"],
+        rechenweg=rechenweg,
         quelle="rechnung",
     )
 

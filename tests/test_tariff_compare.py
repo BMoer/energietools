@@ -163,6 +163,28 @@ class TestParitaet:
         assert cmp.alternativen[0].gebrauchsabgabe_eur == 0.0
         assert cmp.netzkosten_eur_jahr == 0.0
 
+    def test_gas_aktueller_tarif_rechenweg_nullt_gebrauchsabgabe(self):
+        """Fund 1: GAS — der aktueller_tarif-Rechenweg darf keine Strom-
+        Gebrauchsabgabe ausweisen (No-LLM-Math: Feld und Rechenweg dürfen sich
+        nicht widersprechen)."""
+        from energietools.capabilities.tariff_compare.capability import rechenweg_kurzform
+
+        rows = [{**_fix("g", "Gas AG", "Fix G", 10.0, gg_netto=3.0), "energy_type": "GAS"}]
+        cmp = _vergleich(
+            rows, plz="1010", jahresverbrauch_kwh=15000,
+            aktueller_lieferant="Alt-Gas",
+            aktueller_energiepreis_brutto_ct_kwh=14.0,
+            aktuelle_grundgebuehr_brutto_eur_monat=5.0,
+            energy_type="GAS",
+        )
+        at = cmp.aktueller_tarif
+        assert at.gebrauchsabgabe_eur == 0.0
+        assert at.rechenweg is not None
+        assert at.rechenweg.gebrauchsabgabe_eur == 0.0
+        assert at.rechenweg.gebrauchsabgabe_rate == 0.0
+        kurz = rechenweg_kurzform(at.rechenweg, cmp.jahresverbrauch_kwh)
+        assert "Gebrauchsabgabe" not in kurz
+
     def test_quelle_extern_default(self):
         """Default ohne explizites ``quelle=`` ist neutral ("extern"), nicht
         gridbert-spezifisch ("scraper") — injizierte Fremd-Quellen sind nicht

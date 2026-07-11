@@ -54,10 +54,12 @@ Aus lizenz-unabhängigen, öffentlichen Quellen neu geschrieben - kein pvtool-Co
 
 ## Relizenzierung AGPL → MIT (gridbert-Konsolidierung)
 
-Der Owner (Benjamin Mörzinger) hat folgende selbst geschriebene Module aus
-**gridbert** (AGPL-3.0-only) nach energietools (MIT) **neu formuliert** — kein
-AGPL-Header wurde in den MIT-Baum übernommen, die Logik wurde unter MIT neu
-geschrieben:
+Der Owner (Benjamin Mörzinger) — Alleinautor in beiden Repos — hat folgende
+selbst geschriebene Module aus **gridbert** (AGPL-3.0-only) nach energietools
+(MIT) übernommen und relizenziert. Die meisten wurden dabei unter MIT **neu
+formuliert** (kein AGPL-Header wurde in den MIT-Baum übernommen, die Logik
+wurde unter MIT neu geschrieben); einzelne Ports sind de facto wörtlich —
+dort ist das beim jeweiligen Eintrag vermerkt:
 
 - **Spot/Floater-Backtest-Mathematik** (PRIO-1 S3) — `energietools/tools/cost_engine.py`,
   `energietools/tools/spot_pricing.py`, `energietools/tools/h0_profile.py`. Offline
@@ -70,6 +72,25 @@ geschrieben:
   Rabatt-Logik aus `kosten_rechenweg`) zum vollen Szenario-Kosten-Pfad inkl. Neukunden-
   rabatt + Spot/Floater. Die separate-Block-Formel spiegelt gridberts `_tariff_from_row`,
   neu unter MIT formuliert (kein AGPL-Header übernommen).
+- **Zählpunkt-Kanonisierung** (WP-T) — `energietools/tools/zaehlpunkt.py`. Vom
+  Alleinautor (Benjamin Mörzinger) aus gridbert (`gridbert/tools/zaehlpunkt.py`)
+  übernommen und unter MIT neu lizenziert — der Port ist de facto wörtlich
+  (keine Neuformulierung), kein AGPL-Header im MIT-Baum.
+- **Tarifvergleich-Kern** (WP-T) — `energietools/capabilities/tariff_compare/compare.py`
+  (+ `capability.py`, `protocols.py`, `sources.py`). Portiert aus gridberts
+  `services/tariff_comparison_db.py`, unter MIT neu formuliert: storage-agnostische
+  `TariffSource`/`SpotPriceSource`-Protocols statt direkter DB-/Scraper-Kopplung;
+  kein AGPL-Header übernommen.
+- **Invoice-Fakten-Schema** (WP-T, D2.2) — `energietools/capabilities/invoice/facts.py`.
+  Portiert u.a. aus gridberts `tools/invoice_parser/llm_extract.py`
+  (`_needs_brutto_verification`-Detektor) und dem Verifier-Recall-Konzept aus
+  `core.py`; unter MIT neu formuliert als strikte Pydantic-Validierung mit
+  Rejection-Semantik statt stiller Koerzion.
+- **Rechnungs-Postprocessing** (B.4-Anteile, WP-T) — Teile von
+  `energietools/tools/invoice_parser.py` (Adress-/Jahresverbrauch-Merge,
+  Zählpunkt-Normalisierung, Hauptmetrik-Herleitung aus Endbetrag + Zeitraum).
+  Portiert aus gridberts `tools/invoice_parser/postprocess.py`, unter MIT neu
+  formuliert (die gridbert-Kopie ist seither als DEPRECATED markiert).
 
 ## Vorarbeiten
 

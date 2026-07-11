@@ -8,13 +8,14 @@ Daten-Snapshots und die deterministische Rechnung.
 
 ## Was energietools sein soll
 
-Ein Agent-Toolkit aus **drei Schichten**, die ein Agent orchestriert, statt selbst
+Ein Agent-Toolkit aus **vier Schichten**, die ein Agent orchestriert, statt selbst
 zu rechnen:
 
 - **Wissen (Second Brain).** Ein nach Andrej Karpathys LLM-Wiki gebautes
-  Markdown-Wiki (`wiki/`). Es erklärt, was die Dinge *bedeuten*: wie sich
+  Markdown-Wiki (`energietools/wiki/`). Es erklärt, was die Dinge *bedeuten*: wie sich
   Gesamtenergiekosten zusammensetzen, wie Energiegemeinschaften funktionieren, was
-  die Netzebenen sind. Kuratiert und verdichtet, kein Daten-Dump.
+  die Netzebenen sind. Kuratiert und verdichtet, kein Daten-Dump. Wird per
+  `get_knowledge`-Capability ausgeliefert (deterministische Text-Auslieferung).
 - **Daten (Open Data).** Datierte, gequellte Snapshots öffentlich verfügbarer Daten
   (`energietools/data/`): Tarife, Netzentgelte, aktive Förderungen. Jeder Snapshot
   trägt Stand-Datum und Quelle.
@@ -22,25 +23,39 @@ zu rechnen:
   Komponenten (PV, Batterie, E-Auto, Wärmepumpe, Gaskessel), die man zu einem System
   zusammensteckt und über einen konfigurierbaren Optimierer rechnet - plus die
   auditierbaren Capabilities (Tarifvergleich, Netzentgelt, Finanzkennzahlen).
+- **Prozesse (Gesprächsleitfäden).** Versionierte YAML-Definitionen
+  (`energietools/prozesse/`), die Wissen und Rechnen für einen konkreten
+  Anwendungsfall orchestrieren (z. B. Erstkontakt, Rechnungsanalyse): Ziel,
+  benötigte Daten, Fragenreihenfolge, Tool-Mapping (gegen die Capability-Registry
+  gelintet), Abbruch-/Caveat-Regeln.
 
 **Der rote Faden:** der Agent liest *Wissen*, zieht den passenden *Daten*-Snapshot,
-rechnet deterministisch über den *Baukasten*. Kein Rechnen im LLM, wo es still
-falsch wird. Das Wiki sagt, was etwas bedeutet; die Daten liefern die aktuelle
-Zahl; der Baukasten rechnet sie nachvollziehbar.
+rechnet deterministisch über den *Baukasten* - ein *Prozess* gibt vor, in welcher
+Reihenfolge und mit welchen Caveats das für einen konkreten Anwendungsfall passiert.
+Kein Rechnen im LLM, wo es still falsch wird. Das Wiki sagt, was etwas bedeutet; die
+Daten liefern die aktuelle Zahl; der Baukasten rechnet sie nachvollziehbar; der
+Prozess hält die Reihenfolge und die ehrlichen Caveats fest.
 
 > **Audit-Prinzip.** Jede produzierte Zahl ist nachrechenbar: datierte, gequellte
 > Snapshots statt Live-Scrape, ein lückenloser `Rechenweg` pro Ergebnis, keine
 > stillen Defaults (fehlende Eingaben werfen einen `CapabilityError`). Schätzungen
 > sind als solche gekennzeichnet, nicht als Abrechnung ausgegeben.
 
-## Die drei Schichten im Gebrauch
+## Die vier Schichten im Gebrauch
 
-### Wissen - `wiki/`
+### Wissen - `energietools/wiki/`
 Ein Ordner aus Markdown-Seiten, **kein Server**. Zeig einen Agenten (oder dich
-selbst) auf `wiki/index.md` bzw. den maschinenlesbaren Index `wiki/llms.txt`. Jede
-Seite erklärt ein Konzept selbst-enthalten, mit Querlinks, `Berechnet von` (Link
-zur zuständigen Capability) und `Quellen` + `Stand`. Einstieg:
-[`wiki/netz/netzentgelte.md`](wiki/netz/netzentgelte.md) als ausgearbeitete Vorlage.
+selbst) auf `energietools/wiki/index.md` bzw. den maschinenlesbaren Index
+`energietools/wiki/llms.txt`. Jede Seite erklärt ein Konzept selbst-enthalten, mit
+Querlinks, `Berechnet von` (Link zur zuständigen Capability) und `Quellen` + `Stand`.
+Einstieg: [`energietools/wiki/netz/netzentgelte.md`](energietools/wiki/netz/netzentgelte.md)
+als ausgearbeitete Vorlage. Liegt bewusst **innerhalb** des Python-Packages (nicht am
+Repo-Root), damit `wiki/` als Package-Data mit jedem `pip install energietools`
+mitgeliefert wird - ein Gateway, der energietools nur als gepinnte Dependency zieht,
+bekommt den Wiki-Baum sonst nicht zu Gesicht (Prüfpunkt aus D7, gelöst per
+`pyproject.toml`). Ausgeliefert wird eine Seite deterministisch über die
+`get_knowledge`-Capability (`thema`-Enum wird aus `llms.txt` gebaut, Result =
+Seiteninhalt + Stand + Quellenverweis - reine Text-Auslieferung, kein Rechen-Result).
 
 ### Daten - `energietools/data/`
 Versionierte First-Party-Snapshots: der Tarifkatalog (`data/tariffs/`), die
@@ -98,6 +113,31 @@ Erste Auflösung ist **diskret** (eine Ingenieursrechnung, keine Zeitreihen); di
 Komponenten-Schnittstelle ist so angelegt, dass die spätere Zeitreihen-Variante ein
 Superset ist - ein Skalar ist ein Ein-Punkt-Profil.
 
+### Prozesse - `energietools/prozesse/`
+
+Ein Prozess ist ein versioniertes YAML (`meta`, `ziel`, `benoetigte_daten`, `fragen`,
+`tool_mapping`, `datenqualitaet_abbruch`, `caveats`) - ein Gesprächsleitfaden für
+einen konkreten Anwendungsfall, kein Freitext-Prompt. `energietools/prozesse/MANIFEST.json`
+listet jeden Prozess mit `prozess_version` (SemVer). v1: `erstkontakt.yaml`
+(Orientierung beim ersten Kontakt) und `rechnungsanalyse.yaml`
+(Rechnung → Tarifvergleich mit Rechenweg).
+
+Ein **Struktur-Linter** (`energietools.prozesse.linter`) prüft deterministisch: jede
+`tool_mapping`-Capability existiert (in `default_registry()` bei `quelle: energietools`,
+in einer dokumentierten Extern-Liste bei `quelle: extern` - Engram-Vault-/
+Gridbert-Domänen-Tools, die nicht Teil dieses Repos sind), jeder Pflicht-Input der
+Capability ist durch `benoetigte_daten`/`fragen` gedeckt, `prozess_version` ist SemVer,
+Pflichtblöcke (`tool_mapping`, `caveats`) sind nicht leer. Anonymisierte
+Beispiel-Dialoge (`energietools/prozesse/beispiele/*.json`) fixieren erwartete
+Tool-Calls und Pflicht-Caveats je Prozess.
+
+Ein deterministischer **Renderer** (`energietools.prozesse.renderer`) übersetzt
+`prozesse/<id>.yaml` in ein SKILL.md (YAML-Frontmatter + Markdown, ausgeliefert über
+den engram-`GET /skills`-Mechanismus) sowie eine Kurzform für die MCP-
+`initialize.instructions` bzw. Tool-Beschreibungen - Chat-Clients installieren keine
+Skills, sie sehen nur diese Kurzform. Gerenderte Artefakte liegen unter `skills/`
+(Drift-Guard-Test: `tests/test_prozesse_renderer.py` rendert neu und vergleicht).
+
 ## Capabilities
 
 Jede Fähigkeit hat eine Form - `run(**kwargs) -> CapabilityResult` - und
@@ -112,6 +152,8 @@ registriert sich selbst in der CLI. Auflisten: `python -m energietools list`.
 | `scenarios` | Batterie-Größen-Sweep mit Eigenverbrauchs-Dispatch + ROI (ersetzt das alte `battery_sim`) |
 | `heatpump` | Heizkostenvergleich Wärmepumpe vs. Gas (Carnot-COP, diskret) |
 | `community_metrics` | Energiegemeinschafts-Kennzahlen (Eigenverbrauch/Autarkie/Reststrom/Überschuss) |
+| `validate_invoice_facts` / `finalize_invoice` | Rechnungs-Fakten strikt validieren (Rejection-Semantik) bzw. validieren + deterministisch aufrechnen (`jahreskosten_brutto_eur`, voller Rechenweg) |
+| `get_knowledge` | Liefert eine kuratierte Wiki-Seite (WISSEN-Schicht) als reinen Text + Stand + Quellenverweis - `thema`-Enum wird zur Buildzeit aus `wiki/llms.txt` erzeugt, kein Rechen-Result |
 | `pv_sim` / `spot_analysis` / `load_profile` / `energy_monitor` / `beg_advisor` / `web_search` | Weitere deterministische Werkzeuge |
 
 ```bash

@@ -9,9 +9,10 @@ Capability ist sofort aufrufbar, ohne CLI-Code zu ändern.
 Usage:
     python -m energietools list
     python -m energietools tariff_catalog --json '{"oekostrom": true}'
-    python -m energietools tariff_compare --json '{"verbrauch_kwh": 3200,
-        "aktueller_energiepreis_ct_kwh": 25, "aktuelle_grundgebuehr_eur_monat": 6,
-        "gebrauchsabgabe_rate": 0.07}'
+    python -m energietools tariff_compare --json '{"plz": "1060",
+        "jahresverbrauch_kwh": 3200, "aktueller_lieferant": "Mein EVU",
+        "aktueller_energiepreis_brutto_ct_kwh": 25,
+        "aktuelle_grundgebuehr_brutto_eur_monat": 6}'
 """
 
 from __future__ import annotations

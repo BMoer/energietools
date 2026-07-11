@@ -98,6 +98,21 @@ def _versorger_needles(v: Versorger) -> list[str]:
 
 
 @lru_cache(maxsize=1)
+def lade_providers_manifest() -> dict:
+    """Lädt das providers-MANIFEST (Stand/Provenance); ``{}`` wenn nicht vorhanden.
+
+    Fail-open: das Manifest ist Zusatzinfo (Result-``meta``, B.6), nie Blocker.
+    """
+    try:
+        raw = json.loads(
+            resources.files(_DATA_PACKAGE).joinpath("MANIFEST.json").read_text("utf-8"),
+        )
+    except (FileNotFoundError, ModuleNotFoundError, json.JSONDecodeError):
+        return {}
+    return raw if isinstance(raw, dict) else {}
+
+
+@lru_cache(maxsize=1)
 def lade_anbieter() -> tuple[Versorger, ...]:
     """Lädt ``anbieter.json`` als Versorger-Tupel (nur Strom-fähige)."""
     try:

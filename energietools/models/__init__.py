@@ -17,7 +17,13 @@ from energietools.models.pv import PVSimulation
 from energietools.models.report import ReportSection, SavingsReport
 from energietools.models.smart_meter import ConsumptionReading, SmartMeterData
 from energietools.models.spot import MonthlySpotBreakdown, SpotAnalysis
-from energietools.models.tariff import Rechenweg, Tariff, TariffComparison
+from energietools.models.tariff import (
+    Rechenweg,
+    RegionalAusgeschlossen,
+    Tariff,
+    TariffComparison,
+    VersorgerAbdeckungBlock,
+)
 
 __all__ = [
     "AnomalyResult",
@@ -40,6 +46,8 @@ __all__ = [
     "SmartMeterData",
     "SpotAnalysis",
     "Rechenweg",
+    "RegionalAusgeschlossen",
     "Tariff",
     "TariffComparison",
+    "VersorgerAbdeckungBlock",
 ]

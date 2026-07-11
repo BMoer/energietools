@@ -8,7 +8,10 @@ from __future__ import annotations
 from typing import Any
 
 from energietools.capabilities.base import Capability, CapabilityError
-from energietools.capabilities.providers.abdeckung import versorger_abdeckung
+from energietools.capabilities.providers.abdeckung import (
+    lade_providers_manifest,
+    versorger_abdeckung,
+)
 
 
 class VersorgerAbdeckungCapability(Capability):
@@ -25,6 +28,15 @@ class VersorgerAbdeckungCapability(Capability):
         "properties": {"plz": {"type": "string", "description": "Postleitzahl"}},
         "required": ["plz"],
     }
+
+    def _meta(self, **kwargs: Any) -> dict[str, Any]:
+        # B.6: Provenance des Snapshots im Result-Envelope (stand/quelle/version).
+        manifest = lade_providers_manifest()
+        return {
+            "stand": manifest.get("stand", ""),
+            "quelle": "anbieter.json (energietools.data.providers)",
+            "snapshot_version": manifest.get("data_version", ""),
+        }
 
     def _run(self, **kwargs: Any) -> dict[str, Any]:
         plz = kwargs.get("plz")

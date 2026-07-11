@@ -17,6 +17,10 @@ from energietools.capabilities.base import CapabilityRegistry
 from energietools.capabilities.community.capability import CommunityMetricsCapability
 from energietools.capabilities.finance.capability import FinanceCapability
 from energietools.capabilities.heatpump.capability import HeatPumpCapability
+from energietools.capabilities.invoice.capability import (
+    FinalizeInvoiceCapability,
+    ValidateInvoiceFactsCapability,
+)
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
@@ -25,6 +29,7 @@ from energietools.capabilities.netz.capability import (
 from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
 from energietools.capabilities.providers.capability import VersorgerAbdeckungCapability
 from energietools.capabilities.scenarios.capability import ScenariosCapability
+from energietools.capabilities.tariff_compare.capability import TariffCompareCapability
 from energietools.capabilities.tariffs.capability import TariffCatalogCapability
 from energietools.capabilities.tools_bridge import register_tool_capabilities
 
@@ -33,8 +38,14 @@ from energietools.capabilities.tools_bridge import register_tool_capabilities
 def default_registry() -> CapabilityRegistry:
     """Zentrale Registry aller ausgelieferten Capabilities (gecacht)."""
     registry = CapabilityRegistry()
-    # Auditierbarer Kern: Open-Data-Tarifkatalog (Vergleich lebt im Produkt, S4).
+    # Auditierbarer Kern: Open-Data-Tarifkatalog + Tarifvergleich (B.1-Move:
+    # der Vergleichs-Kern lebt seit WP-T hier; Datenquellen via Protocols).
     registry.register(TariffCatalogCapability())
+    registry.register(TariffCompareCapability())
+    # Rechnungs-Fakten: Validierung (D2.2, Rejection-Semantik) + deterministische
+    # Aufbereitung mit Rechenweg (B.4/B.5).
+    registry.register(ValidateInvoiceFactsCapability())
+    registry.register(FinalizeInvoiceCapability())
     # Energiegemeinschafts-Kennzahlen (EEG/BEG).
     registry.register(CommunityMetricsCapability())
     # Netz: regulierte Netzkosten, Gesamtkosten, Verfügbarkeit.

@@ -43,10 +43,11 @@ class Rechenweg(BaseModel):
 
 
 class Tariff(BaseModel):
-    """Ein Stromtarif (Quelle: Open-Data-Katalog oder eigene Rechnung)."""
+    """Ein Energietarif (Strom oder Gas; Quelle: Katalog, Datenquelle oder eigene Rechnung)."""
 
     lieferant: str
     tarif_name: str
+    energy_type: str = Field(default="POWER", description="POWER | GAS")
     energiepreis_ct_kwh: float
     grundgebuehr_eur_monat: float
     jahreskosten_eur: float = Field(
@@ -79,14 +80,67 @@ class Tariff(BaseModel):
     spot_index: str = Field(default="", description="Börsenindex des Spot-Tarifs, z.B. 'EPEX AT'")
     ist_biogas: bool = Field(default=False, description="Gas-Ökoflag (Biogas-Anteil)")
     rechenweg: Rechenweg | None = Field(default=None, description="Transparenter Berechnungsweg")
+    # Präsentations-/Vertragsfelder (B.1-Port des Vergleichskerns; additiv/defaulted).
+    neukundenrabatt_name: str = Field(
+        default="", description="Name des Neukundenrabatts (z.B. '3 Cent/kWh Bonus')",
+    )
+    energiequellen_erneuerbar_pct: float = Field(
+        default=0.0, description="Anteil erneuerbare Energie in %",
+    )
+    preisgarantie_monate: int | None = Field(
+        default=None, description="Preisgarantie in Monaten (z.B. 12)",
+    )
+    preisanpassung: str = Field(
+        default="", description="Preisanpassung: 'monatliche', 'quartalsweise', '' (=fix)",
+    )
+    # Zielgruppe: steuert NUR die Sichtbarkeit im jeweiligen Vergleich, nicht das
+    # Ranking. Default "standard" = Haushaltsstrom; Heizstrom-Gruppen setzen einen
+    # separaten Zählpunkt + Unterbrechbarkeit voraus.
+    zielgruppe: str = Field(
+        default="standard",
+        description="standard | waermepumpe | elektroheizung | unterbrechbar",
+    )
+    unterbrechbar: bool = Field(
+        default=False,
+        description="True = eigener Zählpunkt + Unterbrechbarkeit erforderlich",
+    )
+
+
+class RegionalAusgeschlossen(BaseModel):
+    """Ein regional ausgeschlossener Lieferant (Landesversorger fremdes Bundesland)."""
+
+    brand: str
+    region: list[str] = Field(default_factory=list, description="Bundesländer des Versorgers")
+
+
+class VersorgerAbdeckungBlock(BaseModel):
+    """Abdeckungs-Output-Block des Tarifvergleichs (B.2).
+
+    Weist für die Vergleichs-PLZ aus, welche bekannten Lieferanten dort
+    verfügbar sind, welche regional ausgeschlossen wurden und welche
+    verfügbaren Lieferanten im verglichenen Katalog FEHLEN — damit ein
+    Konsument (LLM/UI) die Grenzen des Vergleichs ehrlich benennen kann.
+    """
+
+    verfuegbar: list[str] = Field(
+        default_factory=list, description="An der PLZ verfügbare Lieferanten (Brands)",
+    )
+    nicht_verfuegbar: list[RegionalAusgeschlossen] = Field(
+        default_factory=list,
+        description="Regional ausgeschlossene Lieferanten (mit ihrem Versorgungsgebiet)",
+    )
+    im_katalog_fehlend: list[str] = Field(
+        default_factory=list,
+        description="Verfügbare Lieferanten OHNE Tarif im verglichenen Katalog (Abdeckungslücke)",
+    )
 
 
 class TariffComparison(BaseModel):
-    """Container eines Tarifvergleichs (Datenmodell).
+    """Ergebnis eines Tarifvergleichs — vollständig deterministisch sortiert.
 
-    Hinweis: die Vergleichs-LOGIK (Ersparnis/Ranking/Kategorien) lebt seit S4 im
-    Produkt (gridbert), nicht in energietools — et ist die reine Kosten-Engine.
-    Dieses Modell bleibt als Datencontainer für Konsumenten erhalten.
+    Hinweis: der Vergleichs-Kern (Loop/Differenz/Ranking) lebt seit dem
+    B.1-Move in ``energietools.capabilities.tariff_compare``; die proprietäre
+    Datenbeschaffung bleibt beim Konsumenten (TariffSource/SpotPriceSource).
     """
 
     aktueller_tarif: Tariff
@@ -98,6 +152,11 @@ class TariffComparison(BaseModel):
     gebrauchsabgabe_rate: float = Field(
         default=0.0,
         description="Gebrauchsabgabe-Satz für diese PLZ (z.B. 0.07 für Wien)",
+    )
+    versorger_abdeckung: VersorgerAbdeckungBlock | None = Field(
+        default=None,
+        description="Abdeckungs-Block (B.2): verfuegbar / nicht_verfuegbar / im_katalog_fehlend; "
+        "None bei GAS (Abdeckungsdaten sind Strom-only)",
     )
 
     # Pre-sorted category lists (vom Konsumenten befüllt)

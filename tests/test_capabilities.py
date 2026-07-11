@@ -103,7 +103,9 @@ class TestCapabilityRegistry:
         reg = default_registry()
         assert "tariff_catalog" in reg.names
         assert "gesamtkosten" in reg.names  # Kosten-Engine bleibt
-        assert "tariff_compare" not in reg.names  # Vergleich lebt im Produkt (S4)
+        assert "tariff_compare" in reg.names  # B.1: Vergleichs-Kern lebt jetzt hier
+        assert "validate_invoice_facts" in reg.names  # B.5: Fakten-Validierung
+        assert "finalize_invoice" in reg.names  # B.4/B.5: deterministische Aufbereitung
         assert len(reg.tool_definitions()) >= 2
 
 
@@ -236,16 +238,22 @@ class TestKostenRechenweg:
         assert round(ohne.brutto_jahreskosten_eur - mit.brutto_jahreskosten_eur, 2) == 50.0
 
 
-class TestComparisonSurfaceRemoved:
-    """S4: et ist reine Kosten-Engine — die Vergleichs-Oberfläche ist entfernt."""
+class TestComparisonSurface:
+    """B.1: der Vergleichs-Kern lebt in ``capabilities.tariff_compare``.
 
-    def test_compare_against_catalog_removed(self):
+    Die alte S4-Absenz-Erzwingung ("Vergleich lebt im Produkt") ist mit dem
+    WP-T-Move aufgehoben; die Alt-Namen ``tariff_advice``/``tarifvergleich_
+    inkl_netz`` bleiben bewusst nicht registriert.
+    """
+
+    def test_kosten_rechenweg_bleibt(self):
         import energietools.capabilities.tariffs.compare as compare_mod
 
-        assert not hasattr(compare_mod, "compare_against_catalog")
+        assert not hasattr(compare_mod, "compare_against_catalog")  # kein Alt-API-Revival
         assert hasattr(compare_mod, "kosten_rechenweg")  # die Kosten-Engine bleibt
 
-    def test_compare_capabilities_not_registered(self):
+    def test_tariff_compare_registered(self):
         namen = set(default_registry().names)
-        assert {"tariff_compare", "tariff_advice", "tarifvergleich_inkl_netz"} & namen == set()
+        assert "tariff_compare" in namen
+        assert {"tariff_advice", "tarifvergleich_inkl_netz"} & namen == set()
         assert {"tariff_catalog", "gesamtkosten"} <= namen

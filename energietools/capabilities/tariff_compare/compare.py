@@ -60,7 +60,7 @@ def _tariff_from_row(
     nb_key: str | None,
     *,
     mit_gebrauchsabgabe: bool = True,
-    quelle: str = "scraper",
+    quelle: str = "extern",
 ) -> Tariff | None:
     """Baut einen gerechneten Tariff aus einer Tarif-Zeile (netto Listenpreise).
 
@@ -298,7 +298,7 @@ def vergleiche_tarife(
     energy_type: str = "POWER",
     zielgruppe: str = "standard",
     top_n: int = 100,
-    quelle: str = "scraper",
+    quelle: str = "extern",
     mit_abdeckung: bool = True,
 ) -> TariffComparison:
     """Vergleicht den aktuellen Tarif gegen alle aktiven Tarife der Quelle.

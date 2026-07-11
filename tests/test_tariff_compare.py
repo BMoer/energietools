@@ -163,9 +163,12 @@ class TestParitaet:
         assert cmp.alternativen[0].gebrauchsabgabe_eur == 0.0
         assert cmp.netzkosten_eur_jahr == 0.0
 
-    def test_quelle_scraper_default(self):
+    def test_quelle_extern_default(self):
+        """Default ohne explizites ``quelle=`` ist neutral ("extern"), nicht
+        gridbert-spezifisch ("scraper") — injizierte Fremd-Quellen sind nicht
+        zwingend ein Scraper."""
         cmp = _vergleich([_fix("a", "A", "T", 10.0)])
-        assert all(t.quelle == "scraper" for t in cmp.alternativen)
+        assert all(t.quelle == "extern" for t in cmp.alternativen)
 
     def test_nb_key_vorgeloest_wird_verwendet(self):
         """Vorgelöster nb_key (B.1-Schnitt) übersteuert die PLZ-Auflösung."""
@@ -361,3 +364,36 @@ class TestCapabilityEnvelope:
         result = cap.run(**base)
         assert result.ok is False
         assert fragment in result.error
+
+
+# =============================================================================
+# 6. Herkunfts-Kennung der Alternativen-Tarife (``Tariff.quelle``)
+# =============================================================================
+
+
+class TestQuelleAbleitung:
+    """Keine hartkodierte, gridbert-spezifische "scraper"-Annahme mehr für
+    injizierte Fremd-Quellen: Katalog bleibt "katalog", eine injizierte
+    Quelle mit ``meta["quelle"]`` liefert diese Kennung, sonst neutral
+    "extern"."""
+
+    def test_katalog_bleibt_katalog(self):
+        cap = TariffCompareCapability()
+        assert cap._quelle_fuer_alternativen() == "katalog"
+
+    def test_injizierte_quelle_ohne_meta_wird_extern(self):
+        cap = TariffCompareCapability(
+            tariff_source=FakeTariffSource([]), spot_source=FakeSpotPriceSource(),
+        )
+        assert cap._quelle_fuer_alternativen() == "extern"
+
+    def test_injizierte_quelle_mit_meta_quelle_wird_uebernommen(self):
+        class FakeSourceMitMeta(FakeTariffSource):
+            @property
+            def meta(self) -> dict[str, str]:
+                return {"quelle": "eigene-tarifdb"}
+
+        cap = TariffCompareCapability(
+            tariff_source=FakeSourceMitMeta([]), spot_source=FakeSpotPriceSource(),
+        )
+        assert cap._quelle_fuer_alternativen() == "eigene-tarifdb"

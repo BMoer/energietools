@@ -195,6 +195,21 @@ class TariffCompareCapability(Capability):
         meta.setdefault("quelle", type(tariff_source).__name__)
         return meta
 
+    def _quelle_fuer_alternativen(self) -> str:
+        """Herkunfts-Kennung je Alternativen-Tarif (``Tariff.quelle``).
+
+        Katalog (kein injizierter Source) bleibt ``"katalog"``. Für injizierte
+        Fremd-Quellen wird die Kennung — falls vorhanden — aus deren
+        ``meta``-Attribut übernommen; sonst neutraler Default ``"extern"``
+        (statt der zuvor hartkodierten, produktspezifischen Annahme
+        ``"scraper"``, die für beliebige injizierte Quellen faktisch falsch war).
+        """
+        if self._tariff_source is None:
+            return "katalog"
+        meta = getattr(self._tariff_source, "meta", None) or {}
+        quelle = meta.get("quelle") if isinstance(meta, dict) else None
+        return quelle if isinstance(quelle, str) and quelle else "extern"
+
     def _run(self, **kwargs: Any) -> dict[str, Any]:
         plz = str(kwargs.get("plz") or "").strip()
         if not plz.isdigit() or len(plz) != 4:
@@ -232,6 +247,6 @@ class TariffCompareCapability(Capability):
             nb_key=kwargs.get("nb_key") or None,
             energy_type=str(kwargs.get("energy_type") or "POWER"),
             zielgruppe=str(kwargs.get("zielgruppe") or "standard"),
-            quelle="katalog" if self._tariff_source is None else "scraper",
+            quelle=self._quelle_fuer_alternativen(),
         )
         return _result_dict(cmp, top_n=top_n, voller_rechenweg=rechenweg_modus == "voll")

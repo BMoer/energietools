@@ -16,6 +16,7 @@ dependencies = [
     "pandas>=2.0",
     "defusedxml>=0.7",
     "jsonschema>=4.0",
+    "PyYAML>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -45,7 +46,17 @@ where = ["."]
 include = ["energietools*"]
 
 [tool.setuptools.package-data]
-energietools = ["data/*.json", "data/tariffs/*.json", "data/netz/*.json", "data/providers/*.json", "data/spot/*.json"]
+energietools = [
+    "data/*.json", "data/tariffs/*.json", "data/netz/*.json", "data/providers/*.json", "data/spot/*.json",
+    # WISSEN-Schicht (D7/Amendment 9): muss im Dist mitreisen, sonst shipped der
+    # Gateway den wiki-Baum nicht und get_knowledge findet keine Seiten (WP-P 3).
+    "wiki/*.md", "wiki/*.txt",
+    "wiki/foerderung/*.md", "wiki/gas/*.md", "wiki/markt/*.md", "wiki/messung/*.md",
+    "wiki/netz/*.md", "wiki/steuern/*.md", "wiki/tarife/*.md", "wiki/wirtschaftlichkeit/*.md",
+    # PROZESSE-Schicht (D7): YAML-Quellen + MANIFEST + Beispiel-Dialoge müssen im
+    # Dist mitreisen, sonst kann der Gateway sie nicht rendern (in-process, wie get_knowledge).
+    "prozesse/*.yaml", "prozesse/*.json", "prozesse/beispiele/*.json",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

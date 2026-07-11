@@ -4,7 +4,8 @@
 
 ## Einstieg
 
-- [Wiki-Startseite](index.md): Einstieg ins Wiki, Drei-Schichten-Modell (WISSEN/DATEN/RECHNEN), Navigation nach Kategorien, Vertrauen & Herkunft.
+- [Wiki-Startseite](index.md): Einstieg ins Wiki, Vier-Schichten-Modell (WISSEN/DATEN/RECHNEN/PROZESSE), Navigation nach Kategorien, Vertrauen & Herkunft.
+- [Stromkosten-Zusammensetzung](stromkosten-zusammensetzung.md): wie sich eine österreichische Stromrechnung aus Energiepreis, Netzkosten, Steuern/Abgaben und USt zusammensetzt (die vier Blöcke im Überblick).
 - [Glossar](glossar.md): kompakte Begriffsdefinitionen quer durch alle Kategorien, von Arbeitspreis bis Viertelstundenwert.
 
 ## Kategorien

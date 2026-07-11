@@ -27,7 +27,7 @@
 - EAG (Erneuerbaren-Ausbau-Gesetz) / ÖMAG - Förderbeitrag & Förderpauschale 2026
 - Landes-/Gemeinde-Gebrauchsabgabegesetze - Satz und Basis je Gemeinde
 - Daten-Snapshot: `energietools/data/netz/abgaben.json`
-- Wissens-Referenz: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md) (Abschnitt 3)
-- Erhebung & Validierung: [`METHODIK.md`](../../METHODIK.md)
+- Wissens-Referenz: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../../NETZKOSTEN_UND_GEBUEHREN.md) (Abschnitt 3)
+- Erhebung & Validierung: [`METHODIK.md`](../../../METHODIK.md)
 
 Stand: 2026-06

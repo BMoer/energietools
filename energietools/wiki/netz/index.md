@@ -34,7 +34,7 @@ Aufruf z. B.: `python -m energietools netzkosten --json '{"plz": "8010", "verbra
 - Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025 (E-Control), in Kraft 01.01.2026
 - VNB-Preisblätter Netznutzung Strom 2026 (First-Party-Bestätigung)
 - Daten-Snapshot: `energietools/data/netz/` (netzkosten.json, plz_netzbereich.json + MANIFEST)
-- Wissens-Referenz Preis-Zusammensetzung: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md)
-- Erhebung & Validierung: [`METHODIK.md`](../../METHODIK.md)
+- Wissens-Referenz Preis-Zusammensetzung: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../../NETZKOSTEN_UND_GEBUEHREN.md)
+- Erhebung & Validierung: [`METHODIK.md`](../../../METHODIK.md)
 
 Stand: 2026-06

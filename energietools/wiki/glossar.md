@@ -98,7 +98,7 @@ Der Zählpunkt ist die eindeutige Kennung deiner Verbrauchsstelle (33-stelliger 
 Der an der Strombörse (EPEX/EXAA) gebildete Großhandelspreis, üblicherweise stündlich für den Folgetag (Day-Ahead). Er ist die Basis dynamischer Tarife, deren Arbeitspreis dem Spotpreis (plus Aufschlag) folgt, sowie vieler Einspeisevergütungen. Schwankt stark nach Tageszeit und Last - siehe Profilkostenfaktor.
 
 **Systemnutzungsentgelte-Verordnung (SNE-V)**
-Die bundesweite Verordnung der E-Control (BGBl. II Nr. 305/2025), die die regulierten Netzkosten je Netzbereich und Netzebene festlegt - die autoritative Tarifliste für Netznutzung (§ 5), Netzverlust (§ 6) und Ausgleichszahlungen (§ 13). Wird jährlich novelliert; die Werte hier folgen der für das Tarifjahr maßgeblichen Novelle. Erklärung in [[netz/netzentgelte]] und [`NETZKOSTEN_UND_GEBUEHREN.md`](../NETZKOSTEN_UND_GEBUEHREN.md).
+Die bundesweite Verordnung der E-Control (BGBl. II Nr. 305/2025), die die regulierten Netzkosten je Netzbereich und Netzebene festlegt - die autoritative Tarifliste für Netznutzung (§ 5), Netzverlust (§ 6) und Ausgleichszahlungen (§ 13). Wird jährlich novelliert; die Werte hier folgen der für das Tarifjahr maßgeblichen Novelle. Erklärung in [[netz/netzentgelte]] und [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md).
 
 ---
 
@@ -127,8 +127,8 @@ Die hier definierten Größen werden von den energietools-Capabilities ermittelt
 
 ## Quellen
 
-- Preiszusammensetzung (Vier-Block-Modell, Begriffe): [`NETZKOSTEN_UND_GEBUEHREN.md`](../NETZKOSTEN_UND_GEBUEHREN.md)
-- Erhebung und Validierung der Zahlen: [`METHODIK.md`](../METHODIK.md)
+- Preiszusammensetzung (Vier-Block-Modell, Begriffe): [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md)
+- Erhebung und Validierung der Zahlen: [`METHODIK.md`](../../METHODIK.md)
 - Netzkosten: Systemnutzungsentgelte-Verordnung, BGBl. II Nr. 305/2025 (E-Control)
 - Elektrizitätsabgabe: Elektrizitätsabgabegesetz (ElAbgG)
 - EAG-Förderbeitrag: Erneuerbaren-Ausbau-Gesetz (EAG) / ÖMAG

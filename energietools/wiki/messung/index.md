@@ -27,6 +27,6 @@ Messung ist die Grundlage jeder Abrechnung und jeder fundierten Analyse: Wie vie
 
 - ElWOG / Intelligente-Messgeräte-Einführungsverordnung (IMA-VO) - Smart-Meter-Rollout und Datenzugang
 - Netzbetreiber-Portale (Wiener Netze, Netz NÖ u. a.) - Export der eigenen Messdaten
-- Erhebung & Validierung: [`METHODIK.md`](../../METHODIK.md)
+- Erhebung & Validierung: [`METHODIK.md`](../../../METHODIK.md)
 
 Stand: 2026-06

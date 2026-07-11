@@ -27,7 +27,7 @@ Wirtschaftlichkeit beantwortet zwei Fragen: Was kostet Strom insgesamt, und lohn
 ## Quellen
 
 - Daten-Snapshots: `energietools/data/netz/` und `energietools/data/tariffs/`
-- Wissens-Referenz Preis-Zusammensetzung: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md)
-- Erhebung & Validierung: [`METHODIK.md`](../../METHODIK.md)
+- Wissens-Referenz Preis-Zusammensetzung: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../../NETZKOSTEN_UND_GEBUEHREN.md)
+- Erhebung & Validierung: [`METHODIK.md`](../../../METHODIK.md)
 
 Stand: 2026-06

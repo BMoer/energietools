@@ -31,7 +31,7 @@ Aufruf z. B.: `python -m energietools tariff_compare --json '{"verbrauch_kwh": 3
 
 - Daten-Snapshot: `energietools/data/tariffs/` (catalog.json + MANIFEST.json mit Provenance/Lizenz)
 - ElWOG / EAG - Preisblatt-Pflicht der Lieferanten (Primärquelle der Preise)
-- Erhebung & Validierung: [`METHODIK.md`](../../METHODIK.md)
-- Preis-Zusammensetzung: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md)
+- Erhebung & Validierung: [`METHODIK.md`](../../../METHODIK.md)
+- Preis-Zusammensetzung: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../../NETZKOSTEN_UND_GEBUEHREN.md)
 
 Stand: 2026-06

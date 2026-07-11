@@ -23,6 +23,6 @@ Der österreichische Strommarkt ist liberalisiert: Den **Lieferanten** (von wem 
 - ElWOG 2010 (Elektrizitätswirtschafts- und -organisationsgesetz) - Marktrollen, Lieferantenwechsel
 - E-Control - Regulator, Marktregeln, Bilanzgruppensystem
 - ENTSO-E / EPEX / EXAA - Day-Ahead-Großhandelspreise (Datenbasis für Spot-Tarife)
-- Preis-Zusammensetzung im Detail: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md)
+- Preis-Zusammensetzung im Detail: [`NETZKOSTEN_UND_GEBUEHREN.md`](../../../NETZKOSTEN_UND_GEBUEHREN.md)
 
 Stand: 2026-06

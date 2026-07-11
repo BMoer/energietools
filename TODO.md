@@ -113,8 +113,8 @@ Bewusst vertagt - hier festgehalten, damit sie nicht erneut diskutiert werden:
 
 ## Wiki-Inhalte
 
-- [ ] **Kategorie-Seiten ausarbeiten.** `wiki/netz/netzentgelte.md` ist die
-  vollständig ausgearbeitete Vorlage; die übrigen Kategorie-Seiten (markt, tarife,
+- [ ] **Kategorie-Seiten ausarbeiten.** `energietools/wiki/netz/netzentgelte.md` ist
+  die vollständig ausgearbeitete Vorlage; die übrigen Kategorie-Seiten (markt, tarife,
   steuern, foerderung, messung, wirtschaftlichkeit, gas) sind Gerüst und werden
   bewusst aufgebaut und gepflegt (nicht aus dem Vault gekippt).
 

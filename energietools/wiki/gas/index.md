@@ -28,6 +28,6 @@ Erdgas folgt derselben Logik wie Strom: ein wettbewerblicher Energiepreis, ein r
 - Gas-Systemnutzungsentgelte-Verordnung (E-Control) - reguliertes Gas-Netzentgelt
 - Erdgasabgabegesetz (ErdgasAbgG) - Erdgasabgabe
 - Förderdaten: `energietools/data/foerderungen.json` (Kategorie Heizung)
-- Preis-Zusammensetzung (Strom, analog für Gas): [`NETZKOSTEN_UND_GEBUEHREN.md`](../../NETZKOSTEN_UND_GEBUEHREN.md)
+- Preis-Zusammensetzung (Strom, analog für Gas): [`NETZKOSTEN_UND_GEBUEHREN.md`](../../../NETZKOSTEN_UND_GEBUEHREN.md)
 
 Stand: 2026-06

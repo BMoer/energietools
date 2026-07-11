@@ -1,0 +1,88 @@
+meta:
+  id: erstkontakt
+  prozess_version: 1.0.0
+  stand: 2026-07-11
+  market: AT
+  license: MIT
+
+ziel: >
+  Orientierung beim ersten Kontakt nach dem Connect ("was kann Gridbert?"):
+  was Gridbert kann, was es zum Haushalt schon weiß, und was der beste
+  nächste Schritt ist. Erfolg: der User kennt die drei Tool-Familien
+  (Vault/Wissen, Rechnen, Rechnungs-Einstieg) und hat einen konkreten
+  Einstieg — in der Regel die Empfehlung, die Stromrechnung hochzuladen.
+
+benoetigte_daten: []
+# Bewusst leer: Kennenlernen, kein Verhör (Amendment 9). Der Erstkontakt läuft
+# VOR jedem Datenbestand und stellt keine Pflichtfragen.
+
+fragen: []
+# Bewusst leer aus demselben Grund. Rückfragen gehören in die Folge-Prozesse
+# (z.B. rechnungsanalyse.yaml), sobald der User tatsächlich Daten liefert.
+
+tool_mapping:
+  - schritt: instanz_uebersicht
+    capability: search_pages
+    quelle: extern
+    rolle: aktiv
+    regeln:
+      - "Erst prüfen, was zum Haushalt schon in der Instanz liegt, bevor nach bereits bekannten Daten gefragt wird (kein Verhör)."
+
+  - schritt: instanz_detail
+    capability: get_page
+    quelle: extern
+    rolle: aktiv
+    regeln:
+      - "Bei einem Treffer aus instanz_uebersicht die konkrete Seite laden, damit die Antwort auf echten Fakten aufbaut, nicht auf Vermutung."
+
+  - schritt: wissen_auf_nachfrage
+    capability: get_knowledge
+    quelle: energietools
+    rolle: aktiv
+    pflicht_inputs: [thema]
+    nicht_benutzerdaten: [thema]
+    regeln:
+      - "Nur auf konkrete Nachfrage aufrufen (z. B. 'wie setzen sich Stromkosten in Österreich zusammen'), nicht ungefragt in jede Antwort drücken (Kontext-Ballast vermeiden, D7 Wissens-Auslieferung)."
+      - "thema wird vom User-LLM aus der Nutzerfrage abgeleitet (siehe get_knowledge.input_schema.thema.enum) — deshalb kein Eintrag in benoetigte_daten, die bewusst leer bleiben."
+
+  - schritt: rechnung_einstieg
+    capability: submit_invoice_facts
+    quelle: extern
+    rolle: aktiv
+    regeln:
+      - "Standard-Einstiegsempfehlung: die Stromrechnung im Chat hochladen lassen und in den rechnungsanalyse-Prozess übergeben (Amendment 9 Kern-Use-Case)."
+      - "Folgeprozess: rechnungsanalyse.yaml übernimmt ab hier (Fragen, Tool-Mapping, Caveats)."
+
+  - schritt: ausblick_tarifwechsel
+    capability: tariff_compare
+    quelle: energietools
+    rolle: ausblick
+    regeln:
+      - "Erst relevant, sobald Rechnungsdaten vorliegen (rechnungsanalyse-Prozess) — hier nur als Ausblick nennen, nicht aufrufen."
+
+  - schritt: ausblick_wechselinfo
+    capability: get_switch_info
+    quelle: extern
+    rolle: ausblick
+    regeln:
+      - "Reine Information zu Anbieterwechsel-Schritten/Fristen — keine Wechsel-Durchführung (Beschluss 16). Nur als Ausblick nennen."
+
+datenqualitaet_abbruch: []
+# Kein Abbruchgrund im Erstkontakt selbst — es wird nichts validiert oder
+# gerechnet, das abbrechen könnte.
+
+caveats:
+  - trigger: "immer"
+    text: >
+      Die Stromrechnung im Chat hochladen ist der beste nächste Schritt —
+      erst damit kann Gridbert konkrete Zahlen liefern.
+  - trigger: "immer"
+    text: >
+      Ehrliche Grenze: Gridbert kann (noch) keine Lastgang-/Smart-Meter-Analysen
+      (folgt in einer späteren Ausbaustufe) und führt keinen Anbieterwechsel
+      durch — das entscheidet und erledigt der Haushalt selbst.
+  - trigger: "anfrage.ausserhalb_katalog == true"
+    text: >
+      Diese Anfrage liegt außerhalb dessen, was Gridbert heute kann — bitte
+      capability_gap aufrufen und dem User ehrlich sagen, dass es das (noch)
+      nicht gibt, statt zu raten.

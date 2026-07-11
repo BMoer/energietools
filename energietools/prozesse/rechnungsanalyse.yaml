@@ -1,0 +1,88 @@
+meta:
+  id: rechnungsanalyse
+  prozess_version: 1.0.0
+  stand: 2026-07-11
+  market: AT
+  license: MIT
+
+ziel: >
+  Aus einer im Chat hochgeladenen Stromrechnung die Ist-Kosten verstehen und
+  beziffern, ob ein Tarifwechsel lohnt. Erfolg: validierte Rechnungsfakten mit
+  Rechenweg (jahreskosten_brutto_eur) und — sofern gewünscht — ein
+  Tarifvergleich mit auditierbarem Rechenweg je Alternative.
+
+benoetigte_daten:
+  - {feld: energieart, quelle: rechnung, pflicht: true}
+  - {feld: lieferant, quelle: rechnung, pflicht: true}
+  - {feld: zeitraum_von, quelle: rechnung, pflicht: true}
+  - {feld: zeitraum_bis, quelle: rechnung, pflicht: true}
+  - {feld: verbrauch_kwh, quelle: rechnung, pflicht: true}
+  - {feld: plz, quelle: rechnung|frage, pflicht: true}
+  - {feld: quellen_anker, quelle: rechnung, pflicht: true, format: "wörtliches Zitat je Pflichtfeld (D2.2 Quellen-Anker) — nie ohne Zitat übernehmen"}
+  - {feld: arbeitspreis, quelle: rechnung, pflicht: false, format: "ct/kWh + ist_netto (D2.2 PreisCtKwh) — Faktor-100-Fehler vermeiden"}
+  - {feld: grundgebuehr, quelle: rechnung, pflicht: false, format: "EUR + zeitraum (monat|jahr) + ist_netto (D2.2 Grundgebuehr)"}
+  - {feld: jahresverbrauch_kwh, quelle: rechnung, pflicht: true, format: "für tariff_compare; entspricht verbrauch_kwh bzw. der Hochrechnung aus finalize_invoice"}
+  - {feld: aktueller_lieferant, quelle: rechnung, pflicht: true, format: "für tariff_compare; entspricht lieferant"}
+  - {feld: aktueller_energiepreis_brutto_ct_kwh, quelle: rechnung, pflicht: true, format: "ct/kWh brutto, für tariff_compare — aus dem finalize_invoice-Rechenweg (effektiver Arbeitspreis) ableiten, nicht 1:1 von der Rechnung übernehmen"}
+  - {feld: aktuelle_grundgebuehr_brutto_eur_monat, quelle: rechnung, pflicht: true, format: "EUR/Monat brutto, für tariff_compare"}
+  - {feld: nb_key, quelle: rechnung|instanz, pflicht: false, format: "VNB-Schlüssel, falls aus der Rechnung ablesbar — erzwingt nb_key in tariff_compare statt PLZ-Auflösung"}
+
+fragen:
+  - id: f1_zieltarif
+    hebel: tarif
+    text: "Ist dir Planbarkeit (Fixpreis) wichtiger, oder die Chance auf einen günstigeren Schnitt (Spot/Floater)?"
+    feld: zieltarif_praeferenz
+    ableitung: "Unscharfe Antworten in eine Tarifpräferenz überführen (Playbook-Regel); ohne Antwort default: Fixtarif-Vergleich."
+  - id: f2_rabatt
+    hebel: tarif
+    bedingung: "Rechnung enthält einen Neukundenrabatt oder Gratistage"
+    text: "Ich sehe auf deiner Rechnung einen Neukundenrabatt/Gratistage — der gilt meist nur im ersten Jahr. Soll ich zum Vergleich den rabattierten Preis oder den Listenpreis ansetzen?"
+    feld: rabatt_einmalig
+    ableitung: "Year-1-Bias vermeiden: einmalige Rabatte NICHT in die laufenden Kosten einrechnen — Listenpreis ansetzen (Playbook Abschnitt 1)."
+
+tool_mapping:
+  - schritt: rechnung_erfassen
+    capability: validate_invoice_facts
+    quelle: energietools
+    rolle: aktiv
+    pflicht_inputs: [energieart, lieferant, zeitraum_von, zeitraum_bis, verbrauch_kwh, plz, quellen_anker]
+    regeln:
+      - "Werte wörtlich von der Rechnung übernehmen, nie umrechnen — ist_netto-Flag explizit setzen (keine Default-Annahme, D2.2)."
+      - "Bei Ablehnung: strukturierte Rückfrage aus dem Result stellen, nicht eigenmächtig heilen oder auf 0 koerzieren."
+
+  - schritt: rechnung_abschliessen
+    capability: finalize_invoice
+    quelle: energietools
+    rolle: aktiv
+    pflicht_inputs: [energieart, lieferant, zeitraum_von, zeitraum_bis, verbrauch_kwh, plz, quellen_anker]
+    regeln:
+      - "jahreskosten_brutto_eur ist die Hauptmetrik der Antwort; Rechenweg und warnings referenzieren, nicht verschweigen."
+
+  - schritt: vergleich
+    capability: tariff_compare
+    quelle: energietools
+    rolle: aktiv
+    pflicht_inputs: [plz, jahresverbrauch_kwh, aktueller_lieferant, aktueller_energiepreis_brutto_ct_kwh, aktuelle_grundgebuehr_brutto_eur_monat]
+    regeln:
+      - "versorger_abdeckung ist Pflichtfilter + Pflicht-Output-Block (im tariff_compare-Result bereits enthalten) — kein Landesversorger außerhalb seines Bundeslandes als Bestpreis."
+      - "VNB aus der Rechnung erzwingt nb_key, wenn bekannt (statt PLZ-Auflösung)."
+      - "Ranking nach Jahr-2-Kosten (Listenpreis), nicht Jahr-1 — Rabatt-Bias vermeiden (siehe f2_rabatt)."
+
+datenqualitaet_abbruch:
+  - "Rabatt/Gratistage sind einmalig -> Listenpreis ansetzen (Year-1-Bias vermeiden), nicht den rabattierten Preis."
+  - "0 verfügbare Alternativen im Katalog -> Abbruch mit Meldung, keine Empfehlung (kein erfundener Vergleich)."
+  - "validate_invoice_facts/finalize_invoice lehnt ab (Rejection) -> nichts wurde gespeichert; strukturierte Rückfrage laut Result stellen, nicht eigenmächtig heilen."
+
+caveats:
+  - trigger: "immer"
+    text: >
+      Alle verglichenen Tarife sind Netto-Listenpreise (ohne befristete
+      Rabatte), tagesaktueller Katalogstand laut tariff_compare-Result.
+  - trigger: "abdeckung.im_katalog_fehlend > 0"
+    text: >
+      Für deine Region gibt es Anbieter, die (noch) nicht im Katalog stehen —
+      der Vergleich ist insofern unvollständig.
+  - trigger: "invoice.rejected == true"
+    text: >
+      Die Rechnungsangaben konnten nicht validiert werden — bitte die
+      genannten Felder korrigieren, bevor ein Vergleich möglich ist.

@@ -1,0 +1,23 @@
+{
+  "prozess_id": "rechnungsanalyse",
+  "prozess_datei": "rechnungsanalyse.yaml",
+  "beschreibung": "Anonymisierter Referenz-Dialog: Stromrechnung im Chat hochgeladen, Validierung, Rechenweg und Tarifvergleich mit teilweiser Katalog-Abdeckung.",
+  "transkript": [
+    {"rolle": "user", "text": "[Anhang: Stromrechnung.pdf] Zahle ich zu viel?"},
+    {
+      "rolle": "assistant",
+      "text": "Ich habe deine Rechnungsdaten uebernommen (Lieferant, Zeitraum, Verbrauch, PLZ, Arbeitspreis, Grundgebuehr - jeweils mit Zitat von der Rechnung). Deine Jahreskosten liegen laut Rechenweg bei rund 850 EUR brutto. Im Tarifvergleich gegen den tagesaktuellen Katalog waeren bis zu 120 EUR/Jahr drin. Alle Preise sind Netto-Listenpreise; fuer deine Region gibt es einen Anbieter, den wir noch nicht im Katalog haben."
+    }
+  ],
+  "kontext": {
+    "abdeckung": {"im_katalog_fehlend": 1},
+    "invoice": {"rejected": false}
+  },
+  "erwartete_frage_ids": ["f1_zieltarif"],
+  "erwartete_tool_calls": [
+    {"schritt": "rechnung_erfassen", "capability": "validate_invoice_facts", "quelle": "energietools"},
+    {"schritt": "rechnung_abschliessen", "capability": "finalize_invoice", "quelle": "energietools"},
+    {"schritt": "vergleich", "capability": "tariff_compare", "quelle": "energietools"}
+  ],
+  "erwartete_caveats_trigger": ["immer", "abdeckung.im_katalog_fehlend > 0"]
+}

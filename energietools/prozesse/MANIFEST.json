@@ -1,0 +1,22 @@
+{
+  "manifest_version": "1",
+  "generated_at": "2026-07-11T00:00:00+00:00",
+  "market": "AT",
+  "prozesse": [
+    {
+      "id": "erstkontakt",
+      "prozess_version": "1.0.0",
+      "stand": "2026-07-11",
+      "datei": "erstkontakt.yaml"
+    },
+    {
+      "id": "rechnungsanalyse",
+      "prozess_version": "1.0.0",
+      "stand": "2026-07-11",
+      "datei": "rechnungsanalyse.yaml"
+    }
+  ],
+  "license": "MIT",
+  "schnitt": "generisch/offen: Rückfragen-Katalog, Datenquellen/Parsing-Tabelle, Tarifvergleichs-Rezept, Methodik-Prinzipien (No-LLM-Math, Kalibrieren, ehrliche Caveats) aus dem Playbook portiert. 'Verständnis vor Ersparnis' ist per §6 F4 als neutrale Prozessregel aufgenommen (kein Trust-first-Tonalitäts-Narrativ). Produktspezifisch bleibt in gridbert: Tonalität/Dramaturgie, Design-System, Kundenkontext, Bug-Historie.",
+  "versionierung": "SemVer je Datei (prozess_version); Schnitt nur bei semantischer Änderung, Präsentation auffrischen ohne Versions-Schnitt (schneide_versionen-Prinzip, analog zum data/-MANIFEST-Muster)."
+}

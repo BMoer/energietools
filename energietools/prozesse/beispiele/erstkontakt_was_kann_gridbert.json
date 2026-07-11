@@ -1,0 +1,18 @@
+{
+  "prozess_id": "erstkontakt",
+  "prozess_datei": "erstkontakt.yaml",
+  "beschreibung": "Anonymisierter Referenz-Dialog fuer den Erstkontakt-Prozess: der vorformulierte erste Prompt nach dem Connect (D2.3 Wizard-Schritt 6, Amendment 9).",
+  "transkript": [
+    {"rolle": "user", "text": "Was kann Gridbert?"},
+    {
+      "rolle": "assistant",
+      "text": "Ich habe noch nichts zu deinem Haushalt gespeichert. Ich kann (1) dein Energie-Profil kennenlernen und im Gedaechtnis behalten, (2) Fragen zum oesterreichischen Strommarkt beantworten und (3) deine Stromrechnung auswerten und pruefen, ob ein Tarifwechsel sich lohnt (mit nachvollziehbarem Rechenweg). Am schnellsten kommst du weiter, wenn du deine aktuelle Stromrechnung hier hochlaedst - dann kann ich konkret werden. Was ich noch nicht kann: Lastgang-/Smart-Meter-Analysen, und einen Wechsel fuehre ich nicht selbst durch, das entscheidest und erledigst du."
+    }
+  ],
+  "erwartete_frage_ids": [],
+  "erwartete_tool_calls": [
+    {"schritt": "instanz_uebersicht", "capability": "search_pages", "quelle": "extern"},
+    {"schritt": "instanz_detail", "capability": "get_page", "quelle": "extern"}
+  ],
+  "erwartete_caveats_trigger": ["immer", "immer"]
+}

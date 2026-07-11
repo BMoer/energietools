@@ -21,10 +21,11 @@ ins Tool-Result.
 
 from __future__ import annotations
 
+import re
 from datetime import date
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from energietools.tools.zaehlpunkt import validate as _zp_validate
 
@@ -84,7 +85,9 @@ class Grundgebuehr(BaseModel):
 class QuellenAnker(BaseModel):
     """Fundstelle eines Faktums: wörtliche Zeile von der Rechnung."""
 
-    model_config = ConfigDict(extra="forbid")
+    # strict=True wie Betrag/PreisCtKwh: keine stille Koersion (auch nicht für
+    # die Audit-Metadaten seite, damit '2' nicht lautlos zu int 2 wird).
+    model_config = ConfigDict(extra="forbid", strict=True)
 
     feld: str = Field(min_length=1)
     zitat: str = Field(min_length=3)
@@ -100,10 +103,13 @@ class InvoiceFacts(BaseModel):
     lieferant: str = Field(min_length=2)
     tarif_name: str | None = None
     # Datumsfelder bewusst lax (ISO-String ODER date) — Tool-Args kommen als JSON.
+    # Aber KEIN Int/Float-Unixzeitstempel (siehe _datum_kein_timestamp).
     zeitraum_von: date = Field(strict=False)
     zeitraum_bis: date = Field(strict=False)
     verbrauch_kwh: float = Field(gt=0)
-    plz: str = Field(pattern=r"^\d{4}$")
+    # [0-9] statt \d: \d würde Unicode-Ziffern (arabisch-indisch, Fullwidth)
+    # akzeptieren, die gegen ASCII-Referenzdaten (PLZ→Netzbetreiber) nie matchen.
+    plz: str = Field(pattern=r"^[0-9]{4}$")
     zaehlpunkt: str | None = None
     summe_energieentgelte: Betrag | None = None
     summe_netzentgelte: Betrag | None = None
@@ -114,6 +120,28 @@ class InvoiceFacts(BaseModel):
     jahresverbrauch_prognose_kwh: float | None = None
     anlagen_adresse: str | None = None
     quellen_anker: list[QuellenAnker]
+
+    @field_validator("plz")
+    @classmethod
+    def _plz_nur_ascii(cls, v: str) -> str:
+        # Regressions-Netz gegen ein versehentliches Zurückdrehen des Patterns
+        # auf \d: nur ASCII-Ziffern sind eine gültige PLZ.
+        if not v.isascii():
+            raise ValueError("PLZ darf nur ASCII-Ziffern (0-9) enthalten")
+        return v
+
+    @field_validator("zeitraum_von", "zeitraum_bis", mode="before")
+    @classmethod
+    def _datum_kein_timestamp(cls, v: Any) -> Any:
+        # Nur ISO-String oder date zulassen — ein reiner Int/Float würde sonst
+        # still als Unixzeitstempel zu einem Datum koerziert (bricht die
+        # "kein Feld koerziert lautlos"-Philosophie des Moduls).
+        if isinstance(v, (bool, int, float)):
+            raise ValueError(
+                "Datum muss ein ISO-String (YYYY-MM-DD) oder ein date sein, kein "
+                "Zahlen-Zeitstempel — lies das Rechnungsdatum wörtlich von der Rechnung ab",
+            )
+        return v
 
 
 def _fehler(feld: str, regel: str, wert: Any, rueckfrage: str) -> dict[str, Any]:
@@ -142,6 +170,100 @@ def _schema_fehler(exc: ValidationError) -> list[dict[str, Any]]:
 
 def _brutto(wert: float, ist_netto: bool) -> float:
     return wert * _UST if ist_netto else wert
+
+
+# Belegpflichtige Anker-Felder für die Betrags-Seite des Quellen-Anker-Gates.
+_BETRAG_ANKER_FELDER = (
+    "summe_energieentgelte", "summe_netzentgelte", "summe_steuern_abgaben",
+    "rechnungsbetrag_brutto_eur", "grundgebuehr", "arbeitspreis",
+)
+
+_ZAHL_TOKEN_RE = re.compile(r"[0-9][0-9.,  ]*[0-9]|[0-9]")
+
+
+def _zahl_kandidaten(token: str) -> set[float]:
+    """Plausible numerische Deutungen eines Zahl-Tokens.
+
+    ',' und '.' können Tausender- ODER Dezimaltrenner sein; ohne Locale-Annahme
+    werden beide Deutungen erzeugt, sodass der Aufrufer prüfen kann, ob EINE den
+    Zielwert trifft. Bewusst rein syntaktisch — kein Semantik-Anspruch.
+    """
+    t = token.replace(" ", "").replace(" ", "")
+    if not any(c.isdigit() for c in t):
+        return set()
+    kandidaten: set[float] = set()
+
+    def _try(s: str) -> None:
+        try:
+            kandidaten.add(float(s))
+        except ValueError:
+            pass
+
+    hat_punkt, hat_komma = "." in t, "," in t
+    if hat_punkt and hat_komma:
+        if t.rfind(".") > t.rfind(","):
+            _try(t.replace(",", ""))                    # '.' Dezimal, ',' Tausender
+        else:
+            _try(t.replace(".", "").replace(",", "."))  # ',' Dezimal, '.' Tausender
+    elif hat_komma:
+        _try(t.replace(",", "."))                       # ',' als Dezimaltrenner
+        _try(t.replace(",", ""))                        # ',' als Tausendertrenner
+    elif hat_punkt:
+        _try(t)                                         # '.' als Dezimaltrenner
+        _try(t.replace(".", ""))                        # '.' als Tausendertrenner
+    else:
+        _try(t)
+    return kandidaten
+
+
+def _wert_im_zitat(wert: float, zitat: str) -> bool:
+    """True, wenn der transkribierte Zahlenwert wörtlich im Zitat vorkommt.
+
+    Deterministischer Zahlen-Match mit Separator-Normalisierung (',' / '.' /
+    Leerzeichen / NBSP). KEIN semantischer Abgleich — nur die Ziffernfolge muss
+    (in einer der beiden Trenner-Deutungen) den Wert ergeben.
+    """
+    ziel = round(float(wert), 2)
+    for token in _ZAHL_TOKEN_RE.findall(zitat):
+        for kandidat in _zahl_kandidaten(token):
+            if abs(round(kandidat, 2) - ziel) <= 0.01:
+                return True
+    return False
+
+
+def _numerische_feldwerte(facts: InvoiceFacts) -> dict[str, float]:
+    """Feldname → transkribierter Zahlenwert der belegpflichtigen Felder."""
+    werte: dict[str, float] = {"verbrauch_kwh": facts.verbrauch_kwh}
+    if facts.rechnungsbetrag_brutto_eur is not None:
+        werte["rechnungsbetrag_brutto_eur"] = facts.rechnungsbetrag_brutto_eur
+    if facts.summe_energieentgelte is not None:
+        werte["summe_energieentgelte"] = facts.summe_energieentgelte.wert_eur
+    if facts.summe_netzentgelte is not None:
+        werte["summe_netzentgelte"] = facts.summe_netzentgelte.wert_eur
+    if facts.summe_steuern_abgaben is not None:
+        werte["summe_steuern_abgaben"] = facts.summe_steuern_abgaben.wert_eur
+    if facts.grundgebuehr is not None:
+        werte["grundgebuehr"] = facts.grundgebuehr.wert_eur
+    if facts.arbeitspreis is not None:
+        werte["arbeitspreis"] = facts.arbeitspreis.wert_ct_kwh
+    return werte
+
+
+def _belegte_anker_felder(facts: InvoiceFacts) -> set[str]:
+    """Felder mit einem Anker, der den EXAKTEN Feldnamen trägt UND dessen Wert
+    im Zitat belegt.
+
+    Schließt das Substring-/Feldnamen-Schlupfloch: ein Anker ``verbrauchszeitraum``
+    (statt ``verbrauch_kwh``) oder ein Anker ohne die transkribierte Zahl im
+    Zitat zählt nicht mehr als Beleg (Anti-Halluzinations-Gate, Fund 3).
+    """
+    werte = _numerische_feldwerte(facts)
+    belegt: set[str] = set()
+    for anker in facts.quellen_anker:
+        wert = werte.get(anker.feld)
+        if wert is not None and _wert_im_zitat(wert, anker.zitat):
+            belegt.add(anker.feld)
+    return belegt
 
 
 def _pruefe_plausibilitaet(facts: InvoiceFacts) -> list[dict[str, Any]]:
@@ -302,23 +424,26 @@ def _pruefe_gates(facts: InvoiceFacts) -> list[dict[str, Any]]:
             "Lies eine der beiden Angaben von der Rechnung ab.",
         ))
 
-    # Quellen-Anker: min. je einer für den Verbrauch und einen Betrag.
-    anker_felder = {a.feld for a in facts.quellen_anker}
-    if not any("verbrauch" in f for f in anker_felder):
+    # Quellen-Anker (gehärtet, Fund 3): je ein Anker mit EXAKTEM Feldnamen eines
+    # befüllten Felds, dessen transkribierter WERT wörtlich im Zitat vorkommt —
+    # einer für den Verbrauch und einer für mindestens einen Betrag.
+    # Deterministischer Zahlen-Match (Separator-Normalisierung), kein
+    # semantischer Abgleich: das Gate schließt nur das Substring-Schlupfloch,
+    # es beweist keine inhaltliche Richtigkeit der Zuordnung.
+    belegt = _belegte_anker_felder(facts)
+    if "verbrauch_kwh" not in belegt:
         fehler.append(_fehler(
             "quellen_anker", "anker_verbrauch_fehlt", None,
-            "Es fehlt ein Quellen-Anker (wörtliches Zitat) für den Verbrauch. "
-            "Zitiere die Rechnungszeile, aus der verbrauch_kwh stammt.",
+            "Es fehlt ein Quellen-Anker für den Verbrauch: zitiere die "
+            "Rechnungszeile wörtlich, in der die verbrauch_kwh-Zahl steht "
+            "(feld='verbrauch_kwh', der Wert muss im Zitat vorkommen).",
         ))
-    betrag_felder = (
-        "summe_energieentgelte", "summe_netzentgelte", "summe_steuern_abgaben",
-        "rechnungsbetrag_brutto_eur", "grundgebuehr", "arbeitspreis",
-    )
-    if not any(any(bf in f for bf in betrag_felder) for f in anker_felder):
+    if not belegt & set(_BETRAG_ANKER_FELDER):
         fehler.append(_fehler(
             "quellen_anker", "anker_betrag_fehlt", None,
-            "Es fehlt ein Quellen-Anker (wörtliches Zitat) für mindestens einen "
-            "Betrag (z.B. rechnungsbetrag_brutto_eur oder summe_energieentgelte).",
+            "Es fehlt ein Quellen-Anker für mindestens einen Betrag (z.B. "
+            "rechnungsbetrag_brutto_eur oder summe_energieentgelte): feld muss "
+            "exakt das befüllte Feld benennen und der Betrag im Zitat stehen.",
         ))
     return fehler
 

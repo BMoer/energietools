@@ -21,6 +21,18 @@ from energietools.capabilities.invoice import (
 )
 
 
+def _anker_fuer(verbrauch, rechnungsbetrag) -> list[dict]:
+    """Quellen-Anker, deren Zitat den transkribierten WERT enthält (D2.2-Anker-
+    Gate prüft seit dem Härtungs-Fix exakten Feldnamen + Wert-Beleg im Zitat)."""
+    anker = [{"feld": "verbrauch_kwh", "zitat": f"Verbrauch laut Zaehler: {verbrauch} kWh", "seite": 2}]
+    if rechnungsbetrag is not None:
+        anker.append({
+            "feld": "rechnungsbetrag_brutto_eur",
+            "zitat": f"Rechnungsbetrag inkl. USt: {rechnungsbetrag}",
+        })
+    return anker
+
+
 def _payload(**overrides) -> dict:
     """Gültiges Basis-Payload (synthetische Rechnung, keine echten Kundendaten)."""
     base = {
@@ -37,12 +49,21 @@ def _payload(**overrides) -> dict:
         "arbeitspreis": {"wert_ct_kwh": 18.0, "ist_netto": True},
         "rechnungsbetrag_brutto_eur": 1200.0,
         "anlagen_adresse": "Musterstraße 12, 1060 Wien",
+        # Default-Anker belegen 3.500 kWh und 1.200,00 EUR wörtlich.
         "quellen_anker": [
             {"feld": "verbrauch_kwh", "zitat": "wurden 3.500 kWh verbraucht", "seite": 2},
             {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Rechnungsbetrag inkl. USt 1.200,00"},
         ],
     }
     base.update(overrides)
+    # Werden die belegpflichtigen Zahlen überschrieben (ohne eigene Anker), die
+    # Anker mitziehen, damit ihr Zitat den neuen Wert weiter wörtlich belegt.
+    if "quellen_anker" not in overrides and (
+        "verbrauch_kwh" in overrides or "rechnungsbetrag_brutto_eur" in overrides
+    ):
+        base["quellen_anker"] = _anker_fuer(
+            base["verbrauch_kwh"], base.get("rechnungsbetrag_brutto_eur"),
+        )
     return base
 
 
@@ -175,6 +196,60 @@ class TestRegeln:
         assert facts is None
         assert "netto_brutto_konsistenz" in _regeln(fehler)
 
+    def test_anker_bypass_mit_verwandten_feldnamen_wird_erkannt(self):
+        # Fund 3: thematisch verwandte, aber NICHT exakte Feldnamen (Substring-
+        # Schlupfloch) dürfen das Anker-Gate nicht mehr erfüllen.
+        facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+            {"feld": "verbrauchszeitraum", "zitat": "Verbrauchszeitraum: 01.01.2025 - 31.12.2025"},
+            {"feld": "grundgebuehrhinweis", "zitat": "siehe AGB Punkt 4 zur Grundgebuehr"},
+        ]))
+        assert facts is None
+        assert {"anker_verbrauch_fehlt", "anker_betrag_fehlt"} <= _regeln(fehler)
+
+    def test_anker_exakter_feldname_aber_wert_fehlt_im_zitat(self):
+        # Fund 3: exakter Feldname, aber der transkribierte Wert fehlt im Zitat.
+        facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+            {"feld": "verbrauch_kwh", "zitat": "Verbrauch laut Jahresabrechnung"},
+            {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Rechnungsbetrag inkl. USt: 1.200,00"},
+        ]))
+        assert facts is None
+        assert "anker_verbrauch_fehlt" in _regeln(fehler)
+        assert "anker_betrag_fehlt" not in _regeln(fehler)  # Betrag korrekt belegt
+
+    def test_anker_wert_mit_deutscher_und_repr_schreibweise(self):
+        # Wert-Match ist separator-tolerant: 3.500 (de) und 3500.0 (repr) belegen 3500.
+        for zitat in ("3.500 kWh abgelesen", "3500.0 kWh abgelesen", "3 500 kWh"):
+            facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+                {"feld": "verbrauch_kwh", "zitat": zitat},
+                {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+            ]))
+            assert fehler == [], f"{zitat}: {fehler}"
+
+    def test_plz_lehnt_unicode_ziffern_ab(self):
+        # Fund 4: arabisch-indische + Fullwidth-Ziffern sind keine gültige PLZ.
+        for plz in ("١٠٦٠", "１０６０"):  # 1060
+            facts, _ = pruefe_invoice_facts(_payload(plz=plz))
+            assert facts is None, f"PLZ {plz!r} darf nicht akzeptiert werden"
+
+    def test_datum_lehnt_unix_timestamp_ab(self):
+        # Fund 5: Int/Float-Unixzeitstempel dürfen nicht still als Datum gelten.
+        for ts in (1735689600, 1735689600.0):
+            facts, fehler = pruefe_invoice_facts(_payload(zeitraum_von=ts))
+            assert facts is None, f"Timestamp {ts!r} darf kein Datum sein"
+            assert any(f["feld"].startswith("zeitraum_von") for f in fehler)
+        # ISO-String bleibt gültig.
+        facts, fehler = pruefe_invoice_facts(_payload(zeitraum_von="2025-01-01"))
+        assert fehler == []
+
+    def test_quellen_anker_seite_strict_kein_string(self):
+        # Fund 6: QuellenAnker.seite darf String-Koersion nicht zulassen (strict).
+        facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+            {"feld": "verbrauch_kwh", "zitat": "3.500 kWh", "seite": "2"},
+            {"feld": "rechnungsbetrag_brutto_eur", "zitat": "1.200,00 EUR"},
+        ]))
+        assert facts is None
+        assert any(f["feld"].startswith("quellen_anker") for f in fehler)
+
     def test_prognose_fenster_30_pct(self):
         # Halbjahr, 1750 kWh → Hochrechnung ≈ 3520 kWh; Prognose 9000 → Reject.
         payload = _payload(
@@ -194,6 +269,28 @@ class TestRegeln:
 # =============================================================================
 # 3. Capability-Envelope: Rejection-Semantik (D2.2) + meta (B.6)
 # =============================================================================
+
+
+class TestZaehlpunktAscii:
+    """Fund 4: der Zählpunkt-Kanon darf nur ASCII-Ziffern als strikt gültig führen."""
+
+    def test_strict_lehnt_nicht_ascii_ziffern_ab(self):
+        from energietools.tools.zaehlpunkt import validate
+
+        zp = "AT" + "٠" * 31  # AT + 31× arabisch-indische Null
+        res = validate(zp)
+        assert res.valid_strict is False
+
+    def test_ascii_standardform_bleibt_gueltig(self):
+        from energietools.tools.zaehlpunkt import validate
+
+        assert validate("AT0010000000000000000000000012345").valid_strict is True
+
+    def test_facts_lehnt_nicht_ascii_zaehlpunkt_ab(self):
+        zp = "AT" + "٠" * 31
+        facts, fehler = pruefe_invoice_facts(_payload(zaehlpunkt=zp))
+        assert facts is None
+        assert "zaehlpunkt_at_33_stellen" in _regeln(fehler)
 
 
 class TestValidateCapability:

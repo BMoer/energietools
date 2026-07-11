@@ -31,10 +31,12 @@ from dataclasses import dataclass
 _STANDARD_LENGTH = 33
 _PAUSCHAL_TOKEN = "PAUSCHALE"
 
-# Strikte (post-normalisierte) Form.
-_STRICT_RE = re.compile(r"^AT\d{31}$")
+# Strikte (post-normalisierte) Form. Bewusst [0-9] statt \d: \d matcht auch
+# Unicode-Ziffern (arabisch-indisch, Fullwidth), die downstream gegen ASCII-
+# Referenzdaten nie matchen würden — hier deterministisch als ungültig führen.
+_STRICT_RE = re.compile(r"^AT[0-9]{31}$")
 # Pauschal-Sentinel — von manchen Lieferanten für unbemessene Anlagen genutzt.
-_PAUSCHAL_RE = re.compile(r"^AT\d{12}PAUSCHALE\d+$")
+_PAUSCHAL_RE = re.compile(r"^AT[0-9]{12}PAUSCHALE[0-9]+$")
 
 
 @dataclass(frozen=True)
@@ -84,7 +86,7 @@ def canonical_zaehlpunkt(raw: str) -> str:
     if not cleaned.startswith("AT"):
         # Manche Transkriptionen stellen Fremdzeichen voran — AT-Präfix
         # irgendwo im String wiederfinden.
-        m = re.search(r"AT\d{20,}", cleaned)
+        m = re.search(r"AT[0-9]{20,}", cleaned)
         if m:
             cleaned = m.group(0)
         else:

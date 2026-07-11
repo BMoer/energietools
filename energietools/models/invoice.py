@@ -76,6 +76,33 @@ class Invoice(BaseModel):
         description="Original-Energiekosten vor Hochrechnung (nur bei ist_hochgerechnet=True)",
     )
 
+    # --- Hauptmetriken + Prognose (B.4-Merge der Produkt-Exklusiva) ------------
+    rechnungsbetrag_brutto_eur: float = Field(
+        default=0.0,
+        description="Brutto-Rechnungsbetrag des Abrechnungszeitraums (Endbetrag inkl. USt)",
+    )
+    jahreskosten_brutto_eur: float = Field(
+        default=0.0,
+        description=(
+            "Auf 365 Tage annualisierter Brutto-Rechnungsbetrag — deterministisch "
+            "aus rechnungsbetrag_brutto_eur × 365/Zeitraum-Tage (Hauptkostenmetrik)"
+        ),
+    )
+    jahresverbrauch_prognose_kwh: float | None = Field(
+        default=None,
+        description=(
+            "EVU-Jahresverbrauchs-Prognose von der Rechnung (saisonbereinigt). "
+            "Übernimmt die Hochrechnung nur innerhalb des ±30%-Plausibilitätsfensters."
+        ),
+    )
+    warnings: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Extraktionsqualitäts-Hinweise (z.B. rechnungsbetrag_missing, "
+            "verbrauch_missing, adresse_incomplete, effective_price_implausible:…)"
+        ),
+    )
+
     # --- Rechenweg (Audit-Trail der deterministischen Herleitung) -------------
     rechenweg: dict[str, Any] = Field(
         default_factory=dict,

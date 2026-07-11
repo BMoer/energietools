@@ -111,11 +111,17 @@ def _compute_period_days(von: str, bis: str) -> int | None:
 
 
 def _annualize_invoice(raw: dict) -> dict:
-    """Annualize partial-year invoice data deterministically in Python.
+    """Annualisiert Teilzeitraum-Rechnungen deterministisch (kein LLM).
 
-    Takes the raw LLM extraction dict (with verbrauch_kwh, energiekosten_eur,
-    zeitraum_von, zeitraum_bis) and produces annualized jahresverbrauch_kwh
-    and energiekosten_eur plus period metadata.
+    Nimmt das Roh-Dict (verbrauch_kwh, energiekosten_eur, zeitraum_von/bis)
+    und produziert jahresverbrauch_kwh/energiekosten_eur auf Jahresbasis plus
+    Zeitraum-Metadaten und ``jahreskosten_brutto_eur`` (annualisierter
+    Rechnungsbetrag — die Hauptkostenmetrik).
+
+    EVU-Prognose (B.4-Merge): weist die Rechnung einen "voraussichtlichen
+    Jahresverbrauch" aus, hat der Vorrang vor der naiven Tages-Hochrechnung —
+    aber NUR innerhalb des ±30%-Plausibilitätsfensters gegen die Hochrechnung
+    (implausible EVU-Werte werden ignoriert, nie still übernommen).
 
     Mutates and returns the dict.
     """
@@ -127,6 +133,8 @@ def _annualize_invoice(raw: dict) -> dict:
     raw_verbrauch = raw.pop("verbrauch_kwh", 0.0) or 0.0
     raw_kosten = raw.get("energiekosten_eur", 0.0) or 0.0
     raw_netzkosten = raw.pop("netzkosten_eur", None)
+    # Optionale EVU-Prognose (saisonbereinigt) — nur mit Plausibilitäts-Check.
+    prognose = float(raw.pop("jahresverbrauch_prognose_kwh", 0.0) or 0.0)
 
     # Store period metadata
     raw["zeitraum_von"] = von
@@ -137,7 +145,7 @@ def _annualize_invoice(raw: dict) -> dict:
     if period_days is not None and period_days < 300 and period_days > 0:
         # Annualize: scale to 365 days
         factor = 365.0 / period_days
-        raw["jahresverbrauch_kwh"] = round(raw_verbrauch * factor, 1)
+        hochgerechnet = round(raw_verbrauch * factor, 1)
         raw["energiekosten_eur"] = round(raw_kosten * factor, 2)
         raw["ist_hochgerechnet"] = True
         raw["original_verbrauch_kwh"] = raw_verbrauch
@@ -145,20 +153,60 @@ def _annualize_invoice(raw: dict) -> dict:
         # Annualize network costs too if present
         if raw_netzkosten and raw_netzkosten > 0:
             raw["netzkosten_eur_jahr"] = round(raw_netzkosten * factor, 2)
-        log.info(
-            "Invoice annualized: %d days → factor %.2f, "
-            "%.1f kWh → %.1f kWh/year, %.2f EUR → %.2f EUR/year",
-            period_days, factor,
-            raw_verbrauch, raw["jahresverbrauch_kwh"],
-            raw_kosten, raw["energiekosten_eur"],
-        )
+        # EVU-Prognose nur im ±30%-Fenster gegen die Hochrechnung übernehmen.
+        if prognose > 0 and 0.7 * hochgerechnet <= prognose <= 1.3 * hochgerechnet:
+            raw["jahresverbrauch_kwh"] = prognose
+            raw["jahresverbrauch_prognose_kwh"] = prognose
+            log.info(
+                "Invoice annualized via EVU prognose: %d days, %.1f kWh "
+                "(prognose=%.1f, hochgerechnet=%.1f)",
+                period_days, prognose, prognose, hochgerechnet,
+            )
+        else:
+            raw["jahresverbrauch_kwh"] = hochgerechnet
+            if prognose > 0:
+                log.warning(
+                    "Implausible EVU-Prognose %.1f ignoriert (hochgerechnet=%.1f, "
+                    "ratio=%.2fx) — deterministischer Wert bleibt",
+                    prognose, hochgerechnet, prognose / max(hochgerechnet, 1),
+                )
+            log.info(
+                "Invoice annualized: %d days → factor %.2f, "
+                "%.1f kWh → %.1f kWh/year, %.2f EUR → %.2f EUR/year",
+                period_days, factor,
+                raw_verbrauch, hochgerechnet,
+                raw_kosten, raw["energiekosten_eur"],
+            )
     else:
-        # Annual or unknown period — use values as-is
-        raw["jahresverbrauch_kwh"] = raw_verbrauch
+        # Jahres- (>= 300 Tage) oder unbekannter Zeitraum — Ist-Werte nutzen.
+        # Bei fast-jährlichen Rechnungen (>= 350 Tage) KEINE Prognose-Übernahme:
+        # der tatsächliche Verbrauch ist verlässlicher als die EVU-Schätzung.
         raw["ist_hochgerechnet"] = False
+        is_near_annual = period_days is not None and period_days >= 350
+        if (
+            not is_near_annual
+            and prognose > 0
+            and raw_verbrauch > 0
+            and 0.7 * raw_verbrauch <= prognose <= 1.3 * raw_verbrauch
+        ):
+            raw["jahresverbrauch_kwh"] = prognose
+            raw["jahresverbrauch_prognose_kwh"] = prognose
+        else:
+            raw["jahresverbrauch_kwh"] = raw_verbrauch
         # Map netzkosten_eur → netzkosten_eur_jahr (already annual or close enough)
         if raw_netzkosten and raw_netzkosten > 0:
             raw["netzkosten_eur_jahr"] = raw_netzkosten
+
+    # Rechnungsbetrag → jahreskosten_brutto_eur annualisieren: EINE deterministisch
+    # hergeleitete Jahres-Kostenzahl aus Endbetrag + Zeitraum (Hauptmetrik, B.4).
+    rb_periode = float(raw.get("rechnungsbetrag_brutto_eur", 0.0) or 0.0)
+    if rb_periode > 0:
+        if period_days and 0 < period_days < 300:
+            raw["jahreskosten_brutto_eur"] = round(rb_periode * 365.0 / period_days, 2)
+        else:
+            raw["jahreskosten_brutto_eur"] = round(rb_periode, 2)
+    else:
+        raw["jahreskosten_brutto_eur"] = 0.0
 
     return raw
 
@@ -197,6 +245,95 @@ def _parse_austrian_number(s: str, expect_large: bool = False) -> float:
         return float(s)
     except ValueError:
         return 0.0
+
+
+# --- Anlagen-/Verbrauchsadresse (B.4-Merge) -----------------------------------
+
+# Keywords, die die VERBRAUCHS-Adresse ankern (Anlagen-/Lieferadresse) — nie
+# die Absender-/Footer-Adresse des Lieferanten.
+_ADDRESS_KEYWORDS = (
+    "Anlagenadresse",
+    "Anlageadresse",
+    "Verbrauchsstelle",
+    "Verbrauchsadresse",
+    "Lieferadresse",
+    "Lieferanschrift",
+    "Lieferstelle",
+    "Abnahmestelle",
+)
+
+# Tokens, die das ENDE eines Adressblocks markieren — die Regex muss hier
+# stoppen, damit kein folgender Rechnungsabschnitt in die Adresse rutscht.
+_ADDRESS_STOP = (
+    r"Zählpunkt|Zaehlpunkt|Zählpunkte|Zaehlpunkte|Zähler|Zaehler|"
+    r"Abrechnungszeitraum|Verrechnungszeitraum|Rechnungszeitraum|"
+    r"Abrechnung\b|Netzbetreiber|Anlagennummer|Vertragskonto|Kundennummer|"
+    r"Sehr geehrte"
+)
+
+# PLZ + Ort, z.B. "8010 Graz" oder "1100 Wien". Der Ort beginnt mit einem
+# Großbuchstaben (inkl. Umlaute), um Firmenbuch-/FN-Nummern nicht zu matchen.
+_PLZ_ORT_RE = _re_module.compile(r"\b(\d{4})\s+([A-ZÄÖÜ][\wäöüß .\-]+)")
+
+# Adressblock: Keyword, optionaler Doppelpunkt, dann bis zu 5 Zeilen Adresse.
+_ADDRESS_BLOCK_RE = _re_module.compile(
+    r"(?:" + "|".join(_ADDRESS_KEYWORDS) + r")"
+    r"\s*:?\s*"
+    r"(?P<body>(?:[^\n]+\n?){1,5}?)"
+    r"(?=" + _ADDRESS_STOP + r"|\Z)",
+    _re_module.IGNORECASE,
+)
+
+
+def _compose_address_from_block(body: str) -> tuple[str, str]:
+    """Macht aus einem rohen Adressblock ('Strasse Hausnr, PLZ Ort', plz).
+
+    - splittet den Block an Zeilenumbrüchen UND Kommas
+    - verwirft führende Namens-Segmente (Segment ohne Ziffer = kein Straßenteil)
+    - fügt die restlichen Teile kommagetrennt zusammen
+    Returns ('', ''), wenn der Block keine Straßen-/Hausnummern-Info trägt.
+    """
+    parts = [p.strip() for p in _re_module.split(r"[\n,]", body) if p.strip()]
+    while len(parts) > 1 and not _re_module.search(r"\d", parts[0]):
+        parts.pop(0)
+    if not parts:
+        return "", ""
+    full = ", ".join(parts)
+    if not _re_module.search(r"\d", full):
+        return "", ""
+    plz_match = _PLZ_ORT_RE.search(full)
+    plz = plz_match.group(1) if plz_match else ""
+    return full, plz
+
+
+def _extract_address_from_text(text: str) -> tuple[str, str]:
+    """Extrahiert die vollständige Verbrauchs-Adresse deterministisch.
+
+    Ankert strikt auf Anlagen-/Verbrauchs-/Lieferadresse-Keywords, damit nie
+    die Footer-Adresse des Lieferanten erwischt wird. Returns
+    ('Strasse Hausnr, PLZ Ort', plz); beides '' ohne geankerte Adresse.
+    """
+    for m in _ADDRESS_BLOCK_RE.finditer(text):
+        full, plz = _compose_address_from_block(m.group("body"))
+        if full:
+            return full, plz
+    return "", ""
+
+
+def _is_address_incomplete(adresse: str) -> bool:
+    """True, wenn der Adresse Hausnummer oder PLZ+Ort fehlen.
+
+    Eine wechselformular-taugliche Adresse braucht Straße MIT Hausnummer und
+    PLZ + Ort. Leer, nur-PLZ oder Straße-ohne-Nummer zählen als unvollständig.
+    """
+    a = (adresse or "").strip()
+    if not a:
+        return True
+    has_plz_ort = bool(_PLZ_ORT_RE.search(a))
+    # Hausnummer: eine Ziffer, die NICHT Teil der 4-stelligen PLZ ist.
+    without_plz = _PLZ_ORT_RE.sub("", a)
+    has_house_no = bool(_re_module.search(r"\d", without_plz))
+    return not (has_plz_ort and has_house_no)
 
 
 def _extract_deterministic_from_text(text: str) -> dict | None:
@@ -403,6 +540,35 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
             result['plz'] = m.group(1)
             found_anything = True
             break
+
+    # --- Adresse (vollständige Verbrauchs-Adresse, B.4-Merge) ---
+    # "Strasse Hausnummer, PLZ Ort", geankert auf Anlagen-/Verbrauchs-/
+    # Lieferadresse-Keywords — die wechselformular-relevante Adresse.
+    adresse_full, adresse_plz = _extract_address_from_text(text)
+    if adresse_full:
+        result['adresse'] = adresse_full
+        # PLZ aus der Adresse nachziehen, wenn die dedizierte PLZ-Regex leer blieb.
+        if not result.get('plz') and adresse_plz:
+            result['plz'] = adresse_plz
+        found_anything = True
+
+    # --- Jahresverbrauch (EVU-Prognose, B.4-Merge) ---
+    # Viele AT-Rechnungen weisen einen saisonbereinigten "voraussichtlichen
+    # Jahresverbrauch" aus — mit Lastprofildaten des EVU die bessere Zahl als
+    # eine naive Tages-Hochrechnung (Übernahme nur im ±30%-Fenster).
+    for pattern in [
+        r'voraussichtlich\w*\s+Jahresverbrauch\w*\s+von\s+([\d.,]+)\s*kWh',
+        r'voraussichtlich\w*\s+Verbrauch\w*\s+von\s+([\d.,]+)\s*kWh',
+        r'gesch\w+\s+Jahresverbrauch\w*\s+von\s+([\d.,]+)\s*kWh',
+        r'prognostiziert\w*\s+Jahresverbrauch\w*\s+von\s+([\d.,]+)\s*kWh',
+    ]:
+        m = _re_module.search(pattern, text)
+        if m:
+            val = _parse_austrian_number(m.group(1), expect_large=True)
+            if val > 0:
+                result['jahresverbrauch_prognose_kwh'] = val
+                found_anything = True
+                break
 
     # --- Abrechnungszeitraum ---
     # "Abrechnungszeitraum: 01.01.2024 - 31.12.2024"
@@ -613,7 +779,13 @@ def finalize_invoice(raw: dict) -> dict:
     has_gas = "gas" in raw and isinstance(raw["gas"], dict)
 
     if has_strom and has_gas:
-        # Kombi-Rechnung: Strom als Hauptdaten, Gas als separater Block
+        # Kombi-Rechnung: Strom als Hauptdaten, Gas als separater Block.
+        #
+        # Wichtig (B.4-Merge): bei Kombi MUSS der strom-Block Vorrang vor den
+        # Top-Level-Feldern haben — die deterministische Regex legt oft die
+        # zuerst gefundenen Werte (häufig Gas) in die Top-Level, und der
+        # Strom-Block ist die einzig verlässliche Quelle für die strom-
+        # spezifischen Verbrauch-/Zählpunkt-Werte.
         strom_data = raw.pop("strom")
         gas_data = raw.pop("gas")
         raw["energieart"] = "kombi"
@@ -625,7 +797,17 @@ def finalize_invoice(raw: dict) -> dict:
             jahresverbrauch_kwh=_safe_float(gas_data.get("verbrauch_kwh") or gas_data.get("jahresverbrauch_kwh")),
             zaehlpunkt=_safe_str(gas_data.get("zaehlpunkt", "")),
         )
+        # Felder, die per-Energie bestimmt sind: Strom-Block überschreibt immer.
+        _per_energy_fields = ("verbrauch_kwh", "jahresverbrauch_kwh",
+                              "zaehlpunkt", "tarif_name")
+        for key in _per_energy_fields:
+            val = strom_data.get(key)
+            if val not in (None, "", 0, 0.0):
+                raw[key] = val
+        # Andere Felder (lieferant, plz, adresse, …) nur füllen, wenn leer.
         for key, val in strom_data.items():
+            if key in _per_energy_fields:
+                continue
             if key not in raw or raw.get(key) in (0, 0.0, "", "Unbekannt", None):
                 raw[key] = val
             elif isinstance(raw.get(key), dict) and key != "gas":
@@ -649,6 +831,10 @@ def finalize_invoice(raw: dict) -> dict:
             if key not in raw or raw.get(key) in (0, 0.0, "", "Unbekannt", None):
                 raw[key] = val
         log.info("Gas-Rechnung erkannt")
+    elif raw.get("energieart") in ("strom", "gas", "kombi"):
+        # Explizit gesetzte Energieart (z.B. aus validierten InvoiceFacts, §6 F6)
+        # respektieren — keine Heuristik-Übersteuerung.
+        pass
     else:
         # Kein strom/gas dict → Heuristik anhand Tarif/Lieferant
         tarif = _safe_str(raw.get("tarif_name", "")).lower()
@@ -666,6 +852,15 @@ def finalize_invoice(raw: dict) -> dict:
     for str_field in ("lieferant", "tarif_name", "kunde_name", "adresse", "zaehlpunkt"):
         raw[str_field] = _safe_str(raw.get(str_field, ""))
     raw.setdefault("lieferant", "Unbekannt")
+
+    # Zählpunkt auf die kanonische 33-Zeichen-Form normalisieren (B.4-Merge:
+    # punktierte/gespationierte Transkriptions-Varianten + Pauschal-Sentinel).
+    # Nicht auf AT kanonisierbare Werte (LLM-Platzhalter, Prosa) fliegen raus.
+    if raw.get("zaehlpunkt"):
+        from energietools.tools.zaehlpunkt import canonical_zaehlpunkt
+
+        canonical = canonical_zaehlpunkt(raw["zaehlpunkt"])
+        raw["zaehlpunkt"] = canonical if canonical.startswith("AT") else ""
 
     plz = _safe_str(raw.get("plz", ""))
     raw["plz"] = plz if _re.match(r"^\d{4}$", plz) else ""
@@ -904,9 +1099,43 @@ def finalize_invoice(raw: dict) -> dict:
         "energieart": raw.get("energieart", "strom"),
         "gas": raw.get("gas"),
         "rechenweg": rechenweg,
+        # B.4-Merge: Rechnungsbetrag (Basis der Hauptmetrik) + EVU-Prognose.
+        "rechnungsbetrag_brutto_eur": rechnungsbetrag_brutto,
+        "jahresverbrauch_prognose_kwh": _safe_float(
+            raw.get("jahresverbrauch_prognose_kwh"),
+        ),
     }
 
-    # --- 10. Annualize partial-year invoices ---
+    # --- 10. Annualize partial-year invoices (setzt jahreskosten_brutto_eur) ---
     result = _annualize_invoice(result)
 
+    # --- 11. Warnings (Extraktionsqualität, B.4-Merge) ---
+    result["warnings"] = _collect_warnings(result)
+
     return result
+
+
+def _collect_warnings(result: dict) -> list[str]:
+    """Extraktionsqualitäts-Hinweise für Konsumenten (leer = saubere Extraktion).
+
+    Deterministische Flags auf dem fertig aufbereiteten Dict (post-
+    Annualisierung): fehlender Rechnungsbetrag/Verbrauch, unvollständige
+    Wechselformular-Adresse, implausibler effektiver All-in-Preis.
+    """
+    out: list[str] = []
+    rb = float(result.get("rechnungsbetrag_brutto_eur", 0.0) or 0.0)
+    jv = float(result.get("jahresverbrauch_kwh", 0.0) or 0.0)
+    if rb <= 0:
+        out.append("rechnungsbetrag_missing")
+    if jv <= 0:
+        out.append("verbrauch_missing")
+    if _is_address_incomplete(_safe_str(result.get("adresse", ""))):
+        out.append("adresse_incomplete")
+    if rb > 0 and jv > 0:
+        # Effektiver All-in ct/kWh — Österreich liegt typisch zwischen 18 und
+        # 60 ct/kWh brutto inkl. Netz/Steuern. Außerhalb 8–80 ist ein starkes
+        # Signal für eine Feldverwechslung.
+        eff = rb / jv * 100.0
+        if eff < 8 or eff > 80:
+            out.append(f"effective_price_implausible:{eff:.1f}ct_kwh")
+    return out

@@ -211,6 +211,26 @@ class TestParitaet:
 # =============================================================================
 
 
+class TestSpotOhneEpex:
+    """Fund 8: Spot/Floater-Zeile ohne EPEX-Daten auf der Kompositions-Ebene
+    (vergleiche_tarife) — der Ausschluss-Pfad war nur eine Ebene tiefer gepinnt."""
+
+    def test_floater_ohne_epex_wird_ausgeschlossen(self):
+        rows = [
+            _fix("fix", "Fix AG", "Fixpreis", 12.0, gg_netto=3.0),
+            _fix(
+                "spot", "Spot AG", "Spot Stundenfloater", 0.0, gg_netto=2.0,
+                tariftyp="Stundenfloater", spot_aufschlag_ct=1.5,
+            ),
+        ]
+        # FakeSpotPriceSource liefert keine EPEX-Jahre → Floater nicht rechenbar.
+        cmp = _vergleich(rows)
+        lieferanten = [t.lieferant for t in cmp.alternativen]
+        assert "Spot AG" not in lieferanten  # kein 0-Preis, kein Crash
+        assert "Fix AG" in lieferanten
+        assert all(t.jahreskosten_eur > 0 for t in cmp.alternativen)
+
+
 class TestLeerVertrag:
     def test_leerer_vergleich_ist_ok(self):
         cmp = _vergleich([])
@@ -372,6 +392,13 @@ class TestCapabilityEnvelope:
         ({"aktueller_lieferant": ""}, "lieferant"),
         ({"top_n": 0}, "top_n"),
         ({"rechenweg": "episch"}, "rechenweg"),
+        # Fund 7: aktueller_energiepreis/grundgebuehr müssen plausibel sein —
+        # kein stiller 0.0-/Negativ-Durchgriff (No-LLM-Math, Reject statt Rechnen).
+        ({"aktueller_energiepreis_brutto_ct_kwh": 0.0}, "energiepreis"),
+        ({"aktueller_energiepreis_brutto_ct_kwh": -999.0}, "energiepreis"),
+        ({"aktueller_energiepreis_brutto_ct_kwh": "viel"}, "Zahleneingabe"),
+        ({"aktuelle_grundgebuehr_brutto_eur_monat": -5.0}, "grundgeb"),
+        ({"aktuelle_grundgebuehr_brutto_eur_monat": 999.0}, "grundgeb"),
     ])
     def test_input_validierung(self, kwargs, fragment):
         base = dict(

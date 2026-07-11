@@ -14,6 +14,7 @@ from __future__ import annotations
 from typing import Any
 
 from energietools.capabilities.base import Capability, CapabilityError
+from energietools.capabilities.invoice.facts import PLAUSIBILITAET as _INVOICE_PLAUSIBILITAET
 from energietools.capabilities.tariff_compare.compare import vergleiche_tarife
 from energietools.capabilities.tariff_compare.protocols import SpotPriceSource, TariffSource
 from energietools.capabilities.tariff_compare.sources import (
@@ -24,6 +25,14 @@ from energietools.models import Rechenweg, Tariff, TariffComparison
 
 _DEFAULT_TOP_N = 10
 _MAX_TOP_N = 100
+
+# Plausibilitätsfenster für die aktuellen Rechnungswerte — DIESELBE Quelle der
+# Zahlen wie die invoice-Validierung (ct/kWh bzw. EUR/Monat, brutto). Ein
+# falsch transkribierter (0/negativer/absurder) Wert wird abgelehnt statt still
+# zu einer erfundenen Ersparnis verrechnet (No-LLM-Math, dieselbe Transkriptions-
+# Fehlerklasse wie bei der Rechnung).
+_EP_MIN_CT, _EP_MAX_CT = _INVOICE_PLAUSIBILITAET["arbeitspreis_ct_kwh"]
+_GG_MIN_EUR, _GG_MAX_EUR = _INVOICE_PLAUSIBILITAET["grundgebuehr_eur_monat"]
 
 
 def rechenweg_kurzform(rechenweg: Rechenweg | None, verbrauch_kwh: float) -> str:
@@ -222,6 +231,17 @@ class TariffCompareCapability(Capability):
             raise CapabilityError(f"Ungültige Zahleneingabe: {exc}") from exc
         if verbrauch <= 0 or verbrauch > 1_000_000:
             raise CapabilityError("jahresverbrauch_kwh muss > 0 und plausibel sein")
+        if not _EP_MIN_CT <= ep <= _EP_MAX_CT:
+            raise CapabilityError(
+                f"aktueller_energiepreis_brutto_ct_kwh muss plausibel sein "
+                f"({_EP_MIN_CT:g}-{_EP_MAX_CT:g} ct/kWh brutto) — Wert {ep:g} abgelehnt "
+                "(keine stille 0.0-Koersion, No-LLM-Math)",
+            )
+        if not _GG_MIN_EUR <= gg <= _GG_MAX_EUR:
+            raise CapabilityError(
+                f"aktuelle_grundgebuehr_brutto_eur_monat muss plausibel sein "
+                f"({_GG_MIN_EUR:g}-{_GG_MAX_EUR:g} EUR/Monat brutto) — Wert {gg:g} abgelehnt",
+            )
         lieferant = str(kwargs.get("aktueller_lieferant") or "").strip()
         if not lieferant:
             raise CapabilityError("aktueller_lieferant ist erforderlich")

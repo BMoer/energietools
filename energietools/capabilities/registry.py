@@ -21,6 +21,7 @@ from energietools.capabilities.invoice.capability import (
     FinalizeInvoiceCapability,
     ValidateInvoiceFactsCapability,
 )
+from energietools.capabilities.knowledge.capability import GetKnowledgeCapability
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
@@ -46,6 +47,9 @@ def default_registry() -> CapabilityRegistry:
     # Aufbereitung mit Rechenweg (B.4/B.5).
     registry.register(ValidateInvoiceFactsCapability())
     registry.register(FinalizeInvoiceCapability())
+    # Wissens-Auslieferung (D7 „Wissens-Auslieferung", Amendment 9): eine kuratierte
+    # Wiki-Seite als reinen Text — kein Rechen-Result.
+    registry.register(GetKnowledgeCapability())
     # Energiegemeinschafts-Kennzahlen (EEG/BEG).
     registry.register(CommunityMetricsCapability())
     # Netz: regulierte Netzkosten, Gesamtkosten, Verfügbarkeit.

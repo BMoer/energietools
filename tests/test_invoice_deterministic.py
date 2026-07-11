@@ -15,7 +15,11 @@ from pathlib import Path
 import pytest
 
 from energietools.models.invoice import Invoice
-from energietools.tools.invoice_parser import finalize_invoice, parse_invoice
+from energietools.tools.invoice_parser import (
+    _collect_warnings,
+    finalize_invoice,
+    parse_invoice,
+)
 
 
 def test_finalize_emits_rechenweg_with_plan_and_ust() -> None:
@@ -59,6 +63,51 @@ def test_invoice_model_carries_rechenweg() -> None:
     inv = Invoice(**finalize_invoice(raw))
     assert isinstance(inv.rechenweg, dict)
     assert inv.rechenweg["ust_faktor"] == 1.2
+
+
+def test_effektivpreis_warnung_gleiche_jahresbasis_unterjahr() -> None:
+    """Fund 2: der Effektivpreis-Check darf Perioden-€ nicht mit Jahres-kWh
+    mischen. 60-Tage-Rechnung, 600 kWh, 150 EUR → realer Periodenpreis 25 ct/kWh
+    (plausibel) → KEINE effective_price_implausible-Warnung."""
+    raw = {
+        "lieferant": "Testenergie",
+        "arbeitspreis_ct_kwh": 20.0,
+        "arbeitspreis_ist_netto": False,
+        "verbrauch_kwh": 600.0,
+        "plz": "1010",
+        "zeitraum_von": "01.01.2025",
+        "zeitraum_bis": "02.03.2025",  # 60 Tage
+        "rechnungsbetrag_brutto_eur": 150.0,
+        "adresse": "Musterstraße 12, 1010 Wien",
+    }
+    result = finalize_invoice(raw)
+    # Annualisierung ist konsistent: jahreskosten (912,50) / jahresverbrauch (3650)
+    assert result["jahresverbrauch_kwh"] > 3000  # hochgerechnet aus 60 Tagen
+    warnings = result["warnings"]
+    assert not any(
+        w.startswith("effective_price_implausible") for w in warnings
+    ), warnings
+
+
+def test_collect_warnings_effektivpreis_auf_jahreskosten() -> None:
+    """Beweis auf Funktionsebene: der Check nutzt jahreskosten_brutto_eur
+    (Jahresbasis) statt rechnungsbetrag_brutto_eur (Periodenbasis)."""
+    # Post-Annualisierung einer 60-Tage-Rechnung: rb bleibt Periode (150),
+    # jahreskosten annualisiert (912,50), jahresverbrauch annualisiert (3650).
+    result = {
+        "rechnungsbetrag_brutto_eur": 150.0,
+        "jahresverbrauch_kwh": round(600 * 365 / 60, 1),
+        "jahreskosten_brutto_eur": round(150 * 365 / 60, 2),
+        "adresse": "Musterstraße 12, 1010 Wien",
+    }
+    assert not any(
+        w.startswith("effective_price_implausible") for w in _collect_warnings(result)
+    )
+    # Gegenprobe: ein echt implausibler Jahres-Effektivpreis feuert weiterhin.
+    schief = dict(result, jahreskosten_brutto_eur=100.0, jahresverbrauch_kwh=3650.0)
+    assert any(
+        w.startswith("effective_price_implausible") for w in _collect_warnings(schief)
+    )
 
 
 def test_parse_invoice_rejects_non_pdf(tmp_path: Path) -> None:

@@ -1125,17 +1125,24 @@ def _collect_warnings(result: dict) -> list[str]:
     out: list[str] = []
     rb = float(result.get("rechnungsbetrag_brutto_eur", 0.0) or 0.0)
     jv = float(result.get("jahresverbrauch_kwh", 0.0) or 0.0)
+    # jahreskosten_brutto_eur ist bereits auf dieselbe Jahresbasis annualisiert
+    # wie jahresverbrauch_kwh (beide × 365/Periodentage). rechnungsbetrag_brutto_eur
+    # bleibt dagegen ein Periodenwert — ihn mit dem Jahres-kWh zu teilen ergäbe bei
+    # jeder unterjährigen Rechnung einen zu niedrigen Effektivpreis und eine falsche
+    # Warnung (Fund gridbert-Gegenlese).
+    jk = float(result.get("jahreskosten_brutto_eur", 0.0) or 0.0)
     if rb <= 0:
         out.append("rechnungsbetrag_missing")
     if jv <= 0:
         out.append("verbrauch_missing")
     if _is_address_incomplete(_safe_str(result.get("adresse", ""))):
         out.append("adresse_incomplete")
-    if rb > 0 and jv > 0:
+    if jk > 0 and jv > 0:
         # Effektiver All-in ct/kWh — Österreich liegt typisch zwischen 18 und
         # 60 ct/kWh brutto inkl. Netz/Steuern. Außerhalb 8–80 ist ein starkes
-        # Signal für eine Feldverwechslung.
-        eff = rb / jv * 100.0
+        # Signal für eine Feldverwechslung. Zähler und Nenner auf gleicher
+        # Jahresbasis (jahreskosten_brutto_eur / jahresverbrauch_kwh).
+        eff = jk / jv * 100.0
         if eff < 8 or eff > 80:
             out.append(f"effective_price_implausible:{eff:.1f}ct_kwh")
     return out

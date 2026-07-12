@@ -27,6 +27,7 @@ from energietools.capabilities.lastgang.attribution import (
     BAND_1_4,
     BAND_GT4,
     SLOTS_PER_HOUR,
+    TREIBER_MIN_DELTA_KWH,
     band_of,
     compute_trend_attribution,
     tageszeit_of,
@@ -157,6 +158,57 @@ def test_kein_wallbox_false_positive() -> None:
     for t in result["treiber"]:
         assert "Wallbox" not in t["geraete_klasse"]
         assert t["band_kw"] != BAND_GT4
+
+
+# --- Finding 1: Kalender-Drift darf keinen Phantom-Treiber erzeugen ------------
+
+
+def build_identische_serie(jahr_a: int = 2025, jahr_b: int = 2026, tage: int = 6) -> list[dict]:
+    """Bit-identische Serie in BEIDEN Jahren (NULL reale Veränderung).
+
+    Nur der Kalender verschiebt sich: dieselben (Monat,Tag)-Slots fallen 2025 und
+    2026 auf unterschiedliche Wochentage. Bei einem Fenster, das KEINE ganze
+    Wochenzahl ist (hier 6 Tage, Jan 6.–11. = Mo–Sa 2025 / Di–So 2026), ist die
+    Werktag/Wochenende-Aufteilung je Jahr verschieden. Eine korrekte Attribution
+    darf daraus KEINEN Treiber fabrizieren.
+    """
+    recs: list[dict] = []
+    for year in (jahr_a, jahr_b):
+        start = date(year, 1, 6)
+        for off in range(tage):
+            d = start + timedelta(days=off)
+            for h in range(24):
+                for minute in (0, 15, 30, 45):
+                    kwh = 0.40 if h in (18, 19) else _BASE_KWH  # identisch je Jahr
+                    ts = datetime(d.year, d.month, d.day, h, minute).isoformat()
+                    recs.append({"ts": ts, "kwh": kwh})
+    return recs
+
+
+def test_kalender_drift_erzeugt_keinen_phantom_treiber() -> None:
+    """RED-Beweis: identische Serie in beiden Jahren → KEIN Treiber, alle Δ ≈ 0.
+
+    Der Per-Jahr-Werktag-Split über ein Nicht-ganze-Wochen-Fenster verschiebt die
+    Slot-Zahlen der Werktag-/Wochenende-Zellen zwischen den Jahren; bei Rohsummen
+    entsteht daraus ein Scheindelta (der Reviewer demonstrierte +2,0 kWh/+10 %).
+    Bei NULL realer Veränderung MUSS jedes Zell-Δ ≈ 0 sein und es darf kein
+    Treiber (schon gar keine Geräte-KLASSE-Behauptung) entstehen.
+    """
+    result = compute_trend_attribution(build_identische_serie()).model_dump(mode="json")
+
+    # Kein Treiber, keine Klassen-Behauptung aus reinem Kalender-Drift.
+    assert result["treiber"] == [], (
+        "Phantom-Treiber aus Kalender-Drift: "
+        f"{[(t['tageszeit'], t['band_kw'], t['werktag'], t['delta_kwh']) for t in result['treiber']]}"
+    )
+    assert result["anzahl_treiber"] == 0
+    assert result["top_treiber_klasse"] is None
+
+    # Jede Zelle: Δ kWh und Δ% praktisch 0 (mittlere Slot-Last unverändert).
+    for z in result["zerlegung"]:
+        assert abs(z["delta_kwh"]) < TREIBER_MIN_DELTA_KWH, z
+        if z["delta_pct"] is not None:
+            assert abs(z["delta_pct"]) < 1.0, z
 
 
 # --- F21: Pflicht-Caveat 15-min-Auflösung -------------------------------------

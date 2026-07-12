@@ -207,8 +207,26 @@ def _beleg(band: str, tageszeit: str, werktag: bool, a: float, b: float, pct: fl
     )
 
 
-def _delta_pct(a: float, b: float) -> float | None:
-    return round(100.0 * (b / a - 1.0), 1) if a > 0 else None
+def _zelle_kennzahlen(
+    sum_a: float, sum_b: float, count_a: int, count_b: int
+) -> tuple[float, float, float, float | None]:
+    """(Roh-Summen + Slot-Zahlen) → (kwh_a, kwh_b, delta_kwh, delta_pct) — Kalender-Drift-robust.
+
+    Vergleicht die **mittlere Slot-Last** (kWh/Slot) je Jahr, NICHT die Rohsummen,
+    und skaliert das Δ auf eine drift-robuste Slot-Zahl (``max`` beider Jahre).
+    Damit erzeugt reiner Kalender-Drift — gleiche Last, aber je Jahr andere
+    Werktag/Wochenende-Aufteilung derselben (Monat,Tag)-Slots (nicht-ganze
+    Wochenzahl im Fenster) — KEIN Scheindelta: die mittlere Slot-Last ist
+    unverändert, also ist ``mean_b − mean_a = 0``. Bei gleichen Slot-Zahlen
+    (ganze Wochenzahl) ist die Normalisierung identisch zur Rohsumme.
+    """
+    mean_a = sum_a / count_a if count_a else 0.0
+    mean_b = sum_b / count_b if count_b else 0.0
+    n_ref = max(count_a, count_b)  # gemeinsame, drift-robuste Slot-Basis der Zelle
+    kwh_a = mean_a * n_ref
+    kwh_b = mean_b * n_ref
+    delta_pct = round(100.0 * (mean_b / mean_a - 1.0), 1) if mean_a > 0 else None
+    return kwh_a, kwh_b, kwh_b - kwh_a, delta_pct
 
 
 # --- Hauptfunktion ------------------------------------------------------------
@@ -237,9 +255,12 @@ def compute_trend_attribution(
             "(keine gemeinsamen Monat,Tag,Std,Min-Slots)"
         )
 
-    # Zerlegung: kWh je (Band × Tageszeit × WT/WE)-Zelle, je Jahr.
+    # Zerlegung: kWh-Summe UND Slot-Zahl je (Band × Tageszeit × WT/WE)-Zelle, je Jahr.
+    # Die Slot-Zahl trägt die Kalender-Drift-Korrektur (mittlere Slot-Last statt Rohsumme).
     cell_a: dict[tuple[str, str, bool], float] = defaultdict(float)
     cell_b: dict[tuple[str, str, bool], float] = defaultdict(float)
+    count_a: dict[tuple[str, str, bool], int] = defaultdict(int)
+    count_b: dict[tuple[str, str, bool], int] = defaultdict(int)
     naechte_gt4: dict[tuple[str, str, bool], set[_dt.date]] = defaultdict(set)
     for dt, kwh in cons:
         if dt.year not in (ya, yb):
@@ -254,27 +275,32 @@ def compute_trend_attribution(
         cell = (band, tageszeit, werktag)
         if dt.year == ya:
             cell_a[cell] += kwh
+            count_a[cell] += 1
         else:
             cell_b[cell] += kwh
+            count_b[cell] += 1
             if band == BAND_GT4 and tageszeit == NACHT:
                 naechte_gt4[cell].add(dt.date())
 
     alle_zellen = set(cell_a) | set(cell_b)
     zerlegung: list[ZerlegungsZelle] = []
-    for band, tageszeit, werktag in alle_zellen:
-        a = round(cell_a.get((band, tageszeit, werktag), 0.0), 1)
-        b = round(cell_b.get((band, tageszeit, werktag), 0.0), 1)
-        raw_a = cell_a.get((band, tageszeit, werktag), 0.0)
-        raw_b = cell_b.get((band, tageszeit, werktag), 0.0)
+    for zelle_key in alle_zellen:
+        band, tageszeit, werktag = zelle_key
+        kwh_a, kwh_b, delta_kwh, delta_pct = _zelle_kennzahlen(
+            cell_a.get(zelle_key, 0.0),
+            cell_b.get(zelle_key, 0.0),
+            count_a.get(zelle_key, 0),
+            count_b.get(zelle_key, 0),
+        )
         zerlegung.append(
             ZerlegungsZelle(
                 band_kw=band,
                 tageszeit=tageszeit,
                 werktag=werktag,
-                kwh_a=a,
-                kwh_b=b,
-                delta_kwh=round(raw_b - raw_a, 1),
-                delta_pct=_delta_pct(raw_a, raw_b),
+                kwh_a=round(kwh_a, 1),
+                kwh_b=round(kwh_b, 1),
+                delta_kwh=round(delta_kwh, 1),
+                delta_pct=delta_pct,
             )
         )
     zerlegung.sort(key=lambda z: z.delta_kwh, reverse=True)
@@ -331,11 +357,19 @@ def compute_trend_attribution(
             "untergrenze": f"<{UNTERGRENZE_KW} kW = Grundrauschen, nicht attribuiert",
             "tageszeit_fenster": dict(_TAGESZEIT_FENSTER),
             "methode": (
-                "YoY-Delta je Leistungsband × Tageszeit "
+                "YoY-Delta je Leistungsband × Tageszeit × Werktag/Wochenende auf Basis "
+                "der mittleren Slot-Last (kWh/Slot), nicht der Rohsumme "
                 "(deckungsgleiches Fenster wie load_trend)"
             ),
             "slot_zu_kw": f"kW = kWh_slot × {SLOTS_PER_HOUR} (15-min-Slot → Momentanleistung)",
             "werktag_wochenende": "Mo–Fr = Werktag, Sa/So = Wochenende (je Jahr eigener Kalender)",
+            "kalender_drift": (
+                "Δ kWh = (mittlere Slot-Last_b − mittlere Slot-Last_a) × max(Slots_a, Slots_b). "
+                "Da dieselben (Monat,Tag)-Slots je Jahr auf andere Wochentage fallen, hätte ein "
+                "Werktag/Wochenende-Split auf Rohsummen bei nicht-ganzer Wochenzahl im Fenster "
+                "einen Phantom-Treiber erzeugt; der Vergleich der mittleren Slot-Last macht die "
+                "Zerlegung Kalender-Drift-robust (gleiche Last → Δ = 0)."
+            ),
         },
         caveats=[
             _CAVEAT_15MIN,
@@ -343,6 +377,9 @@ def compute_trend_attribution(
             "ist eine Hypothese, kein Nachweis eines konkreten Geräts.",
             "Vergleich nur über das deckungsgleiche (Monat,Tag,Std,Min)-Fenster beider "
             "Jahre — Teiljahre werden nicht gegen Volljahre gerechnet.",
+            "Verglichen wird die mittlere Slot-Last (kWh/Slot) je Zelle, nicht die Rohsumme: "
+            "reiner Kalender-Drift (gleiche Last, andere Werktag/Wochenende-Verteilung) erzeugt "
+            "so keinen Scheintreiber.",
             f"kW je Slot = kWh × {SLOTS_PER_HOUR} (15-min-Auflösung); die Bänder gelten "
             "für 15-min-Serien.",
         ],

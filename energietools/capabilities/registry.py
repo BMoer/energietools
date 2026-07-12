@@ -22,7 +22,10 @@ from energietools.capabilities.invoice.capability import (
     ValidateInvoiceFactsCapability,
 )
 from energietools.capabilities.knowledge.capability import GetKnowledgeCapability
-from energietools.capabilities.lastgang.capability import LastgangSignalsCapability
+from energietools.capabilities.lastgang.capability import (
+    LastgangSignalsCapability,
+    LoadTrendCapability,
+)
 from energietools.capabilities.load_profile.capability import LoadProfileCapability
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
@@ -73,6 +76,9 @@ def default_registry() -> CapabilityRegistry:
     # Lastgang-Signale: Ursachen-Hypothesen (Heizung/PV/Dauerläufer) + Rückfragen,
     # mit PV-bedingten Netzbezug-Guards gegen Prosumer-False-Positives (L.1).
     registry.register(LastgangSignalsCapability())
+    # Lastgang-Mehrjahres-Trend: Kalender-YoY nur bei >=2 vollen Jahren
+    # (Coverage-Guard), sonst Fenster-YoY über deckungsgleiche Slots (L.2).
+    registry.register(LoadTrendCapability())
     # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
     register_tool_capabilities(registry)
     return registry

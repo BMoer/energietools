@@ -25,12 +25,15 @@ Struktur:
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import pytest
 
 from energietools.capabilities.base import CapabilityError
-from energietools.capabilities.lastgang.capability import LastgangSignalsCapability
+from energietools.capabilities.lastgang.capability import (
+    LastgangSignalsCapability,
+    LoadTrendCapability,
+)
 from energietools.capabilities.lastgang.guards import apply_pv_guards, guard_rueckfragen
 from energietools.capabilities.lastgang.signals import (
     ELECTRIC_HEAT_RATIO,
@@ -39,6 +42,12 @@ from energietools.capabilities.lastgang.signals import (
     Signal,
     compute_signals,
     select_rueckfragen,
+)
+from energietools.capabilities.lastgang.trend import (
+    FULL_YEAR_DAY_THRESHOLD,
+    aligned_window_yoy,
+    compute_load_trend,
+    per_year,
 )
 from energietools.capabilities.registry import default_registry
 
@@ -419,3 +428,250 @@ def test_nenner_deckt_alle_verhaeltnis_kennzahlen_ab() -> None:
     for feld in ratio_felder:
         assert feld in result.data["nenner"], f"Nenner-Eintrag fehlt für {feld}"
         assert result.data["nenner"][feld]  # nicht-leerer Text
+
+
+# ---------------------------------------------------------------------------
+# L.2 — load_trend: Mehrjahres-Trend mit Coverage-Guard (YoY)
+#
+# Alle Serien unten sind bewusst auf TAGES-Granularität vereinfacht (ein
+# Reading pro Kalendertag, fixe Uhrzeit) statt echter Q15 — das hält die
+# Tests schnell und die Zahlen exakt nachrechenbar; die deckungsgleiche
+# (Monat,Tag,Std,Min)-Fenster-Logik ist granularitätsunabhängig (sie summiert
+# nur über Slot-Schlüssel, die in beiden Jahren vorkommen — bei konstantem
+# Tageswert liefert 1 Slot/Tag denselben delta_pct wie 96 Slots/Tag).
+# ``gemeinsame_tage`` im Result nimmt Q15 (96 Slots/Tag) an und ist bei
+# dieser vereinfachten Granularität daher nicht die reale Tageszahl — nur
+# ``delta_pct``/``gemeinsame_slots`` werden geprüft. KEINE echten
+# Zählpunkte/Namen (MIT-Repo-Pflicht, DoD-Kriterium 13).
+# ---------------------------------------------------------------------------
+
+
+def _daily_records(
+    start: date, end: date, kwh_je_tag: float, *, hour: int = 12, minute: int = 0
+) -> list[dict]:
+    """Ein {ts, kwh}-Reading pro Kalendertag in [start, end] (inklusive)."""
+    out: list[dict] = []
+    tag = start
+    while tag <= end:
+        ts = datetime(tag.year, tag.month, tag.day, hour, minute)
+        out.append({"ts": ts.isoformat(), "kwh": round(kwh_je_tag, 6)})
+        tag += timedelta(days=1)
+    return out
+
+
+def _daily_tuples(records: list[dict]) -> list[tuple[datetime, float]]:
+    return [(datetime.fromisoformat(r["ts"]), r["kwh"]) for r in records]
+
+
+# --- Rechen-Kern: per_year (F11 — Tage != Slots) --------------------------
+
+
+def test_per_year_full_year_threshold_ist_360_tage() -> None:
+    assert FULL_YEAR_DAY_THRESHOLD == 360
+
+
+def test_per_year_klassifiziert_volljahr_und_teiljahr() -> None:
+    teil = _daily_records(date(2024, 4, 15), date(2024, 12, 31), 5.0)
+    voll = _daily_records(date(2025, 1, 1), date(2025, 12, 31), 5.0)
+
+    jahre = per_year(_daily_tuples(teil + voll))
+    by_jahr = {j.jahr: j for j in jahre}
+
+    assert by_jahr[2024].days == 261
+    assert by_jahr[2024].full_year is False
+    assert by_jahr[2024].von == "2024-04-15"
+    assert by_jahr[2024].bis == "2024-12-31"
+    assert by_jahr[2025].days == 365
+    assert by_jahr[2025].full_year is True
+
+
+def test_per_year_zaehlt_kalendertage_nicht_slots() -> None:
+    """F11: mehrere Slots am selben Tag zählen als EIN Tag, nicht als N."""
+    records = [
+        {"ts": datetime(2025, 5, 1, 0, 0).isoformat(), "kwh": 1.0},
+        {"ts": datetime(2025, 5, 1, 6, 0).isoformat(), "kwh": 1.0},
+        {"ts": datetime(2025, 5, 1, 12, 0).isoformat(), "kwh": 1.0},
+        {"ts": datetime(2025, 5, 1, 18, 0).isoformat(), "kwh": 1.0},
+    ]
+
+    jahre = per_year(_daily_tuples(records))
+
+    assert jahre[0].slots == 4
+    assert jahre[0].days == 1
+
+
+# --- Rechen-Kern: aligned_window_yoy (deckungsgleiche Slots) --------------
+
+
+def test_aligned_window_yoy_nur_deckungsgleiche_slots() -> None:
+    # Beide Jahre bewusst NICHT-Schaltjahre (2022/2023), damit len(a) exakt die
+    # gemeinsame Slot-Zahl ist -- der Schalttag-Fall (29.02.) wird separat in
+    # der Fall-B-Referenz (2024->2025) mitgeprüft.
+    a = _daily_records(date(2022, 1, 1), date(2022, 6, 30), 2.0)
+    b = _daily_records(date(2023, 1, 1), date(2023, 12, 31), 2.2)
+
+    w = aligned_window_yoy(_daily_tuples(a + b), 2022, 2023)
+
+    assert w is not None
+    assert w.gemeinsame_slots == len(a)
+    assert w.delta_pct == pytest.approx(10.0, abs=0.05)
+
+
+def test_aligned_window_yoy_disjunkte_monate_liefert_none() -> None:
+    a = _daily_records(date(2024, 1, 1), date(2024, 3, 1), 2.0)
+    b = _daily_records(date(2025, 4, 1), date(2025, 12, 31), 2.0)
+
+    w = aligned_window_yoy(_daily_tuples(a + b), 2024, 2025)
+
+    assert w is None
+
+
+# --- Coverage-Guard: Kalender-YoY nur bei >=2 vollen Jahren ---------------
+
+
+def test_calendar_yoy_bei_zwei_vollen_jahren() -> None:
+    a = _daily_records(date(2030, 1, 1), date(2030, 12, 31), 4.0)
+    b = _daily_records(date(2031, 1, 1), date(2031, 12, 31), 4.4)
+
+    result = compute_load_trend(_daily_tuples(a + b))
+
+    assert result.calendar_yoy is not None
+    assert result.calendar_yoy.von_jahr == 2030
+    assert result.calendar_yoy.bis_jahr == 2031
+    assert result.calendar_yoy.delta_pct == pytest.approx(10.0, abs=0.05)
+    assert result.calendar_yoy_verweigert_grund is None
+
+
+def test_trend_pct_faellt_auf_calendar_yoy_zurueck_wenn_fenster_leer() -> None:
+    """Zwei volle Jahre OHNE gemeinsame (Monat,Tag,Std,Min)-Slots (hier: fixe,
+    unterschiedliche Uhrzeit je Jahr) -> window_yoy bleibt leer, aber
+    calendar_yoy existiert -> trend_pct_pro_jahr faellt auf calendar_yoy
+    zurueck (Fallback-Zweig in compute_load_trend)."""
+    a = _daily_records(date(2040, 1, 1), date(2040, 12, 31), 4.0, hour=12)
+    b = _daily_records(date(2041, 1, 1), date(2041, 12, 31), 4.4, hour=13)
+
+    result = compute_load_trend(_daily_tuples(a + b))
+
+    assert result.calendar_yoy is not None
+    assert result.window_yoy == []
+    assert result.trend_pct_pro_jahr == pytest.approx(result.calendar_yoy.delta_pct, abs=0.01)
+    assert result.trend_aussage is not None
+
+
+def test_calendar_yoy_verweigert_bei_nur_einem_vollen_jahr() -> None:
+    voll = _daily_records(date(2030, 1, 1), date(2030, 12, 31), 4.0)
+    teil = _daily_records(date(2031, 1, 1), date(2031, 6, 30), 4.0)
+
+    result = compute_load_trend(_daily_tuples(voll + teil))
+
+    assert result.calendar_yoy is None
+    assert result.calendar_yoy_verweigert_grund is not None
+    assert "1 volle" in result.calendar_yoy_verweigert_grund
+    assert result.window_yoy != []
+
+
+def test_trend_aussage_leer_bei_nur_einem_jahr_ohne_paar() -> None:
+    nur_ein_jahr = _daily_records(date(2030, 1, 1), date(2030, 3, 1), 3.0)
+
+    result = compute_load_trend(_daily_tuples(nur_ein_jahr))
+
+    assert result.window_yoy == []
+    assert result.calendar_yoy is None
+    assert result.trend_aussage is None
+    assert result.trend_pct_pro_jahr is None
+
+
+# --- Referenz Fall B (DoD-Kriterium 5): reproduziert +9,8 %/+9,7 % --------
+# (results_09.md:36-37, CASE_09.md:31-33, out_09.json — nur Aggregate/
+# Kalendergrenzen als Referenz, keine Rohserie, s. Spec §L.2.5/§6.)
+
+
+def _fall_b_trend_records() -> list[dict]:
+    """Synthetische Nachbildung der Mehrjahres-STRUKTUR aus ``out_09.json``
+    (Case 09): 2024 Teiljahr ab 15.04. (261 Tage), 2025 Volljahr (365 Tage),
+    2026 Teiljahr bis 28.06. (179 Tage) — dieselben Kalendergrenzen wie im
+    Referenzfall (reine Datums-Struktur, kein Rohdaten-Bezug). Flache
+    Tages-kWh je Jahr, kalibriert auf +9,8 %/+9,7 % Fenster-YoY (Spec L.2.5).
+    Wert-Niveau (5 kWh/Tag) frei gewählt, kein echter Zählpunkt/PII."""
+    basis_kwh_tag = 5.0
+    faktor_2025 = 1.098  # +9,8 % ggü. 2024 (results_09.md: 1.298 -> 1.425 Mio kWh)
+    faktor_2026 = faktor_2025 * 1.097  # +9,7 % ggü. 2025
+
+    r2024 = _daily_records(date(2024, 4, 15), date(2024, 12, 31), basis_kwh_tag)
+    r2025 = _daily_records(date(2025, 1, 1), date(2025, 12, 31), basis_kwh_tag * faktor_2025)
+    r2026 = _daily_records(date(2026, 1, 1), date(2026, 6, 28), basis_kwh_tag * faktor_2026)
+    return r2024 + r2025 + r2026
+
+
+def test_compute_load_trend_referenz_fall_b_reproduziert_9_8_und_9_7_prozent() -> None:
+    """DoD-Kriterium 5: Fenster-YoY reproduziert +9,8 %/+9,7 % (results_09.md:36-37)."""
+    result = compute_load_trend(_daily_tuples(_fall_b_trend_records()))
+
+    by_jahr = {j.jahr: j for j in result.per_year}
+    assert by_jahr[2024].full_year is False
+    assert by_jahr[2025].full_year is True
+    assert by_jahr[2026].full_year is False
+
+    assert result.calendar_yoy is None
+    assert result.calendar_yoy_verweigert_grund is not None
+
+    assert len(result.window_yoy) == 2
+    w_24_25, w_25_26 = result.window_yoy
+    assert (w_24_25.von_jahr, w_24_25.bis_jahr) == (2024, 2025)
+    assert w_24_25.delta_pct == pytest.approx(9.8, abs=0.05)
+    assert (w_25_26.von_jahr, w_25_26.bis_jahr) == (2025, 2026)
+    assert w_25_26.delta_pct == pytest.approx(9.7, abs=0.05)
+
+    assert result.trend_pct_pro_jahr == pytest.approx(9.8, abs=0.05)
+    assert result.trend_aussage is not None
+    assert "steigt" in result.trend_aussage
+    assert "~10" in result.trend_aussage
+
+
+# --- Capability-Envelope + Registry + Nenner (L.6) ------------------------
+
+
+def test_load_trend_capability_envelope_reproduziert_referenzfall() -> None:
+    result = LoadTrendCapability().run(consumption=_fall_b_trend_records())
+
+    assert result.ok is True
+    data = result.data
+    assert data["calendar_yoy"] is None
+    assert data["calendar_yoy_verweigert_grund"] is not None
+    assert len(data["window_yoy"]) == 2
+    assert data["window_yoy"][0]["delta_pct"] == pytest.approx(9.8, abs=0.05)
+    assert data["window_yoy"][1]["delta_pct"] == pytest.approx(9.7, abs=0.05)
+    assert data["trend_pct_pro_jahr"] == pytest.approx(9.8, abs=0.05)
+    assert "steigt" in data["trend_aussage"]
+    assert data["rechenweg"]["full_year_threshold_tage"] == FULL_YEAR_DAY_THRESHOLD
+    assert data["caveats"]
+    assert result.meta.get("quelle")
+
+
+def test_load_trend_capability_leere_consumption_liefert_ok_false() -> None:
+    result = LoadTrendCapability().run(consumption=[])
+
+    assert result.ok is False
+    assert result.data is None
+    assert result.error
+
+
+def test_load_trend_capability_registry_smoke() -> None:
+    cap = default_registry().get("load_trend")
+    assert isinstance(cap, LoadTrendCapability)
+    assert cap.name == "load_trend"
+
+
+def test_load_trend_capability_result_field_paths_deckt_top_level_skalare_ab() -> None:
+    pfade = LoadTrendCapability().result_field_paths()
+    for feld in ("trend_aussage", "trend_pct_pro_jahr", "calendar_yoy_verweigert_grund"):
+        assert feld in pfade
+
+
+def test_load_trend_nenner_deckt_delta_pct_ab() -> None:
+    result = LoadTrendCapability().run(consumption=_fall_b_trend_records())
+
+    assert result.ok is True
+    nenner = result.data["nenner"]
+    assert nenner.get("window_yoy.delta_pct")
+    assert nenner.get("trend_pct_pro_jahr")

@@ -1,14 +1,16 @@
 # energietools — Open-Source Toolkit für den österreichischen Energiemarkt
 # SPDX-License-Identifier: MIT
 
-"""Capability-Hülle der Lastgang-Signale (L.1, WP2-L Durchstich 2).
+"""Capability-Hülle der Lastgang-Analysen (L.1 + L.2, WP2-L Durchstich 2).
 
-Übersetzt den Rechen-Kern (``signals.py``) + die PV-Guards (``guards.py``) in
-die einheitliche ``Capability``-Oberfläche: JSON-Schema-Eingabe, ok/error-
-Envelope, ``result_field_paths``/``_meta`` für den Prozess-Linter (Spec §0.1).
+Übersetzt die Rechen-Kerne (``signals.py``, ``trend.py``) + die PV-Guards
+(``guards.py``) in die einheitliche ``Capability``-Oberfläche: JSON-Schema-
+Eingabe, ok/error-Envelope, ``result_field_paths``/``_meta`` für den
+Prozess-Linter (Spec §0.1). Alle vier Lastgang-Capabilities (L.1–L.4) leben
+laut Spec §0.4 in dieser einen Datei — hier bislang L.1/L.2.
 
 Rein stdlib — kein pandas/numpy nötig (anders als ``load_profile``), daher
-kein Lazy-Import-Zwang für den Rechen-Kern selbst.
+kein Lazy-Import-Zwang für die Rechen-Kerne selbst.
 """
 
 from __future__ import annotations
@@ -19,7 +21,14 @@ from typing import Any
 
 from energietools.capabilities.base import Capability, CapabilityError
 from energietools.capabilities.lastgang.guards import apply_pv_guards, guard_rueckfragen
-from energietools.capabilities.lastgang.models import LastgangSignalsResult, RueckfrageModel
+from energietools.capabilities.lastgang.models import (
+    CalendarYoYModel,
+    LastgangSignalsResult,
+    LoadTrendResult,
+    PerYearModel,
+    RueckfrageModel,
+    WindowYoYModel,
+)
 from energietools.capabilities.lastgang.signals import (
     ELECTRIC_HEAT_RATIO,
     HIGH_BASE_W,
@@ -29,6 +38,7 @@ from energietools.capabilities.lastgang.signals import (
     compute_signals,
     select_rueckfragen,
 )
+from energietools.capabilities.lastgang.trend import FULL_YEAR_DAY_THRESHOLD, compute_load_trend
 
 _CONSUMPTION_SERIES = {
     "type": "array",
@@ -53,6 +63,31 @@ _CAVEAT_15MIN = (
     "Signale sind Hypothesen aus dem Q15-Muster (Heuristik, keine Beweise) — "
     "die Rückfragen lösen die Mehrdeutigkeit auf, nicht die Zahl allein."
 )
+
+# --- L.2 load_trend -----------------------------------------------------
+
+_LEERER_LASTGANG_TREND_FEHLER = "Leerer Lastgang — kein Mehrjahres-Trend berechenbar."
+
+_CAVEAT_TEILJAHR = (
+    "Teiljahr-kWh nicht als Jahreswert hochrechnen — ein Teiljahr (z.B. 6 Monate) ist "
+    "ohne Saisonalitäts-Korrektur kein halbes Jahresverbrauchs-Äquivalent."
+)
+_CAVEAT_FENSTER_YOY = (
+    "Fenster-YoY (deckungsgleiche Monat/Tag/Std/Min-Slots) ist bei Teiljahren der "
+    "einzige saubere Mehrjahresvergleich — ein reiner Kalenderjahr-Vergleich würde "
+    "sonst ein Teiljahr gegen ein Volljahr stellen."
+)
+
+_TREND_NENNER = {
+    "window_yoy.delta_pct": (
+        "kWh_a der deckungsgleichen (Monat,Tag,Std,Min)-Slots (Fenster-Basisjahr)"
+    ),
+    "calendar_yoy.delta_pct": "kWh_a des vollen Kalender-Basisjahres",
+    "trend_pct_pro_jahr": (
+        "Median der delta_pct-Werte aus window_yoy (Fallback: calendar_yoy, falls "
+        "window_yoy leer)"
+    ),
+}
 
 
 def _paket_version() -> str:
@@ -249,5 +284,126 @@ class LastgangSignalsCapability(Capability):
             rechenweg=rechenweg,
             caveats=caveats,
             nenner=dict(_NENNER),
+        )
+        return result.model_dump(mode="json")
+
+
+class LoadTrendCapability(Capability):
+    """Mehrjahres-Trend (YoY) eines Verbrauchs-Lastgangs mit Coverage-Guard (L.2).
+
+    Ein echter Kalenderjahres-Vergleich braucht zwei VOLLE Jahre (>=360
+    abgedeckte Tage) — sonst wäre er ein Teiljahr-gegen-Volljahr-Vergleich.
+    Ohne diese Coverage weicht die Capability auf eine Fenster-YoY aus:
+    deckungsgleiche (Monat,Tag,Std,Min)-Slots, die in beiden Jahren
+    existieren. Aus den Delta-Werten leitet sie eine deterministische
+    Trend-Aussage ab (F12, kein LLM).
+    """
+
+    name = "load_trend"
+    summary = (
+        "Mehrjahres-Trend (YoY) aus einem Verbrauchs-Lastgang. Kalender-YoY nur "
+        "bei >=2 vollen Kalenderjahren (Coverage-Guard); sonst Fenster-YoY über "
+        "deckungsgleiche (Monat,Tag,Std,Min)-Slots. Liefert eine deterministische "
+        "Trend-Aussage ('Verbrauch steigt ~X %/Jahr')."
+    )
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "consumption": _CONSUMPTION_SERIES,
+        },
+        "required": ["consumption"],
+    }
+
+    def result_field_paths(self) -> dict[str, str]:
+        return {
+            "trend_aussage": "str",
+            "trend_pct_pro_jahr": "number",
+            "calendar_yoy_verweigert_grund": "str",
+            "calendar_yoy.von_jahr": "number",
+            "calendar_yoy.bis_jahr": "number",
+            "calendar_yoy.delta_pct": "number",
+        }
+
+    def _meta(self, **kwargs: Any) -> dict[str, Any]:
+        meta: dict[str, Any] = {
+            "quelle": "Nutzer-Lastgang (consumption) — kein externer Datensatz",
+            "snapshot_version": _paket_version(),
+        }
+        zeitraum = _zeitraum_aus_consumption(kwargs.get("consumption"))
+        if zeitraum:
+            meta["stand"] = zeitraum
+        return meta
+
+    def _run(self, **kwargs: Any) -> dict[str, Any]:
+        consumption = _parse_consumption(kwargs.get("consumption"))
+        if not consumption:
+            raise CapabilityError(_LEERER_LASTGANG_TREND_FEHLER)
+
+        trend = compute_load_trend(consumption)
+
+        rechenweg = {
+            "full_year_threshold_tage": FULL_YEAR_DAY_THRESHOLD,
+            "abgedeckte_tage_definition": (
+                "len(set(dt.date())) je Kalenderjahr — Slot-Anzahl zählt NICHT als "
+                "Tage (F11: ein unterjähriges Q15-Opt-in hat viele Slots, aber wenige Tage)"
+            ),
+            "kalender_yoy_regel": (
+                "NUR wenn >=2 volle Kalenderjahre vorliegen; nimmt die letzten "
+                "zwei vollen Jahre (delta_pct = 100*(kwh_b/kwh_a - 1))"
+            ),
+            "fenster_methode": (
+                "deckungsgleiche (Monat,Tag,Std,Min)-Slots, die in beiden Jahren "
+                "vorkommen, je benachbartem Jahrespaar (_aligned_window_yoy)"
+            ),
+            "trend_aussage_methode": (
+                "Median der window_yoy delta_pct-Werte (Fallback: calendar_yoy, "
+                "falls window_yoy leer); kein LLM"
+            ),
+        }
+
+        caveats = [_CAVEAT_TEILJAHR, _CAVEAT_FENSTER_YOY]
+
+        result = LoadTrendResult(
+            per_year=[
+                PerYearModel(
+                    jahr=j.jahr,
+                    kwh=j.kwh,
+                    slots=j.slots,
+                    days=j.days,
+                    full_year=j.full_year,
+                    von=j.von,
+                    bis=j.bis,
+                )
+                for j in trend.per_year
+            ],
+            calendar_yoy=(
+                CalendarYoYModel(
+                    von_jahr=trend.calendar_yoy.von_jahr,
+                    bis_jahr=trend.calendar_yoy.bis_jahr,
+                    kwh_a=trend.calendar_yoy.kwh_a,
+                    kwh_b=trend.calendar_yoy.kwh_b,
+                    delta_pct=trend.calendar_yoy.delta_pct,
+                )
+                if trend.calendar_yoy is not None
+                else None
+            ),
+            calendar_yoy_verweigert_grund=trend.calendar_yoy_verweigert_grund,
+            window_yoy=[
+                WindowYoYModel(
+                    von_jahr=w.von_jahr,
+                    bis_jahr=w.bis_jahr,
+                    gemeinsame_slots=w.gemeinsame_slots,
+                    gemeinsame_tage=w.gemeinsame_tage,
+                    kwh_a=w.kwh_a,
+                    kwh_b=w.kwh_b,
+                    delta_pct=w.delta_pct,
+                )
+                for w in trend.window_yoy
+            ],
+            trend_aussage=trend.trend_aussage,
+            trend_pct_pro_jahr=trend.trend_pct_pro_jahr,
+            rechenweg=rechenweg,
+            caveats=caveats,
+            nenner=dict(_TREND_NENNER),
         )
         return result.model_dump(mode="json")

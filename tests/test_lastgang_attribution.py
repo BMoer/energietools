@@ -22,6 +22,7 @@ from datetime import date, datetime, timedelta
 
 import pytest
 
+from energietools.capabilities.base import CapabilityError
 from energietools.capabilities.lastgang.attribution import (
     ABEND,
     BAND_01_03,
@@ -340,6 +341,61 @@ def test_explizite_jahre_werden_verwendet() -> None:
     ).model_dump(mode="json")
     assert result["fenster"]["von_jahr"] == 2025
     assert result["fenster"]["bis_jahr"] == 2026
+
+
+# --- Granularitäts-Guard (F29 (a), Plan DURCHSTICH-2-PLAN.md §4 F29 + §2 WP2-P
+# Punkt 5): derselbe Laufzeit-Guard wie lastgang_signals (interval_minutes>=60
+# -> Ablehnung), hier aus den Timestamps der consumption-Serie abgeleitet (kein
+# interval_minutes-Inputfeld auf dieser Capability). -------------------------
+
+
+def build_tageswerte_serie(jahr_a: int = 2025, jahr_b: int = 2026, tage: int = 84) -> list[dict]:
+    """Tageswerte-Serie: ein Slot/Tag (Slot-Abstand 1440 min) — kein Q15-Opt-in."""
+    recs: list[dict] = []
+    for year in (jahr_a, jahr_b):
+        start = date(year, 1, 6)
+        for off in range(tage):
+            d = start + timedelta(days=off)
+            ts = datetime(d.year, d.month, d.day, 0, 0).isoformat()
+            recs.append({"ts": ts, "kwh": 12.0})
+    return recs
+
+
+def test_compute_trend_attribution_tageswerte_serie_wirft_capability_error() -> None:
+    """Tageswerte-Serie (Slot-Abstand >=60 min) -> CapabilityError mit klarer
+    Begründung + Q15-Opt-in-Empfehlung (F29 (a)). Die kW=kWh×4-Umrechnung
+    (SLOTS_PER_HOUR) setzt Q15 zwingend voraus -> das gehört in die Begründung."""
+    with pytest.raises(CapabilityError) as exc_info:
+        compute_trend_attribution(build_tageswerte_serie())
+    fehlertext = str(exc_info.value)
+    assert "braucht 15-min-Auflösung" in fehlertext
+    assert "Q15" in fehlertext
+    assert "f_q15_optin" in fehlertext
+    assert str(SLOTS_PER_HOUR) in fehlertext
+
+
+def test_compute_trend_attribution_q15_serie_bleibt_ok() -> None:
+    """Gegenprobe: eine echte Q15-Serie wird NICHT vom Granularitäts-Guard
+    abgelehnt — die Attribution läuft normal durch."""
+    result = compute_trend_attribution(build_case_b_series())
+    assert result.treiber
+
+
+def test_trend_attribution_capability_tageswerte_serie_liefert_ok_false() -> None:
+    """Envelope-Ebene: dieselbe Ablehnung landet als ok=False im Result (nie
+    eine rohe Exception nach außen, s. Capability.run)."""
+    res = TrendAttributionCapability().run(consumption=build_tageswerte_serie())
+    assert res.ok is False
+    assert res.data is None
+    assert "braucht 15-min-Auflösung" in res.error
+    assert "f_q15_optin" in res.error
+
+
+def test_trend_attribution_capability_q15_serie_liefert_ok_true() -> None:
+    """Gegenprobe auf Envelope-Ebene: Q15-Serie bleibt ok=True."""
+    res = TrendAttributionCapability().run(consumption=build_case_b_series())
+    assert res.ok is True
+    assert res.error is None
 
 
 # --- Capability-Envelope + Registry ------------------------------------------

@@ -21,6 +21,7 @@ from importlib import metadata
 from typing import Any
 
 from energietools.capabilities.base import Capability, CapabilityError
+from energietools.capabilities.lastgang.granularitaet import ist_grobe_serie
 from energietools.capabilities.lastgang.guards import apply_pv_guards, guard_rueckfragen
 from energietools.capabilities.lastgang.models import (
     CalendarYoYModel,
@@ -507,6 +508,24 @@ _CAVEAT_TARIF_ERSPARNIS_ENERGIEBASIS = (
     "hinterlegter Netzbetreiber für diese PLZ."
 )
 
+# Granularitäts-Guard (F29 (a), Plan DURCHSTICH-2-PLAN.md §4 F29 + §2 WP2-P
+# Punkt 5) — derselbe Laufzeit-Guard wie lastgang_signals (interval_minutes
+# >=60 -> Ablehnung), hier aus den Timestamps der consumption-Serie
+# abgeleitet (kein interval_minutes-Inputfeld auf spot_backtest). Blockiert
+# die GESAMTE Capability (beide Blöcke, spot_backtest UND tarif_ersparnis) —
+# anders als die block-lokalen "verfuegbar=False"-Gründe (fehlende optionale
+# Felder), ist eine zu grobe Serie ein Datenqualitäts-Hard-Stop (Wortlaut-
+# Anlehnung an signals._GRANULARITAET_FEHLER und
+# prozesse/lastganganalyse.yaml:datenqualitaet_abbruch).
+_GRANULARITAET_FEHLER_SPOT = (
+    "spot_backtest braucht 15-min-Auflösung: der profilgewichtete Spot-Vergleich "
+    "bepreist den ECHTEN Verbrauchs-Shape gegen die EPEX-Stundenpreise — bei "
+    "Tageswerten verliert das jede Aussagekraft. Abgeleiteter Slot-Abstand "
+    "≈{abstand:g} min (Tageswerte/grobe Serie) ist zu grob. Aktiviere den "
+    "Viertelstundenwerte-Opt-in im Netzbetreiber-Portal (f_q15_optin) — erst mit "
+    "Q15-Auflösung ist der profilgewichtete Spot-Vergleich möglich."
+)
+
 _SPOT_NENNER = {
     "spot_backtest.profilkostenfaktor_pct": (
         "zeitgewichteter Durchschnittspreis (ungewichtetes Stundenmittel der "
@@ -624,6 +643,9 @@ class SpotBacktestCapability(Capability):
 
     def _run(self, **kwargs: Any) -> dict[str, Any]:
         consumption_roh = _parse_consumption(kwargs.get("consumption"))
+        grob, abstand = ist_grobe_serie(ts for ts, _ in consumption_roh)
+        if grob:
+            raise CapabilityError(_GRANULARITAET_FEHLER_SPOT.format(abstand=abstand))
         consumption = _consumption_zu_timestamp_records(consumption_roh)
         spot_prices = _parse_spot_prices(kwargs.get("spot_prices"))
         aufschlag_roh = kwargs.get("aufschlag_ct")

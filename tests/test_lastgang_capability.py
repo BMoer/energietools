@@ -719,10 +719,18 @@ def _timestamp_consumption(start: datetime, hours: int, kwh_per_hour: float) -> 
 
 def _ts_consumption(start: datetime, hours: int, kwh_per_hour: float) -> list[dict]:
     """Wie ``_timestamp_consumption``, aber mit dem 'ts'-Schlüssel des
-    Capability-Input-Schemas (``_CONSUMPTION_SERIES``, wie L.1/L.2)."""
+    Capability-Input-Schemas (``_CONSUMPTION_SERIES``, wie L.1/L.2) — UND in
+    echter Q15-Auflösung (4 Slots/Stunde, Gesamt-kWh unverändert): diese
+    Records laufen durch ``SpotBacktestCapability._run`` (anders als
+    ``_timestamp_consumption``, das direkt an ``compute_spot_backtest``
+    geht), also greift dort der Granularitäts-Guard (F29 (a)) — Stunden-Slots
+    (60 min) gälten als zu grob und würden die Capability ok=False liefern."""
+    slots_per_hour = 4
+    kwh_per_slot = kwh_per_hour / slots_per_hour
     return [
-        {"ts": (start + timedelta(hours=h)).isoformat(), "kwh": kwh_per_hour}
+        {"ts": (start + timedelta(hours=h, minutes=slot * 15)).isoformat(), "kwh": kwh_per_slot}
         for h in range(hours)
+        for slot in range(slots_per_hour)
     ]
 
 
@@ -1017,3 +1025,51 @@ def test_spot_backtest_capability_meta_stand_kommt_aus_der_spot_reihe() -> None:
     )
 
     assert result.meta.get("stand", "").startswith("2025-06-01")
+
+
+# ---------------------------------------------------------------------------
+# spot_backtest — Granularitäts-Guard (F29 (a), Plan DURCHSTICH-2-PLAN.md §4
+# F29 + §2 WP2-P Punkt 5): derselbe Laufzeit-Guard wie lastgang_signals
+# (interval_minutes>=60 -> Ablehnung), hier aus den Timestamps der
+# consumption-Serie abgeleitet (kein interval_minutes-Inputfeld auf dieser
+# Capability).
+# ---------------------------------------------------------------------------
+
+
+def _tageswerte_consumption(start: datetime, tage: int, kwh_pro_tag: float) -> list[dict]:
+    """Tageswerte-Serie: ein Slot/Tag (Slot-Abstand 1440 min) — kein Q15-Opt-in."""
+    return [
+        {"ts": (start + timedelta(days=d)).isoformat(), "kwh": kwh_pro_tag} for d in range(tage)
+    ]
+
+
+def test_spot_backtest_capability_tageswerte_serie_liefert_ok_false() -> None:
+    """Tageswerte-Serie (Slot-Abstand >=60 min) -> ok=False mit klarer
+    Begründung + Q15-Opt-in-Empfehlung (F29 (a))."""
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _tageswerte_consumption(start, 30, 24.0)
+    spot_prices = _spot_price_series(start, 30 * 24, ct_day=20.0, ct_night=5.0)
+
+    result = SpotBacktestCapability().run(
+        consumption=consumption, spot_prices=spot_prices, energiepreis_brutto_ct_kwh=24.0,
+    )
+
+    assert result.ok is False
+    assert result.data is None
+    assert "braucht 15-min-Auflösung" in result.error
+    assert "f_q15_optin" in result.error
+
+
+def test_spot_backtest_capability_q15_serie_bleibt_ok() -> None:
+    """Gegenprobe: eine echte Q15-Serie wird NICHT vom Granularitäts-Guard
+    abgelehnt — beide Blöcke laufen normal durch."""
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _ts_consumption(start, 48, 1.0)
+    spot_prices = _spot_price_series(start, 48, ct_day=20.0, ct_night=5.0)
+
+    result = SpotBacktestCapability().run(
+        consumption=consumption, spot_prices=spot_prices, energiepreis_brutto_ct_kwh=24.0,
+    )
+
+    assert result.ok is True
+    assert result.data["spot_backtest"]["verfuegbar"] is True

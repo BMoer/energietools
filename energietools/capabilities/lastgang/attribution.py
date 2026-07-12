@@ -25,6 +25,7 @@ from energietools.capabilities.lastgang.attribution_models import (
     TrendAttributionResult,
     ZerlegungsZelle,
 )
+from energietools.capabilities.lastgang.granularitaet import ist_grobe_serie
 
 # --- Konversion & Bänder (keine Magic Numbers) --------------------------------
 
@@ -82,6 +83,24 @@ _CAVEAT_15MIN = (
     "15-min-Auflösung: sustained Lasten (Backrohr, AC, WP) sind isolierbar, "
     "schnell taktende Einzelgeräte (Induktion) nicht — die Aussage ist eine "
     "Geräte-KLASSE, nicht ein Gerätename."
+)
+
+# Granularitäts-Guard (F29 (a), Plan DURCHSTICH-2-PLAN.md §4 F29 + §2 WP2-P
+# Punkt 5) — derselbe Laufzeit-Guard wie lastgang_signals (interval_minutes
+# >=60 -> Ablehnung), hier aus den Timestamps der consumption-Serie
+# abgeleitet (kein interval_minutes-Inputfeld auf dieser Capability). Die
+# kW=kWh×4-Umrechnung (SLOTS_PER_HOUR) setzt Q15-Slots zwingend voraus — bei
+# gröberen Slots wäre der Umrechnungsfaktor falsch, deshalb steht das explizit
+# in der Begründung (Wortlaut-Anlehnung an signals._GRANULARITAET_FEHLER und
+# prozesse/lastganganalyse.yaml:datenqualitaet_abbruch).
+_GRANULARITAET_FEHLER = (
+    "trend_attribution braucht 15-min-Auflösung: die Umrechnung kW = kWh_slot × "
+    "{slots_per_hour} (SLOTS_PER_HOUR) auf Momentanleistung setzt Q15-Slots "
+    "zwingend voraus — mit gröberen Slots wäre der Umrechnungsfaktor falsch. "
+    "Abgeleiteter Slot-Abstand ≈{abstand:g} min (Tageswerte/grobe Serie) ist zu "
+    "grob für die Geräte-Zerlegung. Aktiviere den Viertelstundenwerte-Opt-in im "
+    "Netzbetreiber-Portal (f_q15_optin) — erst mit Q15-Auflösung ist die "
+    "Zerlegung möglich."
 )
 
 
@@ -250,6 +269,11 @@ def compute_trend_attribution(
         Caveats (F21 IMMER) und Nenner-Definitionen (L.6).
     """
     cons = _parse_records(consumption)
+    grob, abstand = ist_grobe_serie(dt for dt, _ in cons)
+    if grob:
+        raise CapabilityError(
+            _GRANULARITAET_FEHLER.format(slots_per_hour=SLOTS_PER_HOUR, abstand=abstand)
+        )
     ya, yb = _resolve_years(cons, jahr_a, jahr_b)
     common = _common_keys(cons, ya, yb)
     if not common:

@@ -31,6 +31,7 @@ from datetime import date, datetime
 from enum import Enum
 
 from energietools.capabilities.base import CapabilityError
+from energietools.capabilities.lastgang.granularitaet import GRANULARITAET_SCHWELLE_MIN
 
 _WINTER_MONATE = (12, 1, 2)
 _SOMMER_MONATE = (6, 7, 8)
@@ -114,7 +115,7 @@ def compute_signals(
     """
     if not consumption:
         raise CapabilityError(_LEERER_LASTGANG_FEHLER)
-    if interval_minutes >= 60:
+    if interval_minutes >= GRANULARITAET_SCHWELLE_MIN:
         raise CapabilityError(_GRANULARITAET_FEHLER.format(interval_minutes=interval_minutes))
 
     per_hour = 60 / interval_minutes

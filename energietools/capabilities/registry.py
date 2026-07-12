@@ -22,6 +22,7 @@ from energietools.capabilities.invoice.capability import (
     ValidateInvoiceFactsCapability,
 )
 from energietools.capabilities.knowledge.capability import GetKnowledgeCapability
+from energietools.capabilities.lastgang.capability import LastgangSignalsCapability
 from energietools.capabilities.load_profile.capability import LoadProfileCapability
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
@@ -69,6 +70,9 @@ def default_registry() -> CapabilityRegistry:
     # Lastprofil-Analyse: dedizierte Capability (WP2-S) statt generischer
     # FunctionCapability-Brücke — mappt die in-band-Fehlersemantik auf ok/error.
     registry.register(LoadProfileCapability())
+    # Lastgang-Signale: Ursachen-Hypothesen (Heizung/PV/Dauerläufer) + Rückfragen,
+    # mit PV-bedingten Netzbezug-Guards gegen Prosumer-False-Positives (L.1).
+    registry.register(LastgangSignalsCapability())
     # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
     register_tool_capabilities(registry)
     return registry

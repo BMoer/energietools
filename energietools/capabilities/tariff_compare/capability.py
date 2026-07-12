@@ -90,8 +90,27 @@ def rechenweg_kurzform(rechenweg: Rechenweg | None, verbrauch_kwh: float) -> str
     return "; ".join(teile)
 
 
-def _tarif_eintrag(t: Tariff, verbrauch_kwh: float, *, voller_rechenweg: bool) -> dict[str, Any]:
-    """Kompakter Ergebnis-Eintrag eines Tarifs (Kurzform; voll on demand)."""
+def _tarif_eintrag(
+    t: Tariff,
+    verbrauch_kwh: float,
+    *,
+    voller_rechenweg: bool,
+    netzkosten_vollstaendig: bool,
+) -> dict[str, Any]:
+    """Kompakter Ergebnis-Eintrag eines Tarifs (Kurzform; voll on demand).
+
+    Zwei Ehrlichkeits-Marker im Schema (verhindern falsche Client-Präsentation):
+
+    - **Lockrabatt** (B.7): ``rabatt_befristet`` + ``jahreskosten_jahr2_eur``.
+      Ein befristeter Neukundenbonus senkt NUR Jahr 1; ``jahreskosten_jahr2_eur``
+      (= Kosten nach Wegfall des Bonus) macht das strukturell sichtbar, damit ein
+      Client den Teaser nicht als Dauer-Ersparnis präsentiert.
+    - **Netzkosten-Fail-open** (B.7): ohne hinterlegten Netzbetreiber
+      (``netzkosten_vollstaendig=false``) ist der Jahres-€-Betrag NUR der
+      Energiepreis-Anteil und heißt dann ``energiepreis_anteil_eur`` statt
+      ``jahreskosten_eur`` — so kann ihn ein Client nicht als komplette
+      Jahresrechnung ausweisen.
+    """
     eintrag: dict[str, Any] = {
         "lieferant": t.lieferant,
         "tarif_name": t.tarif_name,
@@ -99,8 +118,9 @@ def _tarif_eintrag(t: Tariff, verbrauch_kwh: float, *, voller_rechenweg: bool) -
         "kategorie": t.kategorie,
         "energiepreis_ct_kwh_brutto": t.energiepreis_ct_kwh,
         "grundgebuehr_eur_monat_brutto": t.grundgebuehr_eur_monat,
-        "jahreskosten_eur": t.jahreskosten_eur,
-        "jahreskosten_ohne_rabatt_eur": t.jahreskosten_ohne_rabatt_eur,
+        # Lockrabatt-Marker: befristeter Neukundenbonus (Pauschale ODER ct/kWh).
+        "rabatt_befristet": t.neukundenrabatt_eur > 0 or t.neukundenrabatt_ct_kwh > 0,
+        "jahreskosten_jahr2_eur": t.jahreskosten_ohne_rabatt_eur,
         "ersparnis_eur": t.ersparnis_eur,
         "gesamtkosten_eur": t.gesamtkosten_eur,
         "gebrauchsabgabe_eur": t.gebrauchsabgabe_eur,
@@ -108,6 +128,12 @@ def _tarif_eintrag(t: Tariff, verbrauch_kwh: float, *, voller_rechenweg: bool) -
         "wechsel_link": t.wechsel_link,
         "rechenweg_kurz": rechenweg_kurzform(t.rechenweg, verbrauch_kwh),
     }
+    # Netzkosten-fail-open: der Betrag ist ohne Netzbetreiber NUR der Energie-Anteil
+    # — dann NICHT als jahreskosten_eur (Gesamtrechnung) benennen.
+    if netzkosten_vollstaendig:
+        eintrag["jahreskosten_eur"] = t.jahreskosten_eur
+    else:
+        eintrag["energiepreis_anteil_eur"] = t.jahreskosten_eur
     if voller_rechenweg and t.rechenweg is not None:
         eintrag["rechenweg"] = t.rechenweg.model_dump(mode="json")
     return eintrag
@@ -132,10 +158,16 @@ def _result_dict(
         "plz": cmp.plz,
         "jahresverbrauch_kwh": verbrauch,
         "aktueller_tarif": _tarif_eintrag(
-            cmp.aktueller_tarif, verbrauch, voller_rechenweg=voller_rechenweg,
+            cmp.aktueller_tarif, verbrauch,
+            voller_rechenweg=voller_rechenweg,
+            netzkosten_vollstaendig=netzkosten_vollstaendig,
         ),
         "alternativen": [
-            _tarif_eintrag(t, verbrauch, voller_rechenweg=voller_rechenweg)
+            _tarif_eintrag(
+                t, verbrauch,
+                voller_rechenweg=voller_rechenweg,
+                netzkosten_vollstaendig=netzkosten_vollstaendig,
+            )
             for t in alternativen
         ],
         "anzahl_alternativen_gesamt": len(cmp.alternativen),

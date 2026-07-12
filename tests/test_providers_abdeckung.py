@@ -109,3 +109,16 @@ class TestCapabilityRegistriert:
         res = reg.get("versorger_abdeckung").run(plz="2103")
         assert res.ok
         assert "TIWAG" in {x["brand"] for x in res.data["regional_ausgeschlossen"]}
+
+    def test_strom_default_liefert_abdeckung(self) -> None:
+        # Ohne energieart wird 'strom' angenommen (Abwärtskompatibilität).
+        res = default_registry().get("versorger_abdeckung").run(plz="2103", energieart="strom")
+        assert res.ok
+
+    def test_gas_wird_abgelehnt_statt_strom_marken_als_gas(self) -> None:
+        # Fix #4: Abdeckungsdaten sind Strom-only — Gas sauber ablehnen, nicht
+        # stumm Strom-Marken als vermeintliche Gas-Liste ausgeben.
+        res = default_registry().get("versorger_abdeckung").run(plz="2103", energieart="gas")
+        assert res.ok is False
+        assert res.data is None
+        assert "Gas" in (res.error or "")

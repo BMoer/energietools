@@ -25,7 +25,18 @@ class VersorgerAbdeckungCapability(Capability):
     )
     input_schema = {
         "type": "object",
-        "properties": {"plz": {"type": "string", "description": "Postleitzahl"}},
+        "properties": {
+            "plz": {"type": "string", "description": "Postleitzahl"},
+            "energieart": {
+                "type": "string",
+                "enum": ["strom", "gas"],
+                "default": "strom",
+                "description": (
+                    "Aktuell nur 'strom'. Die Abdeckungsdaten sind Strom-only — "
+                    "'gas' wird abgelehnt, statt Strom-Marken als Gas-Liste auszugeben."
+                ),
+            },
+        },
         "required": ["plz"],
     }
 
@@ -42,6 +53,13 @@ class VersorgerAbdeckungCapability(Capability):
         plz = kwargs.get("plz")
         if not plz:
             raise CapabilityError("plz ist erforderlich")
+        # Gas nicht stumm als Strom ausgeben (Abdeckungsdaten sind Strom-only):
+        # sauber ablehnen statt Strom-Marken als vermeintliche Gas-Liste liefern.
+        energieart = str(kwargs.get("energieart") or "strom").strip().lower()
+        if energieart == "gas":
+            raise CapabilityError(
+                "Gas-Versorgerabdeckung ist noch nicht verfügbar (aktuell nur Strom)",
+            )
         a = versorger_abdeckung(str(plz))
         return {
             "plz": a.plz,

@@ -395,6 +395,54 @@ class TestNetzkostenFlag:
         assert result.data["ergebnis_typ"] == "gesamtkosten"
         assert result.data["netzkosten_eur_jahr"] > 0.0
 
+    def test_ohne_netzbetreiber_betrag_heisst_energiepreis_anteil_nicht_jahreskosten(self):
+        # Fix #3: ohne Netzbetreiber ist der €-Betrag NUR der Energiepreis-Anteil —
+        # er darf NICHT als jahreskosten_eur (Gesamtrechnung) firmieren.
+        result = self._cap().run(plz="9999", **self._ARGS)
+        for eintrag in [result.data["aktueller_tarif"], *result.data["alternativen"]]:
+            assert "energiepreis_anteil_eur" in eintrag
+            assert "jahreskosten_eur" not in eintrag
+
+    def test_mit_netzbetreiber_betrag_heisst_jahreskosten(self):
+        result = self._cap().run(plz="9999", nb_key="wiener_netze", **self._ARGS)
+        for eintrag in [result.data["aktueller_tarif"], *result.data["alternativen"]]:
+            assert "jahreskosten_eur" in eintrag
+            assert "energiepreis_anteil_eur" not in eintrag
+
+
+class TestLockrabattMarker:
+    """Fix #2: ein befristeter Neukundenbonus muss strukturell erkennbar sein,
+    damit ein Client den Jahr-1-Teaser nicht als Dauer-Ersparnis präsentiert."""
+
+    def _cap(self, rows: list[dict]) -> TariffCompareCapability:
+        return TariffCompareCapability(
+            tariff_source=FakeTariffSource(rows), spot_source=FakeSpotPriceSource(),
+        )
+
+    _ARGS = dict(
+        plz="1060", jahresverbrauch_kwh=3500, aktueller_lieferant="Alt",
+        aktueller_energiepreis_brutto_ct_kwh=30.0,
+        aktuelle_grundgebuehr_brutto_eur_monat=6.0,
+    )
+
+    def test_bonus_tarif_ist_befristet_und_zeigt_jahr2(self):
+        result = self._cap([_fix(
+            "a", "A", "Bonus-Tarif", 10.0, gg_netto=0.0,
+            neukundenrabatt_eur=60.0, neukundenrabatt_name="60 EUR Bonus",
+        )]).run(**self._ARGS)
+        eintrag = result.data["alternativen"][0]
+        assert eintrag["rabatt_befristet"] is True
+        # Jahr 2 (ohne Bonus) liegt über Jahr 1 (mit Bonus).
+        assert eintrag["jahreskosten_jahr2_eur"] > eintrag["jahreskosten_eur"]
+        assert abs(eintrag["jahreskosten_jahr2_eur"] - eintrag["jahreskosten_eur"] - 60.0) < 0.5
+
+    def test_tarif_ohne_bonus_ist_nicht_befristet(self):
+        result = self._cap([_fix("a", "A", "Ohne Bonus", 10.0, gg_netto=0.0)]).run(**self._ARGS)
+        eintrag = result.data["alternativen"][0]
+        assert eintrag["rabatt_befristet"] is False
+        # Ohne Rabatt sind Jahr 1 und Jahr 2 gleich.
+        assert abs(eintrag["jahreskosten_jahr2_eur"] - eintrag["jahreskosten_eur"]) < 0.5
+
 
 # =============================================================================
 # 5. B.6 meta-Befüllung + Input-Validierung der Hülle

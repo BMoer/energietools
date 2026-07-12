@@ -180,7 +180,10 @@ def _geraete_klasse(
 ) -> tuple[str, str]:
     """(Band × Tageszeit) → (Geräte-KLASSE, Konfidenz). Klasse ja, Name nein."""
     bekannt = False
-    if tageszeit == ABEND and band == BAND_1_4:
+    if tageszeit == ABEND and band in (BAND_03_1, BAND_1_4):
+        # CASE_09-Ground-Truth (Plan L.3.1, Kriterium 15): Abend-Kochen ist über
+        # 0,3–4 kW definiert, nicht nur 1–4 kW — das 0,3–1 kW-Band abends ist
+        # Kochen-Hypothese, keine „unspezifische Last".
         klasse, bekannt = "Kochen/Küche (sustained)", True
     elif tageszeit == TAG and werktag and band == BAND_01_03:
         klasse, bekannt = "Elektronik/Home-Office (Standby→aktiv)", True

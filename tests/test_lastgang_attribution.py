@@ -23,11 +23,14 @@ from datetime import date, datetime, timedelta
 import pytest
 
 from energietools.capabilities.lastgang.attribution import (
+    ABEND,
     BAND_01_03,
+    BAND_03_1,
     BAND_1_4,
     BAND_GT4,
     SLOTS_PER_HOUR,
     TREIBER_MIN_DELTA_KWH,
+    _geraete_klasse,
     band_of,
     compute_trend_attribution,
     tageszeit_of,
@@ -209,6 +212,52 @@ def test_kalender_drift_erzeugt_keinen_phantom_treiber() -> None:
         assert abs(z["delta_kwh"]) < TREIBER_MIN_DELTA_KWH, z
         if z["delta_pct"] is not None:
             assert abs(z["delta_pct"]) < 1.0, z
+
+
+# --- Finding 2: Abend-Kleingeräte-Band (0,3–1 kW) ist Kochen-Hypothese ---------
+
+
+def test_abend_0_3_1_kw_band_ist_kochen_hypothese() -> None:
+    """CASE_09/Kriterium 15: Abend-Kochen ist über 0,3–4 kW definiert, nicht nur 1–4 kW.
+
+    Abend-Last im 0,3–1 kW-Band muss als Kochen-KLASSE (bekannte Hypothese, nicht
+    'unspezifisch') gelabelt werden — analog zum 1–4 kW-Band.
+    """
+    klasse_03_1, konf_03_1 = _geraete_klasse(BAND_03_1, ABEND, True, 40.0, False)
+    assert "Kochen" in klasse_03_1, klasse_03_1
+    assert konf_03_1 != "niedrig", "bekannte Hypothese → mind. mittlere Konfidenz"
+    # 1–4 kW-Band bleibt ebenfalls Kochen (Regression-Guard).
+    klasse_1_4, _ = _geraete_klasse(BAND_1_4, ABEND, True, 40.0, False)
+    assert "Kochen" in klasse_1_4
+
+
+def build_abend_kleingeraete_serie(
+    jahr_a: int = 2025, jahr_b: int = 2026, tage: int = 84
+) -> list[dict]:
+    """Abend-Zuwachs im 0,3–1 kW-Band (0,4 → 0,6 kW), sonst Grundrauschen."""
+    evening = {jahr_a: 0.10, jahr_b: 0.15}  # 0,4 → 0,6 kW, beide im 0,3–1 kW-Band
+    recs: list[dict] = []
+    for year in (jahr_a, jahr_b):
+        start = date(year, 1, 6)
+        for off in range(tage):
+            d = start + timedelta(days=off)
+            for h in range(24):
+                for minute in (0, 15, 30, 45):
+                    kwh = evening[year] if h in (18, 19) else _BASE_KWH
+                    ts = datetime(d.year, d.month, d.day, h, minute).isoformat()
+                    recs.append({"ts": ts, "kwh": round(kwh, 4)})
+    return recs
+
+
+def test_abend_zuwachs_im_kleingeraete_band_wird_als_kochen_attribuiert() -> None:
+    """Integrationstest: Abend-Zuwachs im 0,3–1 kW-Band → Kochen-Treiber (nicht 'unspezifisch')."""
+    result = compute_trend_attribution(build_abend_kleingeraete_serie()).model_dump(mode="json")
+    abend = [t for t in result["treiber"] if t["tageszeit"] == "abend"]
+    assert abend, "Abend-Zuwachs im 0,3–1 kW-Band wurde nicht als Treiber erkannt"
+    for t in abend:
+        assert t["band_kw"] == BAND_03_1
+        assert "Kochen" in t["geraete_klasse"], t["geraete_klasse"]
+        assert "unspezifisch" not in t["geraete_klasse"]
 
 
 # --- F21: Pflicht-Caveat 15-min-Auflösung -------------------------------------

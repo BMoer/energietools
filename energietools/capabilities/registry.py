@@ -22,6 +22,9 @@ from energietools.capabilities.invoice.capability import (
     ValidateInvoiceFactsCapability,
 )
 from energietools.capabilities.knowledge.capability import GetKnowledgeCapability
+from energietools.capabilities.lastgang.attribution_capability import (
+    TrendAttributionCapability,
+)
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
@@ -67,4 +70,7 @@ def default_registry() -> CapabilityRegistry:
     registry.register(HeatPumpCapability())
     # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
     register_tool_capabilities(registry)
+    # Lastgang-Trend-Attribution (WP2-L L.3): YoY-Delta-Zerlegung nach
+    # Leistungsband × Tageszeit → Geräte-KLASSE als Hypothese (HARTES DoD-Gate 15).
+    registry.register(TrendAttributionCapability())
     return registry

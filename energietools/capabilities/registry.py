@@ -22,6 +22,7 @@ from energietools.capabilities.invoice.capability import (
     ValidateInvoiceFactsCapability,
 )
 from energietools.capabilities.knowledge.capability import GetKnowledgeCapability
+from energietools.capabilities.load_profile.capability import LoadProfileCapability
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
@@ -65,6 +66,9 @@ def default_registry() -> CapabilityRegistry:
     registry.register(ScenariosCapability())
     # Wärmepumpe: diskreter Heizkostenvergleich (COP real, Lastgang-Dispatch Platzhalter).
     registry.register(HeatPumpCapability())
+    # Lastprofil-Analyse: dedizierte Capability (WP2-S) statt generischer
+    # FunctionCapability-Brücke — mappt die in-band-Fehlersemantik auf ok/error.
+    registry.register(LoadProfileCapability())
     # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
     register_tool_capabilities(registry)
     return registry

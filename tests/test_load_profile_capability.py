@@ -64,3 +64,78 @@ def test_load_profile_capability_result_mit_anomalie_ist_json_dumpbar():
     dumped = json.dumps(result.data)  # darf NICHT TypeError werfen (date!)
     assert '"datum": "2026-01-15"' in dumped
     assert result.data["anomalien"][0]["datum"] == "2026-01-15"
+
+
+# =============================================================================
+# WP2-S 2 — ok/error-Semantik: in-band analyse_erfolgreich=False -> CapabilityError
+# =============================================================================
+
+
+def test_load_profile_ohne_daten_ist_ok_false():
+    """Kein consumption_data/csv_text: die Capability muss ok=False liefern, nicht
+    versteckt in data.analyse_erfolgreich=False (WP2-S 2 — vorher: ok blieb True)."""
+    result = default_registry().get("load_profile").run()
+    assert result.ok is False
+    assert "Keine Daten" in (result.error or "")
+
+
+def test_load_profile_zu_wenig_datenpunkte_ist_ok_false():
+    """< 96 Datenpunkte (< 1 Tag Q15): ok=False mit sprechendem Fehlertext."""
+    result = default_registry().get("load_profile").run(
+        consumption_data=[{"timestamp": "2026-01-15T00:00:00", "kwh": 1.0}],
+    )
+    assert result.ok is False
+    assert "wenig" in (result.error or "").lower()
+
+
+def test_load_profile_erfolgreiche_analyse_ist_ok_true():
+    """Gegenprobe: eine erfolgreiche Analyse bleibt ok=True (kein Overblocking)."""
+    analysis = _fixture_analysis_mit_anomalie()
+    with patch(
+        "energietools.tools.load_profile.analyze_load_profile",
+        return_value=analysis,
+    ):
+        result = default_registry().get("load_profile").run(
+            consumption_data=[{"timestamp": "2026-01-15T00:00:00", "kwh": 1.0}],
+        )
+    assert result.ok is True
+    assert result.error is None
+
+
+# =============================================================================
+# WP2-S 3 — _meta-Befuellung (stand/quelle/snapshot_version)
+# =============================================================================
+
+
+def test_load_profile_meta_enthaelt_quelle_und_snapshot_version():
+    """_meta liefert quelle + snapshot_version unabhaengig vom Erfolg des Laufs."""
+    result = default_registry().get("load_profile").run(
+        consumption_data=[{"timestamp": "2026-01-15T00:00:00", "kwh": 1.0}],
+    )
+    assert "quelle" in result.meta
+    assert "snapshot_version" in result.meta
+    assert result.meta["snapshot_version"]  # nicht leer
+
+
+def test_load_profile_meta_stand_ist_zeitspanne_der_consumption_data():
+    """stand = min..max Zeitstempel der uebergebenen consumption_data (WP2-S 3)."""
+    from energietools.capabilities.load_profile.capability import LoadProfileCapability
+
+    meta = LoadProfileCapability()._meta(
+        consumption_data=[
+            {"timestamp": "2026-01-01T00:00:00", "kwh": 1.0},
+            {"timestamp": "2026-01-15T12:00:00", "kwh": 1.0},
+            {"timestamp": "2026-01-08T06:00:00", "kwh": 1.0},
+        ],
+    )
+    assert meta["stand"] == "2026-01-01T00:00:00…2026-01-15T12:00:00"
+
+
+def test_load_profile_meta_ohne_consumption_data_hat_kein_stand():
+    """csv_text-Pfad (bzw. keine strukturierten Daten): kein stand, aber kein Crash."""
+    from energietools.capabilities.load_profile.capability import LoadProfileCapability
+
+    meta = LoadProfileCapability()._meta(csv_text="irrelevant")
+    assert "stand" not in meta
+    assert "quelle" in meta
+    assert "snapshot_version" in meta

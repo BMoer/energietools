@@ -1,0 +1,35 @@
+{
+  "prozess_id": "lastganganalyse",
+  "prozess_datei": "lastganganalyse.yaml",
+  "beschreibung": "Anonymisierter Referenz-Dialog (Muster: Rezept 08, PV-Prosumer mit E-Auto): PV-Guard entschaerft ein Heizungs-Falsch-Positiv (Ledger-F24), zweiter Consent fuer den Einspeise-Zaehlpunkt. Synthetischer Zaehlpunkt, PLZ zu Region verallgemeinert, Verbrauchs-/Einspeisewerte verrauscht.",
+  "transkript": [
+    {"rolle": "user", "text": "Ich hab PV und will wissen was mein Lastgang hergibt -- verbinde mal meinen Smart Meter."},
+    {
+      "rolle": "assistant",
+      "text": "Ich hab noch keine Serie am Account. Ich hab die Datenfreigabe fuer deinen Bezugs-Zaehlpunkt (aus deiner Rechnung, Region Kaernten) angefordert -- das erscheint in deinem Netzbetreiber-Portal unter Freigaben->Offen als Provider EP100505, bestaetige das dort mit einem Klick. Das kann ein paar Minuten bis Stunden dauern, ich frag den Status fuer dich ab und melde mich, sobald die Historie da ist."},
+    {"rolle": "user", "text": "Erledigt, hab bestaetigt."},
+    {
+      "rolle": "assistant",
+      "text": "Freigabe ist aktiv, die Historie wird gerade automatisch nachgeliefert (kein zweiter Portal-Schritt noetig). Erster Blick auf 3 Jahre Netzbezug: Winter/Sommer-Verhaeltnis 2,9 -- das saehe nach E-Heizung aus, ABER du hast eine PV-Anlage, und bei PV ist der Netzbezug nicht dein Gesamtverbrauch (der Mittags-Bezug ist PV-gedeckt) -- das Signal ist deshalb nur eine offene Frage, keine Behauptung. Nachts laeuft ausserdem oefter groessere Last mit ueber 11 kW (an 58 von rund 700 Nächten in den drei Jahren) -- das kann ein E-Auto sein. Heizt du elektrisch, und hast du eine PV-Einspeisung? Dafuer bräuchten wir dann einen zweiten Consent fuer den Einspeise-Zaehlpunkt."},
+    {"rolle": "user", "text": "Nein, Pelletsheizung, keine Stromheizung. PV ja, 8,2 kWp mit 10 kWh Speicher, Einspeise-Zaehlpunkt hab ich auch. Und ja, 2 E-Autos, laden meistens nachts."},
+    {
+      "rolle": "assistant",
+      "text": "Danke, gespeichert (Heizung: Pellets: die Winter/Sommer-Zahl war ein PV-Artefakt, kein Heiz-Signal, Ledger-F24. PV: 8,2 kWp + 10 kWh Speicher. E-Autos: 2, Nachtladen). Ich hab den zweiten Consent fuer deinen Einspeise-Zaehlpunkt angefordert (gleicher Portal-Weg, Provider EP100505). Wichtig: alle Metriken oben beschreiben deinen NETZBEZUG, nicht deinen Gesamtverbrauch -- bei PV ist das ein Unterschied. Sobald dein aktueller Tarif und deine PLZ vollstaendig vorliegen, rechne ich dir den Spot-Vergleich und die Tarif-Ersparnis exakt, aktuell waeren die €-Zahlen nur eine Heuristik."
+    }
+  ],
+  "kontext": {
+    "is_pv": true
+  },
+  "erwartete_frage_ids": ["f_heizung_likely", "f_pv_signal", "f_pv_eckdaten", "f_dauerlaeufer"],
+  "erwartete_tool_calls": [
+    {"schritt": "serien_uebersicht", "capability": "list_load_series", "quelle": "extern"},
+    {"schritt": "datenfreigabe_anfordern", "capability": "request_data_release", "quelle": "extern"},
+    {"schritt": "datenfreigabe_status", "capability": "get_data_release_status", "quelle": "extern"},
+    {"schritt": "lastprofil_metriken", "capability": "load_profile", "quelle": "energietools"},
+    {"schritt": "ursachen_signale", "capability": "lastgang_signals", "quelle": "energietools"},
+    {"schritt": "mehrjahres_trend", "capability": "load_trend", "quelle": "energietools"},
+    {"schritt": "spot_und_tarifvergleich", "capability": "spot_backtest", "quelle": "energietools"},
+    {"schritt": "rueckfragen_persistieren", "capability": "submit_lastgang_facts", "quelle": "extern"}
+  ],
+  "erwartete_caveats_trigger": ["immer", "immer", "immer", "immer", "immer", "is_pv == true"]
+}

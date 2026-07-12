@@ -24,6 +24,7 @@ from energietools.prozesse.models import Prozess
 _TITEL_UEBERSCHREIBUNG = {
     "erstkontakt": "Erstkontakt",
     "rechnungsanalyse": "Rechnungsanalyse",
+    "lastganganalyse": "Lastgang-Analyse",
 }
 
 

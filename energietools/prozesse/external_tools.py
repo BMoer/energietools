@@ -34,6 +34,14 @@ _GRIDBERT_DOMAIN_TOOLS = frozenset(
         "submit_invoice_facts",
         "get_switch_info",
         "capability_gap",
+        # EDA-Kanal (WP2-E) + Lastgang-Prozess (WP2-P/WP2-M, Durchstich 2):
+        # kein generisches ``submit_facts`` auf gridbert origin/main
+        # (Stand `4f0dd7e`, geprüft beim Baustart von WP2-P) — deshalb das
+        # schmale ``submit_lastgang_facts`` statt eines Neubaus.
+        "request_data_release",
+        "get_data_release_status",
+        "list_load_series",
+        "submit_lastgang_facts",
     },
 )
 

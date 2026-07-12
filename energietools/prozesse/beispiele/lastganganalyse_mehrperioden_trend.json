@@ -1,0 +1,32 @@
+{
+  "prozess_id": "lastganganalyse",
+  "prozess_datei": "lastganganalyse.yaml",
+  "beschreibung": "Anonymisierter Referenz-Dialog (Muster: Rezept 09, Mehrperioden-Wohnung ohne PV/E-Heizung): Consent besteht bereits, drei Q15-Perioden EINES Zaehlers ergeben Mehrjahres-Trend + Treiber-Zerlegung + Spot-Vergleich. Synthetischer Zaehlpunkt, PLZ zu Region verallgemeinert, Verbrauchswerte verrauscht.",
+  "transkript": [
+    {"rolle": "user", "text": "Ich hab meinen Smart Meter schon letztes Jahr verbunden -- analysier mal meinen Lastgang, ich glaub der Verbrauch steigt."},
+    {
+      "rolle": "assistant",
+      "text": "Deine Serie liegt am Account (Zaehlpunkt AT0099999000000000010000099110019, Region Wien, 15-Minuten-Aufloesung, 3 zusammenhaengende Perioden). Grundlast rund 55 W (P15), Anteil 24 % am Verbrauch, Abend-Peak ~20 Uhr. Ein Mehrjahres-Vergleich ist wegen deiner Teiljahre nur als Fenster-Vergleich moeglich (keine Kalender-YoY): 2024->2025 rund +8,4 %, 2025->2026 rund +6,9 % -- dein Verbrauch steigt also im zweistelligen Nachkommabereich pro Jahr. Die Zerlegung zeigt zwei Treiber: den groessten Zuwachs abends im 0,3-4 kW-Band (Klasse 'Kochen', +ca. 70 kWh/Jahr) und einen kleineren werktags tagsueber im 0,1-0,3 kW-Band (Klasse 'Elektronik/Home-Office', +ca. 55 %). Winter/Sommer-Verhaeltnis 1,35 und Mittag/Nacht 1,18 sprechen gegen E-Heizung und gegen PV. Spot-Backtest gegen deinen aktuellen Fixpreis zeigt aktuell nur einen kleinen Vorteil -- fuer den echten Tarifvergleich fehlt mir noch dein aktueller Anbieter."
+    },
+    {"rolle": "user", "text": "Heizung laeuft bei mir ueber Fernwaerme, keine Stromheizung. Und ja, den Abend-Peak koennte ich verschieben, ich koch halt meistens erst wenn ich heimkomme."},
+    {
+      "rolle": "assistant",
+      "text": "Danke, hab ich als Profil-Fakt gespeichert (Heizung: Fernwaerme, kein E-Heizung-Signal noetig; Lastverschiebung: grundsaetzlich moeglich). Wichtig: die Zahlen oben sind dein NETZBEZUG-Muster, jede Anteils-Zahl traegt ihre Nenner-Definition im Tool-Result, und die Serie endet am Vortag 23:45 -- also nie 'live'. Beim naechsten Mal reicht ein einfaches 'nochmal analysieren', die Rueckfragen muss ich dir dann nicht erneut stellen."
+    }
+  ],
+  "kontext": {
+    "is_pv": false,
+    "anzahl_treiber": 2
+  },
+  "erwartete_frage_ids": ["f_heizung_unlikely", "f_lastverschiebung"],
+  "erwartete_tool_calls": [
+    {"schritt": "serien_uebersicht", "capability": "list_load_series", "quelle": "extern"},
+    {"schritt": "lastprofil_metriken", "capability": "load_profile", "quelle": "energietools"},
+    {"schritt": "ursachen_signale", "capability": "lastgang_signals", "quelle": "energietools"},
+    {"schritt": "mehrjahres_trend", "capability": "load_trend", "quelle": "energietools"},
+    {"schritt": "treiber_zerlegung", "capability": "trend_attribution", "quelle": "energietools"},
+    {"schritt": "spot_und_tarifvergleich", "capability": "spot_backtest", "quelle": "energietools"},
+    {"schritt": "rueckfragen_persistieren", "capability": "submit_lastgang_facts", "quelle": "extern"}
+  ],
+  "erwartete_caveats_trigger": ["anzahl_treiber > 0", "immer", "immer", "immer", "immer", "immer"]
+}

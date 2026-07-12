@@ -14,6 +14,12 @@
       "prozess_version": "1.0.0",
       "stand": "2026-07-11",
       "datei": "rechnungsanalyse.yaml"
+    },
+    {
+      "id": "lastganganalyse",
+      "prozess_version": "1.0.0",
+      "stand": "2026-07-12",
+      "datei": "lastganganalyse.yaml"
     }
   ],
   "license": "MIT",

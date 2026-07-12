@@ -35,6 +35,15 @@ class TestWikiPages:
         with pytest.raises(WikiPageNotFoundError):
             find_page("does-not-exist")
 
+    def test_unbekanntes_thema_listet_verfuegbare_themen(self):
+        # Ein schwaches LLM riet 'stromkosten_zusammensetzung' (Unterstrich) —
+        # der Fehler MUSS die gültigen Slugs nennen, damit es umschwenken kann.
+        with pytest.raises(WikiPageNotFoundError) as exc:
+            find_page("stromkosten_zusammensetzung")
+        msg = str(exc.value)
+        assert "Verfügbare Themen" in msg
+        assert "stromkosten-zusammensetzung" in msg  # korrekter Slug im Fehler sichtbar
+
     def test_extract_stand_liest_letzte_stand_zeile(self):
         assert extract_stand("# Titel\n\nText\n\nStand: 2026-06") == "2026-06"
         assert extract_stand("keine Stand-Zeile hier") == ""

@@ -363,6 +363,39 @@ class TestRechenwegUndGroesse:
         json.dumps(result.model_dump(mode="json"))  # darf nicht werfen
 
 
+class TestNetzkostenFlag:
+    """Netzkosten-fail-open muss STRUKTURIERT (Bool) erkennbar sein, nicht nur Freitext."""
+
+    def _cap(self) -> TariffCompareCapability:
+        return TariffCompareCapability(
+            tariff_source=FakeTariffSource([_fix("a", "A GmbH", "Fix A 2026", 9.0)]),
+            spot_source=FakeSpotPriceSource(),
+        )
+
+    _ARGS = dict(
+        jahresverbrauch_kwh=3500, aktueller_lieferant="Alt",
+        aktueller_energiepreis_brutto_ct_kwh=18.0,
+        aktuelle_grundgebuehr_brutto_eur_monat=5.0,
+    )
+
+    def test_ohne_netzbetreiber_flag_false_und_ergebnis_typ(self):
+        # PLZ 9999 hat keinen hinterlegten Netzbetreiber → fail-open ohne Netzkosten.
+        result = self._cap().run(plz="9999", **self._ARGS)
+        assert result.ok
+        assert result.data["netzkosten_vollstaendig"] is False
+        assert result.data["ergebnis_typ"] == "nur_energiepreis"
+        assert result.data["netzkosten_eur_jahr"] == 0.0
+        assert "netzkosten_vollstaendig=false" in result.data["hinweis"]
+
+    def test_mit_netzbetreiber_flag_true_und_gesamtkosten(self):
+        # Vorgelöster nb_key liefert echte Netzkosten → vollständige Gesamtkosten.
+        result = self._cap().run(plz="9999", nb_key="wiener_netze", **self._ARGS)
+        assert result.ok
+        assert result.data["netzkosten_vollstaendig"] is True
+        assert result.data["ergebnis_typ"] == "gesamtkosten"
+        assert result.data["netzkosten_eur_jahr"] > 0.0
+
+
 # =============================================================================
 # 5. B.6 meta-Befüllung + Input-Validierung der Hülle
 # =============================================================================

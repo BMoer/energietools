@@ -104,11 +104,21 @@ def load_wiki_pages() -> tuple[WikiPage, ...]:
 
 
 def find_page(thema: str) -> WikiPage:
-    """Löst ein ``thema`` zur WikiPage auf. Wirft ``WikiPageNotFoundError``, wenn unbekannt."""
+    """Löst ein ``thema`` zur WikiPage auf. Wirft ``WikiPageNotFoundError``, wenn unbekannt.
+
+    Die Fehlermeldung listet die verfügbaren Themen-Slugs auf, damit ein
+    tool-geführtes (auch schwaches) LLM ohne Trial-and-Error auf einen gültigen
+    Wert umschwenken kann — der ``thema``-Enum ist die Quelle der Wahrheit,
+    aber der Fehler macht ihn ohne separaten Schema-Abruf sichtbar.
+    """
+    verfuegbar = tuple(page.thema for page in load_wiki_pages())
     for page in load_wiki_pages():
         if page.thema == thema:
             return page
-    raise WikiPageNotFoundError(f"Unbekanntes Wiki-Thema: '{thema}'")
+    raise WikiPageNotFoundError(
+        f"Unbekanntes Wiki-Thema: '{thema}'. Verfügbare Themen: "
+        f"{', '.join(verfuegbar)}."
+    )
 
 
 def read_page_text(page: WikiPage) -> str:

@@ -119,6 +119,15 @@ def _result_dict(
     """Kompaktes, JSON-fähiges Vergleichs-Result (B.3-Format)."""
     verbrauch = cmp.jahresverbrauch_kwh
     alternativen = cmp.alternativen[:top_n]
+    # Netzkosten-fail-open STRUKTURIERT kennzeichnen (nicht nur im Freitext):
+    # ohne aufgelösten Netzbetreiber rechnet der Vergleich mit netzkosten=0 und
+    # spiegelt nur den ENERGIEPREIS-Anteil wider — nie die Gesamtrechnung. Ein
+    # Client (auch ein schwaches LLM) MUSS das an ``netzkosten_vollstaendig``
+    # zuverlässig erkennen können, statt es im Hinweistext zu übersehen.
+    netzkosten_vollstaendig = (
+        cmp.netzbetreiber is not None and cmp.netzkosten_eur_jahr > 0
+    )
+    ergebnis_typ = "gesamtkosten" if netzkosten_vollstaendig else "nur_energiepreis"
     result: dict[str, Any] = {
         "plz": cmp.plz,
         "jahresverbrauch_kwh": verbrauch,
@@ -135,6 +144,8 @@ def _result_dict(
         "bester_gesamt": cmp.bester_gesamt.tarif_name if cmp.bester_gesamt else None,
         "netzkosten_eur_jahr": cmp.netzkosten_eur_jahr,
         "netzbetreiber": cmp.netzbetreiber,
+        "netzkosten_vollstaendig": netzkosten_vollstaendig,
+        "ergebnis_typ": ergebnis_typ,
         "gebrauchsabgabe_rate": cmp.gebrauchsabgabe_rate,
         "versorger_abdeckung": (
             cmp.versorger_abdeckung.model_dump(mode="json")
@@ -147,6 +158,15 @@ def _result_dict(
             "Alternative via rechenweg='voll' abrufbar."
         ),
     }
+    if not netzkosten_vollstaendig:
+        result["hinweis"] = (
+            "ACHTUNG netzkosten_vollstaendig=false: Für diese PLZ ist kein "
+            "Netzbetreiber hinterlegt — die Jahreskosten enthalten NUR den "
+            "Energiepreis-Anteil (ergebnis_typ='nur_energiepreis'), NICHT die "
+            "regulierten Netzkosten (in AT ~30-40 % der Rechnung). Präsentiere "
+            "die Beträge dem User NICHT als vollständige Jahresrechnung. "
+            + result["hinweis"]
+        )
     if not cmp.alternativen:
         result["hinweis"] = (
             "Keine passenden Alternativen im Katalog für diese Anfrage — leeres, "
@@ -224,6 +244,8 @@ class TariffCompareCapability(Capability):
             "max_ersparnis_eur": "number",
             "netzkosten_eur_jahr": "number",
             "netzbetreiber": "str",
+            "netzkosten_vollstaendig": "bool",
+            "ergebnis_typ": "str",
             "gebrauchsabgabe_rate": "number",
             "bester_gesamt": "str",
         }

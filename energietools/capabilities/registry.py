@@ -25,6 +25,7 @@ from energietools.capabilities.knowledge.capability import GetKnowledgeCapabilit
 from energietools.capabilities.lastgang.capability import (
     LastgangSignalsCapability,
     LoadTrendCapability,
+    SpotBacktestCapability,
 )
 from energietools.capabilities.load_profile.capability import LoadProfileCapability
 from energietools.capabilities.netz.capability import (
@@ -79,6 +80,10 @@ def default_registry() -> CapabilityRegistry:
     # Lastgang-Mehrjahres-Trend: Kalender-YoY nur bei >=2 vollen Jahren
     # (Coverage-Guard), sonst Fenster-YoY über deckungsgleiche Slots (L.2).
     registry.register(LoadTrendCapability())
+    # Lastgang-Kosten-Backtest: profilgewichteter Spot-Backtest (echter
+    # Verbrauchs-Shape × EPEX) vs. Fixpreis + Tarifwechsel-Ersparnis (dünne
+    # Sicht auf tariff_compare) — beide Blöcke unabhängig optional (L.4).
+    registry.register(SpotBacktestCapability())
     # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
     register_tool_capabilities(registry)
     return registry

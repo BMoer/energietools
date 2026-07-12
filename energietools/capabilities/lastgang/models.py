@@ -1,7 +1,7 @@
 # energietools — Open-Source Toolkit für den österreichischen Energiemarkt
 # SPDX-License-Identifier: MIT
 
-"""Pydantic-Result-Modelle der Lastgang-Capabilities (L.1.7, L.2.4).
+"""Pydantic-Result-Modelle der Lastgang-Capabilities (L.1.7, L.2.4, L.4.4).
 
 Typsicher + selbstdokumentierend (Schema-Doku über die Feldbeschreibungen).
 ``_run`` gibt jeweils ``…Result.model_dump(mode="json")`` zurück — siehe
@@ -152,6 +152,103 @@ class LoadTrendResult(BaseModel):
         default=None, description="Median der delta_pct-Werte (window_yoy, Fallback calendar_yoy)"
     )
     rechenweg: dict = Field(default_factory=dict, description="Schwellen, Fenster-Methode, Formeln")
+    caveats: list[str] = Field(default_factory=list)
+    nenner: dict[str, str] = Field(
+        default_factory=dict, description="L.6: Nenner-Definition je Anteils-/Verhältnis-Kennzahl"
+    )
+
+
+class SpotBacktestBlock(BaseModel):
+    """Profilgewichteter Spot-Backtest vs. aktueller Fixpreis (L.4.3).
+
+    ``verfuegbar=False`` (statt einer stillen 0) mit ``grund``, wenn
+    ``spot_prices``/``consumption``/``energiepreis_brutto_ct_kwh`` fehlen oder
+    sich Verbrauch und Preise zeitlich nicht überlappen.
+    """
+
+    verfuegbar: bool = Field(description="False = nicht berechenbar — Begründung in 'grund', NIE 0")
+    grund: str | None = Field(default=None, description="Begründung, wenn verfuegbar=False")
+    spot_netto_eur: float | None = Field(
+        default=None, description="Spot-Jahreskosten Energie, netto € (profilgewichtet)"
+    )
+    fix_netto_eur: float | None = Field(
+        default=None, description="Fixpreis-Jahreskosten Energie, netto €"
+    )
+    differenz_eur: float | None = Field(
+        default=None, description="fix_netto_eur - spot_netto_eur; positiv = Spot günstiger"
+    )
+    effektiver_spot_ct: float | None = Field(
+        default=None,
+        description=(
+            "Volumengewichteter Spot-Mittelwert (eigener Profil-Shape) + "
+            "aufschlag_ct, netto ct/kWh"
+        ),
+    )
+    profilkostenfaktor_pct: float | None = Field(
+        default=None,
+        description=(
+            "100 * (volumengewichteter Spot / zeitgewichteter Spot - 1) — wie teuer "
+            "das EIGENE Verbrauchsprofil ggü. einem flachen (zeitgewichteten) Bezug ist"
+        ),
+    )
+    aufschlag_ct: float = Field(
+        description=(
+            "Angenommener Lieferanten-Aufschlag auf den EPEX-Spotpreis (Annahme, "
+            "keine Garantie)"
+        )
+    )
+    basis: str | None = Field(
+        default=None, description="'eigene Verbrauchsdaten' oder 'H0-Standardlastprofil'"
+    )
+    hinweis: str | None = Field(default=None, description="Backtest-Hinweis (keine Preisgarantie)")
+
+
+class TarifErsparnisBlock(BaseModel):
+    """Tarifwechsel-Ersparnis — dünne Sicht auf ``tariff_compare`` (L.4.3).
+
+    ``verfuegbar=False`` mit ``grund``, wenn Pflicht-Eingaben fehlen, der
+    Tarifvergleich ablehnt, oder keine Alternative im Katalog existiert.
+    """
+
+    verfuegbar: bool = Field(description="False = nicht berechenbar — Begründung in 'grund', NIE 0")
+    grund: str | None = Field(default=None, description="Begründung, wenn verfuegbar=False")
+    ist_eur: float | None = Field(
+        default=None, description="Aktueller Tarif, Energie-Jahreskosten brutto €"
+    )
+    best_eur: float | None = Field(
+        default=None, description="Günstigste Markt-Alternative, Energie-Jahreskosten brutto €"
+    )
+    ersparnis_eur: float | None = Field(
+        default=None, description="ist_eur - best_eur (= tariff_compare.max_ersparnis_eur)"
+    )
+    lieferant_ist: str | None = Field(default=None, description="Aktueller Lieferant (Eingabe)")
+    lieferant_best: str | None = Field(
+        default=None, description="Lieferant der günstigsten Alternative"
+    )
+    tarif_best: str | None = Field(
+        default=None, description="Tarifname der günstigsten Alternative"
+    )
+    netzkosten_vollstaendig: bool | None = Field(
+        default=None,
+        description=(
+            "False: ist_eur/best_eur enthalten NUR den Energiepreis-Anteil (kein "
+            "hinterlegter Netzbetreiber in tariff_compare) — s. tariff_compare.ergebnis_typ"
+        ),
+    )
+    basis: str | None = Field(default=None, description="Einordnung der €-Basis")
+
+
+class SpotBacktestResult(BaseModel):
+    """Ergebnis von ``spot_backtest`` (L.4) — Spot-Backtest + Tarif-Ersparnis.
+
+    Zwei unabhängig optionale Blöcke (jeder für sich ``verfuegbar``/``grund``,
+    NIE eine stille 0, F8/L.6.2). ``rechenweg``/``caveats``/``nenner`` auf
+    Top-Level (Zielbild-Prinzip 3 + L.6.1).
+    """
+
+    spot_backtest: SpotBacktestBlock
+    tarif_ersparnis: TarifErsparnisBlock
+    rechenweg: dict = Field(default_factory=dict, description="Formeln je Block")
     caveats: list[str] = Field(default_factory=list)
     nenner: dict[str, str] = Field(
         default_factory=dict, description="L.6: Nenner-Definition je Anteils-/Verhältnis-Kennzahl"

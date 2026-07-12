@@ -15,6 +15,7 @@ kein Lazy-Import-Zwang für die Rechen-Kerne selbst.
 
 from __future__ import annotations
 
+import dataclasses
 from datetime import datetime
 from importlib import metadata
 from typing import Any
@@ -27,6 +28,9 @@ from energietools.capabilities.lastgang.models import (
     LoadTrendResult,
     PerYearModel,
     RueckfrageModel,
+    SpotBacktestBlock,
+    SpotBacktestResult,
+    TarifErsparnisBlock,
     WindowYoYModel,
 )
 from energietools.capabilities.lastgang.signals import (
@@ -38,7 +42,14 @@ from energietools.capabilities.lastgang.signals import (
     compute_signals,
     select_rueckfragen,
 )
+from energietools.capabilities.lastgang.spot import (
+    DEFAULT_SPOT_AUFSCHLAG_CT,
+    TarifErsparnisCore,
+    compute_spot_backtest,
+    extract_tarif_ersparnis,
+)
 from energietools.capabilities.lastgang.trend import FULL_YEAR_DAY_THRESHOLD, compute_load_trend
+from energietools.capabilities.tariff_compare.capability import TariffCompareCapability
 
 _CONSUMPTION_SERIES = {
     "type": "array",
@@ -51,6 +62,22 @@ _CONSUMPTION_SERIES = {
         "required": ["ts", "kwh"],
     },
     "description": "15-min-Netzbezug/-Verbrauch: [{ts, kwh}, …]",
+}
+
+_SPOT_PRICE_SERIES = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "timestamp": {"type": "string", "description": "ISO-Zeitstempel der EPEX-Stunde"},
+            "price_ct": {"type": "number", "description": "EPEX-Preis netto ct/kWh"},
+        },
+        "required": ["timestamp", "price_ct"],
+    },
+    "description": (
+        "EPEX-Stundenreihe (netto ct/kWh), als Parameter hereingereicht — "
+        "L.4.2, kein DB-/Netzzugriff im Rechen-Kern: [{timestamp, price_ct}, …]"
+    ),
 }
 
 _NENNER = {
@@ -116,6 +143,27 @@ def _zeitraum_aus_consumption(consumption: Any) -> str | None:
     return f"{min(zeitstempel).isoformat()}…{max(zeitstempel).isoformat()}"
 
 
+def _zeitraum_aus_spot_prices(raw: Any) -> str | None:
+    """Datenstand der ÜBERGEBENEN EPEX-Reihe (Muster ``SnapshotSpotPriceSource
+    .meta``, WP2-S-Fund): ein Spot-Backtest ist nur so aktuell wie die
+    hereingereichte ``spot_prices``-Serie — das Envelope-Meta macht diesen
+    Datenstand sichtbar (min…max Zeitstempel), unabhängig vom Verbrauchsfenster."""
+    if not isinstance(raw, list) or not raw:
+        return None
+    zeitstempel: list[datetime] = []
+    for eintrag in raw:
+        roh = eintrag.get("timestamp") if isinstance(eintrag, dict) else None
+        if not roh:
+            continue
+        try:
+            zeitstempel.append(datetime.fromisoformat(str(roh)))
+        except ValueError:
+            continue  # ein einzelner kaputter Zeitstempel darf _meta nie kippen
+    if not zeitstempel:
+        return None
+    return f"{min(zeitstempel).isoformat()}…{max(zeitstempel).isoformat()}"
+
+
 def _parse_consumption(raw: Any) -> list[tuple[datetime, float]]:
     """Validiert + parst die Pflicht-Eingabe ``consumption`` (Input-Validation
     an der Systemgrenze — nie auf ein rohes ``dict`` vertrauen)."""
@@ -133,6 +181,39 @@ def _parse_consumption(raw: Any) -> list[tuple[datetime, float]]:
         except (TypeError, ValueError) as exc:
             raise CapabilityError(f"consumption[{i}]: ungültiger ts/kwh-Wert ({exc}).") from exc
         parsed.append((ts, kwh))
+    return parsed
+
+
+def _consumption_zu_timestamp_records(parsed: list[tuple[datetime, float]]) -> list[dict]:
+    """Übersetzt die geparste ``(ts, kwh)``-Form ins Primitiv-Format, das
+    ``compute_spot_effective``/``compute_annual_cost`` erwarten (``timestamp``-
+    Schlüssel statt ``ts`` — L.4.2, ``spot_pricing.py:91-100``)."""
+    return [{"timestamp": ts.isoformat(), "kwh": kwh} for ts, kwh in parsed]
+
+
+def _parse_spot_prices(raw: Any) -> list[dict]:
+    """Validiert + parst die Eingabe ``spot_prices`` (Input-Validation an der
+    Systemgrenze — nie auf ein rohes ``dict`` vertrauen)."""
+    if raw is None:
+        raw = []
+    if not isinstance(raw, list):
+        raise CapabilityError(
+            "spot_prices muss eine Liste von {timestamp, price_ct}-Objekten sein."
+        )
+    parsed: list[dict] = []
+    for i, eintrag in enumerate(raw):
+        if not isinstance(eintrag, dict) or "timestamp" not in eintrag or "price_ct" not in eintrag:
+            raise CapabilityError(
+                f"spot_prices[{i}]: erwartet {{timestamp, price_ct}}, erhalten {eintrag!r}."
+            )
+        try:
+            ts = datetime.fromisoformat(str(eintrag["timestamp"]))
+            price_ct = float(eintrag["price_ct"])
+        except (TypeError, ValueError) as exc:
+            raise CapabilityError(
+                f"spot_prices[{i}]: ungültiger timestamp/price_ct-Wert ({exc})."
+            ) from exc
+        parsed.append({"timestamp": ts.isoformat(), "price_ct": price_ct})
     return parsed
 
 
@@ -407,3 +488,223 @@ class LoadTrendCapability(Capability):
             nenner=dict(_TREND_NENNER),
         )
         return result.model_dump(mode="json")
+
+
+# --- L.4 spot_backtest / tarif_ersparnis ---------------------------------
+
+_CAVEAT_BACKTEST = (
+    "spot_backtest ist ein Backtest auf historischen EPEX-Preisen — keine "
+    "Prognose oder Preisgarantie für künftige Kosten."
+)
+_CAVEAT_AUFSCHLAG_ANNAHME = (
+    f"aufschlag_ct ist eine Annahme (Default {DEFAULT_SPOT_AUFSCHLAG_CT:g} ct/kWh, "
+    "keine Preisgarantie), sofern kein realer Lieferanten-Aufschlag übergeben wird."
+)
+_CAVEAT_TARIF_ERSPARNIS_ENERGIEBASIS = (
+    "tarif_ersparnis.ist_eur/best_eur sind der Energiepreis-Anteil brutto/Jahr "
+    "(Netzkosten/Gebrauchsabgabe eigene Blöcke in tariff_compare) — bei "
+    "tarif_ersparnis.netzkosten_vollstaendig=false fehlt zusätzlich ein "
+    "hinterlegter Netzbetreiber für diese PLZ."
+)
+
+_SPOT_NENNER = {
+    "spot_backtest.profilkostenfaktor_pct": (
+        "zeitgewichteter Durchschnittspreis (ungewichtetes Stundenmittel der "
+        "EPEX-Preise im überlappenden Zeitraum, OHNE Aufschlag)"
+    ),
+}
+
+_TARIF_ERSPARNIS_PFLICHTFELDER = (
+    "plz",
+    "jahresverbrauch_kwh",
+    "aktueller_lieferant",
+    "energiepreis_brutto_ct_kwh",
+    "aktuelle_grundgebuehr_brutto_eur_monat",
+)
+
+
+class SpotBacktestCapability(Capability):
+    """Profilgewichteter Spot-Backtest + Tarifwechsel-Ersparnis aus dem Lastgang (L.4).
+
+    Zwei Blöcke, JEDER für sich unabhängig optional (``verfuegbar=False`` +
+    ``grund`` statt einer stillen 0, F8/L.6.2 — "NIE 0 zeigen"):
+
+    - ``spot_backtest``: bepreist den ECHTEN Verbrauchs-Shape gegen
+      historische EPEX-Stundenpreise (Backtest, keine Prognose) und stellt
+      ihn dem aktuellen Fixpreis gegenüber. ``spot_prices``/``consumption``
+      sind Parameter (L.4.2) — KEINE DB-/Netz-Abhängigkeit, dadurch offline
+      testbar mit einer synthetischen EPEX-Reihe.
+    - ``tarif_ersparnis``: eine dünne Sicht auf ``tariff_compare`` (offline
+      über dessen ``TariffSource``-Protocol-Injection, Default
+      ``CatalogTariffSource``) — die DB-gebundene gridbert-Quelle
+      (``compare_from_db``) wird NICHT portiert (L.4.3).
+    """
+
+    name = "spot_backtest"
+    summary = (
+        "Profilgewichteter Spot-Backtest (echter Verbrauchs-Shape × EPEX-"
+        "Stundenpreise) vs. aktueller Fixpreis, plus Tarifwechsel-Ersparnis "
+        "aus dem Lastgang (dünne Sicht auf tariff_compare). Beide Blöcke "
+        "unabhängig optional — 'verfuegbar=false' + 'grund' statt einer "
+        "stillen 0, wenn die Datenlage fehlt."
+    )
+    input_schema = {
+        "type": "object",
+        "properties": {
+            "consumption": _CONSUMPTION_SERIES,
+            "spot_prices": _SPOT_PRICE_SERIES,
+            "energiepreis_brutto_ct_kwh": {
+                "type": "number",
+                "description": (
+                    "Aktueller Arbeitspreis (Fixpreis), brutto ct/kWh — Vergleichs-"
+                    "basis für spot_backtest UND aktueller Tarif für tarif_ersparnis."
+                ),
+            },
+            "aufschlag_ct": {
+                "type": "number",
+                "default": DEFAULT_SPOT_AUFSCHLAG_CT,
+                "description": (
+                    "Angenommener Lieferanten-Aufschlag auf den EPEX-Spotpreis "
+                    "(netto ct/kWh) — Annahme, keine Preisgarantie."
+                ),
+            },
+            "plz": {
+                "type": "string", "description": "Postleitzahl (4-stellig) — für tarif_ersparnis",
+            },
+            "jahresverbrauch_kwh": {
+                "type": "number", "description": "Jahresverbrauch in kWh — für tarif_ersparnis",
+            },
+            "aktueller_lieferant": {
+                "type": "string",
+                "description": "Name des aktuellen Lieferanten — für tarif_ersparnis",
+            },
+            "aktuelle_grundgebuehr_brutto_eur_monat": {
+                "type": "number",
+                "description": "Aktuelle Grundgebühr brutto €/Monat — für tarif_ersparnis",
+            },
+        },
+        "required": [],
+    }
+
+    def __init__(self, tariff_compare: TariffCompareCapability | None = None) -> None:
+        # Konsumenten injizieren eine eigene TariffCompareCapability (z.B. mit
+        # produktseitiger TariffSource); Standalone rechnet auf deren Default
+        # (CatalogTariffSource, offline, gebündelter Open-Data-Snapshot).
+        self._tariff_compare = tariff_compare or TariffCompareCapability()
+
+    def result_field_paths(self) -> dict[str, str]:
+        return {
+            "spot_backtest.verfuegbar": "bool",
+            "spot_backtest.grund": "str",
+            "spot_backtest.differenz_eur": "number",
+            "spot_backtest.effektiver_spot_ct": "number",
+            "spot_backtest.profilkostenfaktor_pct": "number",
+            "spot_backtest.aufschlag_ct": "number",
+            "tarif_ersparnis.verfuegbar": "bool",
+            "tarif_ersparnis.grund": "str",
+            "tarif_ersparnis.ersparnis_eur": "number",
+            "tarif_ersparnis.netzkosten_vollstaendig": "bool",
+        }
+
+    def _meta(self, **kwargs: Any) -> dict[str, Any]:
+        meta: dict[str, Any] = {
+            "quelle": (
+                "Nutzer-Lastgang + injizierte EPEX-Reihe (Parameter, L.4.2) — "
+                "kein DB-/Netzzugriff im Rechen-Kern"
+            ),
+            "snapshot_version": _paket_version(),
+        }
+        # Datenstand der ÜBERGEBENEN Spot-Reihe (Muster SnapshotSpotPriceSource
+        # .meta) — der Backtest ist nur so aktuell wie die hereingereichte EPEX-
+        # Serie, unabhängig vom (ggf. längeren) Verbrauchsfenster.
+        stand = _zeitraum_aus_spot_prices(kwargs.get("spot_prices"))
+        if stand:
+            meta["stand"] = stand
+        return meta
+
+    def _run(self, **kwargs: Any) -> dict[str, Any]:
+        consumption_roh = _parse_consumption(kwargs.get("consumption"))
+        consumption = _consumption_zu_timestamp_records(consumption_roh)
+        spot_prices = _parse_spot_prices(kwargs.get("spot_prices"))
+        aufschlag_ct = float(kwargs.get("aufschlag_ct") or DEFAULT_SPOT_AUFSCHLAG_CT)
+        energiepreis_roh = kwargs.get("energiepreis_brutto_ct_kwh")
+        energiepreis = float(energiepreis_roh) if energiepreis_roh is not None else None
+
+        spot_core = compute_spot_backtest(
+            consumption, spot_prices, energiepreis, aufschlag_ct=aufschlag_ct,
+        )
+        tarif_core = self._tarif_ersparnis_block(kwargs)
+
+        rechenweg = {
+            "spot_backtest": {
+                "formel_effektiver_spot_ct": (
+                    "volumengewichtetes EPEX-Stundenmittel (gewichtet mit dem "
+                    "eigenen Verbrauchs-Shape) + aufschlag_ct"
+                ),
+                "formel_profilkostenfaktor_pct": (
+                    "100 * (volumengewichteter_spot / zeitgewichteter_spot - 1)"
+                ),
+                "formel_fix_vergleich": (
+                    "energiepreis_brutto_ct_kwh / 1.20 (USt) als konstanter "
+                    "Arbeitspreis, über dieselbe Cost Engine wie Spot gerechnet"
+                ),
+                "aufschlag_ct_default": DEFAULT_SPOT_AUFSCHLAG_CT,
+            },
+            "tarif_ersparnis": {
+                "methode": (
+                    "dünne Sicht auf tariff_compare (top_n=1): ist_eur = "
+                    "aktueller Tarif, best_eur = günstigste Alternative "
+                    "(alternativen[0], nach jahreskosten_eur sortiert), "
+                    "ersparnis_eur = tariff_compare.max_ersparnis_eur"
+                ),
+                "pflichtfelder": list(_TARIF_ERSPARNIS_PFLICHTFELDER),
+            },
+        }
+
+        caveats = [
+            _CAVEAT_BACKTEST,
+            _CAVEAT_AUFSCHLAG_ANNAHME,
+            _CAVEAT_TARIF_ERSPARNIS_ENERGIEBASIS,
+        ]
+
+        result = SpotBacktestResult(
+            spot_backtest=SpotBacktestBlock(**dataclasses.asdict(spot_core)),
+            tarif_ersparnis=TarifErsparnisBlock(**dataclasses.asdict(tarif_core)),
+            rechenweg=rechenweg,
+            caveats=caveats,
+            nenner=dict(_SPOT_NENNER),
+        )
+        return result.model_dump(mode="json")
+
+    def _tarif_ersparnis_block(self, kwargs: dict[str, Any]) -> TarifErsparnisCore:
+        """Ruft ``tariff_compare`` auf (falls alle Pflichtfelder vorhanden) und
+        extrahiert das ``tarif_ersparnis``-Ergebnis (L.4.3, dünne Sicht)."""
+        werte = {
+            "plz": kwargs.get("plz"),
+            "jahresverbrauch_kwh": kwargs.get("jahresverbrauch_kwh"),
+            "aktueller_lieferant": kwargs.get("aktueller_lieferant"),
+            "energiepreis_brutto_ct_kwh": kwargs.get("energiepreis_brutto_ct_kwh"),
+            "aktuelle_grundgebuehr_brutto_eur_monat": kwargs.get(
+                "aktuelle_grundgebuehr_brutto_eur_monat"
+            ),
+        }
+        fehlend = [feld for feld in _TARIF_ERSPARNIS_PFLICHTFELDER if werte[feld] in (None, "")]
+        if fehlend:
+            return TarifErsparnisCore(
+                verfuegbar=False,
+                grund=f"Fehlende Eingaben für tarif_ersparnis: {', '.join(fehlend)}.",
+            )
+
+        lieferant = str(werte["aktueller_lieferant"])
+        vergleich = self._tariff_compare.run(
+            plz=str(werte["plz"]),
+            jahresverbrauch_kwh=werte["jahresverbrauch_kwh"],
+            aktueller_lieferant=lieferant,
+            aktueller_energiepreis_brutto_ct_kwh=werte["energiepreis_brutto_ct_kwh"],
+            aktuelle_grundgebuehr_brutto_eur_monat=werte["aktuelle_grundgebuehr_brutto_eur_monat"],
+            top_n=1,
+        )
+        return extract_tarif_ersparnis(
+            ok=vergleich.ok, error=vergleich.error, data=vergleich.data,
+            aktueller_lieferant=lieferant,
+        )

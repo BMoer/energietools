@@ -33,6 +33,7 @@ from energietools.capabilities.base import CapabilityError
 from energietools.capabilities.lastgang.capability import (
     LastgangSignalsCapability,
     LoadTrendCapability,
+    SpotBacktestCapability,
 )
 from energietools.capabilities.lastgang.guards import apply_pv_guards, guard_rueckfragen
 from energietools.capabilities.lastgang.signals import (
@@ -43,6 +44,15 @@ from energietools.capabilities.lastgang.signals import (
     compute_signals,
     select_rueckfragen,
 )
+from energietools.capabilities.lastgang.spot import (
+    DEFAULT_SPOT_AUFSCHLAG_CT,
+    GRUND_KEIN_FIXPREIS,
+    GRUND_KEIN_SPOT,
+    GRUND_KEIN_VERBRAUCH,
+    GRUND_TARIF_ERSPARNIS_LEER,
+    compute_spot_backtest,
+    extract_tarif_ersparnis,
+)
 from energietools.capabilities.lastgang.trend import (
     FULL_YEAR_DAY_THRESHOLD,
     aligned_window_yoy,
@@ -50,6 +60,7 @@ from energietools.capabilities.lastgang.trend import (
     per_year,
 )
 from energietools.capabilities.registry import default_registry
+from energietools.capabilities.tariff_compare.capability import TariffCompareCapability
 
 # ---------------------------------------------------------------------------
 # Synthetische Serien-Generatoren (kein PII, reine Konstanten-Bausteine)
@@ -675,3 +686,315 @@ def test_load_trend_nenner_deckt_delta_pct_ab() -> None:
     nenner = result.data["nenner"]
     assert nenner.get("window_yoy.delta_pct")
     assert nenner.get("trend_pct_pro_jahr")
+
+
+# ---------------------------------------------------------------------------
+# L.4 — spot_backtest / tarif_ersparnis (WP2-L Durchstich 2)
+#
+# spot_prices/consumption werden als Parameter injiziert (L.4.2, offline
+# testbar) — KEINE DB-/Netz-Abhängigkeit im Rechen-Kern. Alle Serien
+# synthetisch (Sinus/Konstante-Bausteine), KEINE echten Zählpunkte/Namen
+# (MIT-Repo-Pflicht, DoD-Kriterium 13).
+# ---------------------------------------------------------------------------
+
+
+def _spot_price_series(start: datetime, hours: int, ct_day: float, ct_night: float) -> list[dict]:
+    """Synthetische EPEX-Stundenreihe: günstige Nacht (0-3h), teurer Tag."""
+    out: list[dict] = []
+    for h in range(hours):
+        ts = start + timedelta(hours=h)
+        price = ct_night if ts.hour in (0, 1, 2, 3) else ct_day
+        out.append({"timestamp": ts.isoformat(), "price_ct": price})
+    return out
+
+
+def _timestamp_consumption(start: datetime, hours: int, kwh_per_hour: float) -> list[dict]:
+    """Consumption im Primitiv-Format ('timestamp'-Schlüssel), wie es
+    ``compute_spot_effective``/``compute_annual_cost`` direkt erwarten (L.4.2)."""
+    return [
+        {"timestamp": (start + timedelta(hours=h)).isoformat(), "kwh": kwh_per_hour}
+        for h in range(hours)
+    ]
+
+
+def _ts_consumption(start: datetime, hours: int, kwh_per_hour: float) -> list[dict]:
+    """Wie ``_timestamp_consumption``, aber mit dem 'ts'-Schlüssel des
+    Capability-Input-Schemas (``_CONSUMPTION_SERIES``, wie L.1/L.2)."""
+    return [
+        {"ts": (start + timedelta(hours=h)).isoformat(), "kwh": kwh_per_hour}
+        for h in range(hours)
+    ]
+
+
+# --- Rechen-Kern: compute_spot_backtest (Guards, L.4.3) -------------------
+
+
+def test_compute_spot_backtest_ohne_spot_prices_liefert_grund() -> None:
+    core = compute_spot_backtest([], [], 24.0)
+
+    assert core.verfuegbar is False
+    assert core.grund == GRUND_KEIN_SPOT
+    assert core.spot_netto_eur is None  # NIE 0 zeigen
+
+
+def test_compute_spot_backtest_ohne_consumption_liefert_grund() -> None:
+    spot_prices = _spot_price_series(datetime(2025, 1, 1), 24, ct_day=20.0, ct_night=5.0)
+
+    core = compute_spot_backtest([], spot_prices, 24.0)
+
+    assert core.verfuegbar is False
+    assert core.grund == GRUND_KEIN_VERBRAUCH
+
+
+def test_compute_spot_backtest_ohne_fixpreis_liefert_grund() -> None:
+    start = datetime(2025, 1, 1)
+    consumption = _timestamp_consumption(start, 24, 1.0)
+    spot_prices = _spot_price_series(start, 24, ct_day=20.0, ct_night=5.0)
+
+    core = compute_spot_backtest(consumption, spot_prices, None)
+
+    assert core.verfuegbar is False
+    assert core.grund == GRUND_KEIN_FIXPREIS
+
+
+def test_compute_spot_backtest_disjunkte_zeitraeume_liefert_grund_statt_null() -> None:
+    """Verbrauch (2024) und EPEX-Preise (2026) überlappen sich nicht -> Ablehnung
+    MIT Begründung (nicht stillschweigend 0/None, L.4.5-Non-Overlap-Test)."""
+    consumption = _timestamp_consumption(datetime(2024, 1, 1), 24, 1.0)
+    spot_prices = _spot_price_series(datetime(2026, 1, 1), 24, ct_day=20.0, ct_night=5.0)
+
+    core = compute_spot_backtest(consumption, spot_prices, 24.0)
+
+    assert core.verfuegbar is False
+    assert core.grund is not None
+    assert "überlappen" in core.grund
+
+
+def test_compute_spot_backtest_aufschlag_ct_immer_im_result_auch_ohne_daten() -> None:
+    core = compute_spot_backtest([], [], None, aufschlag_ct=2.75)
+
+    assert core.aufschlag_ct == 2.75
+
+
+def test_compute_spot_backtest_happy_path_liefert_plausible_werte() -> None:
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _timestamp_consumption(start, 72, 1.0)  # 3 Tage, konstant 1 kWh/h
+    spot_prices = _spot_price_series(start, 72, ct_day=20.0, ct_night=5.0)
+
+    core = compute_spot_backtest(
+        consumption, spot_prices, energiepreis_brutto_ct_kwh=24.0, aufschlag_ct=1.5,
+    )
+
+    assert core.verfuegbar is True
+    assert core.grund is None
+    assert core.aufschlag_ct == 1.5
+    assert core.basis == "eigene Verbrauchsdaten"
+    assert core.effektiver_spot_ct is not None and core.effektiver_spot_ct > 0
+    assert core.spot_netto_eur is not None and core.spot_netto_eur > 0
+    # Fix: 24.0 brutto / 1.2 USt = 20.0 ct netto * 72 kWh / 100 = 14.40 EUR
+    assert core.fix_netto_eur == pytest.approx(14.40, abs=0.01)
+    assert core.differenz_eur == pytest.approx(core.fix_netto_eur - core.spot_netto_eur, abs=0.01)
+
+
+# --- Rechen-Kern: extract_tarif_ersparnis (dünne Sicht, L.4.3) ------------
+
+
+def test_extract_tarif_ersparnis_bei_abgelehntem_tariff_compare() -> None:
+    core = extract_tarif_ersparnis(
+        ok=False, error="plz ist erforderlich (4-stellige österreichische PLZ)",
+        data=None, aktueller_lieferant="Alt AG",
+    )
+
+    assert core.verfuegbar is False
+    assert "plz ist erforderlich" in core.grund
+
+
+def test_extract_tarif_ersparnis_bei_leeren_alternativen() -> None:
+    core = extract_tarif_ersparnis(
+        ok=True, error=None,
+        data={"alternativen": [], "aktueller_tarif": {}, "max_ersparnis_eur": 0.0},
+        aktueller_lieferant="Alt AG",
+    )
+
+    assert core.verfuegbar is False
+    assert core.grund == GRUND_TARIF_ERSPARNIS_LEER
+
+
+def test_extract_tarif_ersparnis_happy_path() -> None:
+    data = {
+        "aktueller_tarif": {"jahreskosten_eur": 900.0},
+        "alternativen": [
+            {"jahreskosten_eur": 700.0, "lieferant": "Guenstig AG", "tarif_name": "Spar-Tarif"},
+        ],
+        "max_ersparnis_eur": 200.0,
+        "netzkosten_vollstaendig": True,
+    }
+
+    core = extract_tarif_ersparnis(ok=True, error=None, data=data, aktueller_lieferant="Alt AG")
+
+    assert core.verfuegbar is True
+    assert core.grund is None
+    assert core.ist_eur == 900.0
+    assert core.best_eur == 700.0
+    assert core.ersparnis_eur == 200.0
+    assert core.lieferant_ist == "Alt AG"
+    assert core.lieferant_best == "Guenstig AG"
+    assert core.tarif_best == "Spar-Tarif"
+    assert core.netzkosten_vollstaendig is True
+
+
+def test_extract_tarif_ersparnis_netzkosten_unvollstaendig_faellt_auf_ep_anteil_zurueck() -> None:
+    """tariff_compare markiert netzkosten_vollstaendig=false -> die Beträge
+    kommen aus 'energiepreis_anteil_eur' statt 'jahreskosten_eur' (B.7-Marker)."""
+    data = {
+        "aktueller_tarif": {"energiepreis_anteil_eur": 500.0},
+        "alternativen": [{"energiepreis_anteil_eur": 420.0, "lieferant": "B", "tarif_name": "T"}],
+        "max_ersparnis_eur": 80.0,
+        "netzkosten_vollstaendig": False,
+    }
+
+    core = extract_tarif_ersparnis(ok=True, error=None, data=data, aktueller_lieferant="Alt AG")
+
+    assert core.verfuegbar is True
+    assert core.ist_eur == 500.0
+    assert core.best_eur == 420.0
+    assert core.netzkosten_vollstaendig is False
+
+
+# --- Capability-Envelope: beide Blöcke, unabhängig optional ---------------
+
+
+class _FakeTariffSource:
+    """Strukturelle TariffSource — In-Memory-Zeilen, kein Storage (wie
+    ``test_tariff_compare.py::FakeTariffSource``, hier eigenständig gehalten)."""
+
+    def __init__(self, rows: list[dict]) -> None:
+        self._rows = rows
+
+    def get_latest(self, *, status: str, energy_type: str) -> list[dict]:
+        return [r for r in self._rows if (r.get("energy_type") or "POWER") == energy_type]
+
+
+def _guenstiger_tarif_katalog() -> list[dict]:
+    return [
+        {
+            "key": "g1", "lieferant": "Guenstig AG", "tarif_name": "Spar-Tarif",
+            "tariftyp": "Fixpreis", "energiepreis_ct_kwh": 8.0,
+            "grundgebuehr_eur_monat": 3.0, "ist_oekostrom": False,
+        },
+    ]
+
+
+def _tariff_compare_mit_fake_katalog() -> TariffCompareCapability:
+    return TariffCompareCapability(tariff_source=_FakeTariffSource(_guenstiger_tarif_katalog()))
+
+
+def test_spot_backtest_capability_envelope_beide_bloecke_verfuegbar() -> None:
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _ts_consumption(start, 72, 1.0)
+    spot_prices = _spot_price_series(start, 72, ct_day=20.0, ct_night=5.0)
+
+    cap = SpotBacktestCapability(tariff_compare=_tariff_compare_mit_fake_katalog())
+    result = cap.run(
+        consumption=consumption,
+        spot_prices=spot_prices,
+        energiepreis_brutto_ct_kwh=24.0,
+        plz="1010",
+        jahresverbrauch_kwh=3500,
+        aktueller_lieferant="Alt AG",
+        aktuelle_grundgebuehr_brutto_eur_monat=8.0,
+    )
+
+    assert result.ok is True
+    data = result.data
+    assert data["spot_backtest"]["verfuegbar"] is True
+    assert data["spot_backtest"]["effektiver_spot_ct"] > 0
+    assert data["spot_backtest"]["aufschlag_ct"] == DEFAULT_SPOT_AUFSCHLAG_CT
+    assert data["tarif_ersparnis"]["verfuegbar"] is True
+    assert data["tarif_ersparnis"]["lieferant_best"] == "Guenstig AG"
+    assert data["tarif_ersparnis"]["ersparnis_eur"] > 0
+    assert data["caveats"]
+    assert result.meta.get("quelle")
+
+
+def test_spot_backtest_capability_bloecke_unabhaengig_spot_ohne_tarif_felder() -> None:
+    """DoD: beide Blöcke unabhängig optional — nur Spot-Eingaben -> Spot
+    verfügbar, tarif_ersparnis lehnt MIT Begründung ab (fehlende Felder)."""
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _ts_consumption(start, 48, 1.0)
+    spot_prices = _spot_price_series(start, 48, ct_day=20.0, ct_night=5.0)
+
+    result = SpotBacktestCapability().run(
+        consumption=consumption, spot_prices=spot_prices, energiepreis_brutto_ct_kwh=24.0,
+    )
+
+    assert result.ok is True
+    assert result.data["spot_backtest"]["verfuegbar"] is True
+    assert result.data["tarif_ersparnis"]["verfuegbar"] is False
+    assert "plz" in result.data["tarif_ersparnis"]["grund"]
+
+
+def test_spot_backtest_capability_bloecke_unabhaengig_tarif_ohne_spot_felder() -> None:
+    cap = SpotBacktestCapability(tariff_compare=_tariff_compare_mit_fake_katalog())
+
+    result = cap.run(
+        plz="1010", jahresverbrauch_kwh=3500, aktueller_lieferant="Alt AG",
+        energiepreis_brutto_ct_kwh=24.0, aktuelle_grundgebuehr_brutto_eur_monat=8.0,
+    )
+
+    assert result.ok is True
+    assert result.data["spot_backtest"]["verfuegbar"] is False
+    assert result.data["spot_backtest"]["grund"] == GRUND_KEIN_SPOT
+    assert result.data["tarif_ersparnis"]["verfuegbar"] is True
+
+
+def test_spot_backtest_capability_ungueltige_spot_prices_liefert_ok_false() -> None:
+    result = SpotBacktestCapability().run(spot_prices=[{"foo": "bar"}])
+
+    assert result.ok is False
+    assert result.data is None
+
+
+def test_spot_backtest_capability_registry_smoke() -> None:
+    cap = default_registry().get("spot_backtest")
+    assert isinstance(cap, SpotBacktestCapability)
+    assert cap.name == "spot_backtest"
+
+
+def test_spot_backtest_capability_result_field_paths_deckt_beide_bloecke_ab() -> None:
+    pfade = SpotBacktestCapability().result_field_paths()
+    for feld in (
+        "spot_backtest.verfuegbar",
+        "spot_backtest.profilkostenfaktor_pct",
+        "tarif_ersparnis.verfuegbar",
+        "tarif_ersparnis.ersparnis_eur",
+    ):
+        assert feld in pfade
+
+
+def test_spot_backtest_capability_nenner_deckt_profilkostenfaktor_ab() -> None:
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _ts_consumption(start, 48, 1.0)
+    spot_prices = _spot_price_series(start, 48, ct_day=20.0, ct_night=5.0)
+
+    result = SpotBacktestCapability().run(
+        consumption=consumption, spot_prices=spot_prices, energiepreis_brutto_ct_kwh=24.0,
+    )
+
+    assert result.ok is True
+    assert result.data["nenner"].get("spot_backtest.profilkostenfaktor_pct")
+
+
+def test_spot_backtest_capability_meta_stand_kommt_aus_der_spot_reihe() -> None:
+    """_meta: Datenstand der ÜBERGEBENEN Spot-Reihe (Muster
+    SnapshotSpotPriceSource.meta) — nicht das (hier viel ältere)
+    Verbrauchsfenster."""
+    consumption = _ts_consumption(datetime(2020, 1, 1, 0, 0), 24, 1.0)
+    spot_start = datetime(2025, 6, 1, 0, 0)
+    spot_prices = _spot_price_series(spot_start, 24, ct_day=20.0, ct_night=5.0)
+
+    result = SpotBacktestCapability().run(
+        consumption=consumption, spot_prices=spot_prices, energiepreis_brutto_ct_kwh=24.0,
+    )
+
+    assert result.meta.get("stand", "").startswith("2025-06-01")

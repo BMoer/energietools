@@ -241,6 +241,23 @@ class TestRegeln:
         facts, fehler = pruefe_invoice_facts(_payload(zeitraum_von="2025-01-01"))
         assert fehler == []
 
+    def test_datum_akzeptiert_de_format(self):
+        # DE-Schreibweise (TT.MM.JJJJ, wie auf AT-Rechnungen) wird nach ISO
+        # normalisiert — ein schwaches LLM tippt das Datum wörtlich ab.
+        facts, fehler = pruefe_invoice_facts(
+            _payload(zeitraum_von="01.01.2025", zeitraum_bis="31.12.2025")
+        )
+        assert facts is not None and fehler == []
+        assert facts.zeitraum_von.isoformat() == "2025-01-01"
+        assert facts.zeitraum_bis.isoformat() == "2025-12-31"
+
+    def test_datum_lehnt_unmoegliches_de_datum_ab(self):
+        # 31.02. ist kein Kalendertag — die Normalisierung darf keine
+        # Plausibilität vortäuschen; pydantic lehnt das ISO-Ergebnis ab.
+        facts, fehler = pruefe_invoice_facts(_payload(zeitraum_von="31.02.2025"))
+        assert facts is None
+        assert any(f["feld"].startswith("zeitraum_von") for f in fehler)
+
     def test_quellen_anker_seite_strict_kein_string(self):
         # Fund 6: QuellenAnker.seite darf String-Koersion nicht zulassen (strict).
         facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[

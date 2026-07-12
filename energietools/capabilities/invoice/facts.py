@@ -31,6 +31,9 @@ from energietools.tools.zaehlpunkt import validate as _zp_validate
 
 _UST = 1.2
 
+# DE-Rechnungsdatum (TT.MM.JJJJ) → wird im Before-Validator nach ISO normalisiert.
+_DE_DATUM_RE = re.compile(r"(\d{2})\.(\d{2})\.(\d{4})")
+
 # Plausibilitätsgrenzen (brutto) für österreichische Energierechnungen —
 # identisch zu ``tools.invoice_parser._PLAUSIBILITY`` (eine Quelle der Zahlen).
 PLAUSIBILITAET = {
@@ -132,15 +135,24 @@ class InvoiceFacts(BaseModel):
 
     @field_validator("zeitraum_von", "zeitraum_bis", mode="before")
     @classmethod
-    def _datum_kein_timestamp(cls, v: Any) -> Any:
-        # Nur ISO-String oder date zulassen — ein reiner Int/Float würde sonst
-        # still als Unixzeitstempel zu einem Datum koerziert (bricht die
-        # "kein Feld koerziert lautlos"-Philosophie des Moduls).
+    def _datum_normalisieren(cls, v: Any) -> Any:
+        # Nur ISO-String, DE-Datum (TT.MM.JJJJ) oder date zulassen — ein reiner
+        # Int/Float würde sonst still als Unixzeitstempel zu einem Datum koerziert
+        # (bricht die "kein Feld koerziert lautlos"-Philosophie des Moduls).
         if isinstance(v, (bool, int, float)):
             raise ValueError(
-                "Datum muss ein ISO-String (YYYY-MM-DD) oder ein date sein, kein "
-                "Zahlen-Zeitstempel — lies das Rechnungsdatum wörtlich von der Rechnung ab",
+                "Datum muss ein ISO-String (YYYY-MM-DD), ein DE-Datum (TT.MM.JJJJ) "
+                "oder ein date sein, kein Zahlen-Zeitstempel — lies das "
+                "Rechnungsdatum wörtlich von der Rechnung ab",
             )
+        # DE-Schreibweise (TT.MM.JJJJ, wie auf AT-Rechnungen) → ISO, damit ein
+        # (schwaches) LLM das Datum wörtlich abtippen kann, ohne umzurechnen. Die
+        # eigentliche Kalender-Plausibilität (z.B. 31.02.) prüft danach pydantic.
+        if isinstance(v, str):
+            m = _DE_DATUM_RE.fullmatch(v.strip())
+            if m:
+                tag, monat, jahr = m.groups()
+                return f"{jahr}-{monat}-{tag}"
         return v
 
 

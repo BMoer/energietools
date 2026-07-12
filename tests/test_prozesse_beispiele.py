@@ -22,7 +22,9 @@ def test_aktive_caveats_ueberspringt_kaputten_trigger_ohne_alle_zu_verlieren():
 class TestBeispielDialoge:
     def test_es_gibt_einen_beispiel_dialog_je_v1_prozess(self):
         beispiele = [load_beispiel(d) for d in list_beispiele()]
-        assert {b["prozess_id"] for b in beispiele} == {"erstkontakt", "rechnungsanalyse"}
+        assert {b["prozess_id"] for b in beispiele} == {
+            "erstkontakt", "rechnungsanalyse", "lastganganalyse",
+        }
 
     def test_alle_beispiele_stimmen_mit_ihrem_prozess_ueberein(self):
         for datei in list_beispiele():

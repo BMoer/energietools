@@ -10,6 +10,11 @@ beim Registrieren zu laden.
 
 Bewusst (noch) NICHT hier: ``smartmeter`` (Live-Credentials), ``switching``
 (erzeugt PDF-Datei, Seiteneffekt).
+
+``load_profile`` lebt seit WP2-S NICHT mehr hier, sondern als dedizierte
+Capability-Klasse in ``capabilities/load_profile/`` (ok/error-Mapping + ``_meta``
+brauchen einen eigenen ``_run``/``_meta``-Haken, den die generische
+``FunctionCapability``-Brücke nicht bietet).
 """
 
 from __future__ import annotations
@@ -72,19 +77,6 @@ def register_tool_capabilities(registry: CapabilityRegistry) -> CapabilityRegist
                 "aufschlag_ct": {"type": "number"},
             },
             "required": ["consumption_data"],
-        },
-    ))
-    registry.register(FunctionCapability(
-        name="load_profile",
-        summary="Lastprofil-Analyse (Grundlast, Spitzen, Anomalien) aus 15-min-Daten oder CSV.",
-        target="energietools.tools.load_profile:analyze_load_profile",
-        input_schema={
-            "type": "object",
-            "properties": {
-                "consumption_data": _CONSUMPTION_SERIES,
-                "csv_text": {"type": "string"},
-                "price_per_kwh": {"type": "number"},
-            },
         },
     ))
     registry.register(FunctionCapability(

@@ -22,6 +22,15 @@ from energietools.capabilities.invoice.capability import (
     ValidateInvoiceFactsCapability,
 )
 from energietools.capabilities.knowledge.capability import GetKnowledgeCapability
+from energietools.capabilities.lastgang.attribution_capability import (
+    TrendAttributionCapability,
+)
+from energietools.capabilities.lastgang.capability import (
+    LastgangSignalsCapability,
+    LoadTrendCapability,
+    SpotBacktestCapability,
+)
+from energietools.capabilities.load_profile.capability import LoadProfileCapability
 from energietools.capabilities.netz.capability import (
     GesamtkostenCapability,
     NetzkostenCapability,
@@ -65,6 +74,22 @@ def default_registry() -> CapabilityRegistry:
     registry.register(ScenariosCapability())
     # Wärmepumpe: diskreter Heizkostenvergleich (COP real, Lastgang-Dispatch Platzhalter).
     registry.register(HeatPumpCapability())
+    # Lastprofil-Analyse: dedizierte Capability (WP2-S) statt generischer
+    # FunctionCapability-Brücke — mappt die in-band-Fehlersemantik auf ok/error.
+    registry.register(LoadProfileCapability())
+    # Lastgang-Signale: Ursachen-Hypothesen (Heizung/PV/Dauerläufer) + Rückfragen,
+    # mit PV-bedingten Netzbezug-Guards gegen Prosumer-False-Positives (L.1).
+    registry.register(LastgangSignalsCapability())
+    # Lastgang-Mehrjahres-Trend: Kalender-YoY nur bei >=2 vollen Jahren
+    # (Coverage-Guard), sonst Fenster-YoY über deckungsgleiche Slots (L.2).
+    registry.register(LoadTrendCapability())
+    # Lastgang-Kosten-Backtest: profilgewichteter Spot-Backtest (echter
+    # Verbrauchs-Shape × EPEX) vs. Fixpreis + Tarifwechsel-Ersparnis (dünne
+    # Sicht auf tariff_compare) — beide Blöcke unabhängig optional (L.4).
+    registry.register(SpotBacktestCapability())
     # Bestehende deterministische Analyse-Tools ans Rückgrat hängen.
     register_tool_capabilities(registry)
+    # Lastgang-Trend-Attribution (WP2-L L.3): YoY-Delta-Zerlegung nach
+    # Leistungsband × Tageszeit → Geräte-KLASSE als Hypothese (HARTES DoD-Gate 15).
+    registry.register(TrendAttributionCapability())
     return registry

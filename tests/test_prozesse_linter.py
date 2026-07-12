@@ -70,11 +70,13 @@ class TestCaveatTriggerPfade:
 
 
 class TestEchteProzesse:
-    """Beide realen v1-Prozesse müssen sauber gegen die echte Registry linten."""
+    """Alle realen v1-Prozesse müssen sauber gegen die echte Registry linten."""
 
     def test_beide_prozesse_lint_fehlerfrei(self):
         ergebnis = lint_alle()
-        assert set(ergebnis) == {"erstkontakt.yaml", "rechnungsanalyse.yaml"}
+        assert set(ergebnis) == {
+            "erstkontakt.yaml", "rechnungsanalyse.yaml", "lastganganalyse.yaml",
+        }
         for datei, fehler in ergebnis.items():
             assert fehler == [], f"{datei}: {fehler}"
 

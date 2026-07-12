@@ -42,6 +42,7 @@ def analyze_load_profile(
     consumption_data: list[dict] | None = None,
     csv_text: str = "",
     price_per_kwh: float = 0.20,
+    generate_visualizations: bool = True,
 ) -> LoadProfileAnalysis:
     """Vollständige Lastprofil-Analyse.
 
@@ -50,6 +51,9 @@ def analyze_load_profile(
         csv_text: Alternativ: CSV-Text mit Verbrauchsdaten (wird automatisch geparst).
                   Spalten werden anhand von Namens-Heuristiken erkannt.
         price_per_kwh: Strompreis in EUR/kWh (brutto) für Sparpotenzialkalkulation.
+        generate_visualizations: Wenn False, werden die matplotlib-Base64-PNGs NICHT
+                  gerendert (visualisierungen={}). Spart ~200KB pro Response und die
+                  Render-Kosten — für JSON-Endpoints, die Charts client-seitig zeichnen.
 
     Returns:
         LoadProfileAnalysis mit Metriken, Anomalien, Sparpotenzialen und Visualisierungen.
@@ -77,7 +81,7 @@ def analyze_load_profile(
         metrics = _calculate_metrics(df)
         anomalien, cluster = _detect_anomalies(df)
         einsparpotenziale = _estimate_savings(metrics, price_per_kwh)
-        visualisierungen = _generate_visualizations(df, metrics)
+        visualisierungen = _generate_visualizations(df, metrics) if generate_visualizations else {}
 
         sparpotenzial_kwh = sum(s.einsparung_kwh for s in einsparpotenziale)
         sparpotenzial_eur = sum(s.einsparung_eur for s in einsparpotenziale)
@@ -258,12 +262,20 @@ def _prepare_dataframe(data: list[dict]) -> pd.DataFrame:
 def _calculate_metrics(df: pd.DataFrame) -> LoadProfileMetrics:
     """Kennzahlen berechnen."""
     kw = df["consumption_kw"]
+    period_hours = len(kw) * INTERVAL_HOURS  # tatsächlich abgedeckte Stunden des Uploads
     total_kwh = float(kw.sum() * INTERVAL_HOURS)
     grundlast_kw = float(np.percentile(kw, QUANTILE_BASE_LOAD * 100))
     spitzenlast_kw = float(kw.max())
 
-    volllaststunden = total_kwh / spitzenlast_kw if spitzenlast_kw > 0 else 0
-    grundlast_anteil = (grundlast_kw * HOURS_PER_YEAR) / total_kwh * 100 if total_kwh > 0 else 0
+    # Volllaststunden ist eine JAHRESkennzahl (Jahresenergie / Spitzenlast). Ein Upload
+    # deckt selten ein volles Jahr ab → erst auf 8760 h hochrechnen, sonst ist die Zahl
+    # bei Teilzeiträumen bedeutungslos (vorher: nur Teilzeitraum-kWh → ~halbiert).
+    annual_kwh = total_kwh / period_hours * HOURS_PER_YEAR if period_hours > 0 else 0.0
+    volllaststunden = annual_kwh / spitzenlast_kw if spitzenlast_kw > 0 else 0
+    # Grundlast-Anteil = Energie der Dauerlast IM Zeitraum / Gesamtenergie IM Zeitraum.
+    # period_hours statt HOURS_PER_YEAR: vorher wurde eine Jahres-Dauerlast gegen eine
+    # evtl. Teilzeitraum-Summe gerechnet → systematisch überhöht (Faktor 8760/period).
+    grundlast_anteil = (grundlast_kw * period_hours) / total_kwh * 100 if total_kwh > 0 else 0
 
     # Monatsaggregation
     monthly = df.resample("ME").apply(lambda x: float(x.sum() * INTERVAL_HOURS))

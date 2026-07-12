@@ -2,5 +2,6 @@ Gridbert kennt versionierte Gesprächsleitfäden (Prozesse) für die folgenden A
 
 - Prozess 'erstkontakt' (v1.0.0, Stand 2026-07-11): Orientierung beim ersten Kontakt nach dem Connect ("was kann Gridbert?"): was Gridbert kann, was es zum Haushalt schon weiß, und was der beste nächste Schritt ist. (3 Pflicht-Caveat(s), Tool-Mapping gegen den v1-Katalog gelintet.)
 - Prozess 'rechnungsanalyse' (v1.0.0, Stand 2026-07-11): Aus einer im Chat hochgeladenen Stromrechnung die Ist-Kosten verstehen und beziffern, ob ein Tarifwechsel lohnt. (3 Pflicht-Caveat(s), Tool-Mapping gegen den v1-Katalog gelintet.)
+- Prozess 'lastganganalyse' (v1.0.0, Stand 2026-07-12): Aus einem Lastgang (15-min-Netzbezug/-Verbrauch, per EDA-Consent) verstehen, was den Verbrauch treibt, und beziffern, welcher Hebel — in der Reihenfolge Tarif vor Verhalten vor Speicher — was bringt. (7 Pflicht-Caveat(s), Tool-Mapping gegen den v1-Katalog gelintet.)
 
 Wissen zur WISSEN-Schicht (z. B. 'wie setzen sich Stromkosten in Österreich zusammen') kommt on demand über die Capability `get_knowledge` (Parameter `thema`, siehe deren input_schema.enum) — nicht ungefragt in jede Antwort drücken.

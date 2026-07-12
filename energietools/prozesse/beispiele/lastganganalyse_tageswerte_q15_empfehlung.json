@@ -1,0 +1,28 @@
+{
+  "prozess_id": "lastganganalyse",
+  "prozess_datei": "lastganganalyse.yaml",
+  "beschreibung": "Anonymisierter Referenz-Dialog (Muster: Rezept 07, EFH-Tageswerte mit Waermepumpen-Zaehler): Granularitaets-Guard (F29 (a)) verweigert Signale/Zerlegung/Spot-Backtest bei Tageswerten und empfiehlt aktiv den Q15-Opt-in. Synthetischer Zaehlpunkt, PLZ zu Region verallgemeinert, Verbrauchswerte verrauscht.",
+  "transkript": [
+    {"rolle": "user", "text": "Analysier meinen Lastgang, ich hab einen eigenen Zaehler fuer die Waermepumpe."},
+    {
+      "rolle": "assistant",
+      "text": "Deine Serie liegt am Account (Zaehlpunkt AT0099999000000000045000077012349, Region Niederoesterreich) -- allerdings nur als Tageswerte, kein 15-Minuten-Opt-in aktiviert. Die Basis-Metriken und der Mehrjahres-Trend laufen trotzdem: rund 9.850 kWh (2024) und 10.120 kWh (2025) auf diesem Zaehler, Trend rund +2,7 %/Jahr (Fenster-Vergleich, Granularitaets-Caveat: Tageswerte). Die Ursachen-Signale, die Geraete-Zerlegung und der profilgewichtete Spot-Vergleich verweigern dagegen mit Begruendung -- die brauchen 15-Minuten-Aufloesung, die dein Zaehler aktuell nicht liefert. Aktivierst du den Viertelstundenwerte-Opt-in im Netzbetreiber-Portal? Danach kann ich das nachholen."},
+    {"rolle": "user", "text": "Ok, mach ich. Der Zaehler ist auf jeden Fall die Waermepumpe -- laeuft aktuell auf einem normalen Haushaltstarif, glaub ich, nicht extra als Heizstrom angemeldet."},
+    {
+      "rolle": "assistant",
+      "text": "Danke, gespeichert (Heizung: elektrisch/Waermepumpe, eigener Zaehler; Q15-Opt-in: wird aktiviert). Das ist dein groesster sicherer Sofort-Hebel: ein Wechsel auf einen Wärmepumpen-/Heizstromtarif bzw. eine Anmeldung als unterbrechbar kann den Energiepreis-Anteil deutlich senken -- dafuer bräuchte ich noch deinen aktuellen Arbeitspreis und deine Grundgebuehr. Sobald der Q15-Opt-in greift, hole ich Signale, Geraete-Zerlegung und Spot-Vergleich automatisch nach, ohne dass du nochmal fragen musst."
+    }
+  ],
+  "kontext": {
+    "is_pv": false
+  },
+  "erwartete_frage_ids": ["f_wp_tarif", "f_q15_optin"],
+  "erwartete_tool_calls": [
+    {"schritt": "serien_uebersicht", "capability": "list_load_series", "quelle": "extern"},
+    {"schritt": "lastprofil_metriken", "capability": "load_profile", "quelle": "energietools"},
+    {"schritt": "ursachen_signale", "capability": "lastgang_signals", "quelle": "energietools"},
+    {"schritt": "mehrjahres_trend", "capability": "load_trend", "quelle": "energietools"},
+    {"schritt": "rueckfragen_persistieren", "capability": "submit_lastgang_facts", "quelle": "extern"}
+  ],
+  "erwartete_caveats_trigger": ["immer", "immer", "immer", "immer", "immer"]
+}

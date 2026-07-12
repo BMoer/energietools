@@ -934,6 +934,25 @@ def test_spot_backtest_capability_bloecke_unabhaengig_spot_ohne_tarif_felder() -
     assert "plz" in result.data["tarif_ersparnis"]["grund"]
 
 
+def test_spot_backtest_capability_aufschlag_ct_null_wird_respektiert() -> None:
+    """Review-Finding: explizites aufschlag_ct=0.0 darf nicht still durch den
+    Default ersetzt werden (Falsy-Falle bei `or`) — sonst ist der €-Wert eines
+    Null-Aufschlag-Backtests falsch."""
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _ts_consumption(start, 48, 1.0)
+    spot_prices = _spot_price_series(start, 48, ct_day=20.0, ct_night=5.0)
+
+    result = SpotBacktestCapability().run(
+        consumption=consumption,
+        spot_prices=spot_prices,
+        energiepreis_brutto_ct_kwh=24.0,
+        aufschlag_ct=0.0,
+    )
+
+    assert result.ok is True
+    assert result.data["spot_backtest"]["aufschlag_ct"] == 0.0
+
+
 def test_spot_backtest_capability_bloecke_unabhaengig_tarif_ohne_spot_felder() -> None:
     cap = SpotBacktestCapability(tariff_compare=_tariff_compare_mit_fake_katalog())
 

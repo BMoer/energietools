@@ -626,7 +626,11 @@ class SpotBacktestCapability(Capability):
         consumption_roh = _parse_consumption(kwargs.get("consumption"))
         consumption = _consumption_zu_timestamp_records(consumption_roh)
         spot_prices = _parse_spot_prices(kwargs.get("spot_prices"))
-        aufschlag_ct = float(kwargs.get("aufschlag_ct") or DEFAULT_SPOT_AUFSCHLAG_CT)
+        aufschlag_roh = kwargs.get("aufschlag_ct")
+        # `or` würde ein explizites 0.0 verschlucken — nur None fällt auf den Default.
+        aufschlag_ct = (
+            DEFAULT_SPOT_AUFSCHLAG_CT if aufschlag_roh is None else float(aufschlag_roh)
+        )
         energiepreis_roh = kwargs.get("energiepreis_brutto_ct_kwh")
         energiepreis = float(energiepreis_roh) if energiepreis_roh is not None else None
 

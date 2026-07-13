@@ -30,7 +30,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from energietools.tools.cost_engine import build_price_at, compute_annual_cost
+from energietools.tools.cost_engine import _ts, build_price_at, compute_annual_cost
 from energietools.tools.spot_pricing import compute_spot_effective
 
 # Repräsentativer Anbieter-Aufschlag fürs Spot-Backtest, falls keiner gesetzt
@@ -67,6 +67,11 @@ class SpotBacktestCore:
     profilkostenfaktor_pct: float | None = None
     basis: str | None = None
     hinweis: str | None = None
+    # Volumen-Parität (Demo-Fund 2026-07-13): BEIDE Seiten rechnen über exakt
+    # die EPEX-gedeckten Verbrauchs-Slots — das Fenster steht im Result.
+    vergleichs_kwh: float | None = None
+    vergleich_von: str | None = None
+    vergleich_bis: str | None = None
 
 
 def compute_spot_backtest(
@@ -97,10 +102,28 @@ def compute_spot_backtest(
             verfuegbar=False, grund=GRUND_KEIN_FIXPREIS, aufschlag_ct=aufschlag_ct
         )
 
-    annual_kwh = sum(r["kwh"] for r in consumption)
+    # Volumen-Parität: die Spot-Seite kann nur EPEX-gedeckte Stunden bepreisen
+    # (price_at → None-skip). Der Fixpreis würde sonst den GESAMTEN Lastgang
+    # bepreisen und differenz_eur um das ungedeckte Volumen aufblähen
+    # (Demo-Fund 2026-07-13: 1,5 Jahre Verbrauch vs. 1 Jahr EPEX). Deshalb
+    # laufen BEIDE Seiten über exakt die Slots mit EPEX-Stundenpreis —
+    # derselbe Stunden-Schlüssel wie ``cost_engine._hourly_map``.
+    epex_stunden = {_ts(p["timestamp"]).strftime("%Y-%m-%d %H") for p in spot_prices}
+    gedeckt = [
+        c for c in consumption
+        if _ts(c["timestamp"]).strftime("%Y-%m-%d %H") in epex_stunden
+    ]
+    if not gedeckt:
+        return SpotBacktestCore(
+            verfuegbar=False,
+            grund=_GRUND_KEIN_OVERLAP_TEMPLATE.format(exc="0 gemeinsame Stunden"),
+            aufschlag_ct=aufschlag_ct,
+        )
+
+    vergleichs_kwh = sum(r["kwh"] for r in gedeckt)
     try:
         spot = compute_spot_effective(
-            annual_kwh, aufschlag_ct, spot_prices, consumption_data=consumption,
+            vergleichs_kwh, aufschlag_ct, spot_prices, consumption_data=gedeckt,
         )
     except ValueError as exc:
         return SpotBacktestCore(
@@ -109,16 +132,17 @@ def compute_spot_backtest(
             aufschlag_ct=aufschlag_ct,
         )
 
-    # Fixpreis-Vergleich über DIESELBE Cost Engine wie Spot (kein Sonderpfad).
+    # Fixpreis-Vergleich über DIESELBE Cost Engine UND DASSELBE Volumen wie Spot.
     fix_ep_netto_ct = energiepreis_brutto_ct_kwh / _UST
     fix = compute_annual_cost(
-        consumption,
+        gedeckt,
         build_price_at(tariftyp="Fixpreis", energiepreis_ct_kwh=fix_ep_netto_ct),
         grundpreis_eur_monat=0.0,
     )
 
     spot_eur = spot["jahreskosten_energie_netto_eur"]
     fix_eur = fix["energie_netto_eur"]
+    zeitpunkte = sorted(_ts(r["timestamp"]) for r in gedeckt)
     return SpotBacktestCore(
         verfuegbar=True,
         grund=None,
@@ -130,6 +154,9 @@ def compute_spot_backtest(
         profilkostenfaktor_pct=spot["profilkostenfaktor_pct"],
         basis=spot["basis"],
         hinweis=spot["hinweis"],
+        vergleichs_kwh=round(vergleichs_kwh, 2),
+        vergleich_von=zeitpunkte[0].isoformat(),
+        vergleich_bis=zeitpunkte[-1].isoformat(),
     )
 
 

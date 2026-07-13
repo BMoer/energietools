@@ -672,7 +672,9 @@ class SpotBacktestCapability(Capability):
                 ),
                 "formel_fix_vergleich": (
                     "energiepreis_brutto_ct_kwh / 1.20 (USt) als konstanter "
-                    "Arbeitspreis, über dieselbe Cost Engine wie Spot gerechnet"
+                    "Arbeitspreis, über dieselbe Cost Engine UND dasselbe "
+                    "EPEX-gedeckte Volumen wie Spot gerechnet (vergleichs_kwh, "
+                    "vergleich_von/bis)"
                 ),
                 "aufschlag_ct_default": DEFAULT_SPOT_AUFSCHLAG_CT,
             },

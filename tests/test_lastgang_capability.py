@@ -1073,3 +1073,26 @@ def test_spot_backtest_capability_q15_serie_bleibt_ok() -> None:
 
     assert result.ok is True
     assert result.data["spot_backtest"]["verfuegbar"] is True
+
+
+def test_compute_spot_backtest_fix_und_spot_ueber_gleiches_volumen() -> None:
+    """Volumen-Parität (Demo-Fund 2026-07-13): Verbrauch länger als die
+    EPEX-Deckung → BEIDE Seiten rechnen nur über die EPEX-gedeckten Slots,
+    sonst ist differenz_eur um das ungedeckte Volumen aufgebläht (Fix-Seite
+    bepreiste 1,5 Jahre, Spot-Seite 1 Jahr)."""
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _timestamp_consumption(start, 48, 1.0)  # 48 h à 1 kWh
+    spot_prices = _spot_price_series(start, 24, ct_day=20.0, ct_night=5.0)  # nur Tag 1
+
+    core = compute_spot_backtest(
+        consumption, spot_prices, energiepreis_brutto_ct_kwh=24.0, aufschlag_ct=1.5,
+    )
+
+    assert core.verfuegbar is True
+    # Fix: 20 ct netto × 24 GEDECKTE kWh = 4.80 € — nicht 9.60 € über alle 48 h.
+    assert core.fix_netto_eur == pytest.approx(4.80, abs=0.01)
+    assert core.differenz_eur == pytest.approx(core.fix_netto_eur - core.spot_netto_eur, abs=0.01)
+    # Das Vergleichsfenster ist Teil des Results (Rechenweg-Ehrlichkeit).
+    assert core.vergleichs_kwh == pytest.approx(24.0, abs=0.01)
+    assert core.vergleich_von is not None and core.vergleich_von.startswith("2025-01-01")
+    assert core.vergleich_bis is not None and core.vergleich_bis.startswith("2025-01-01")

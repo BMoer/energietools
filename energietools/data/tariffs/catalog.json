@@ -1545,7 +1545,7 @@
     "tarif_name": "Auri One",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
-    "energiepreis_ct_kwh": 14.1,
+    "energiepreis_ct_kwh": 14.3,
     "grundgebuehr_eur_monat": 4.1583,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",

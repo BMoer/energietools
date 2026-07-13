@@ -201,6 +201,19 @@ class SpotBacktestBlock(BaseModel):
         default=None, description="'eigene Verbrauchsdaten' oder 'H0-Standardlastprofil'"
     )
     hinweis: str | None = Field(default=None, description="Backtest-Hinweis (keine Preisgarantie)")
+    vergleichs_kwh: float | None = Field(
+        default=None,
+        description=(
+            "kWh im Vergleichsfenster — BEIDE Seiten (fix/spot) rechnen über exakt "
+            "die EPEX-gedeckten Verbrauchs-Slots (Volumen-Parität)"
+        ),
+    )
+    vergleich_von: str | None = Field(
+        default=None, description="Beginn des EPEX-gedeckten Vergleichsfensters (ISO)"
+    )
+    vergleich_bis: str | None = Field(
+        default=None, description="Ende des EPEX-gedeckten Vergleichsfensters (ISO)"
+    )
 
 
 class TarifErsparnisBlock(BaseModel):

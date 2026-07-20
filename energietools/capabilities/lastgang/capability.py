@@ -49,7 +49,11 @@ from energietools.capabilities.lastgang.spot import (
     compute_spot_backtest,
     extract_tarif_ersparnis,
 )
-from energietools.capabilities.lastgang.trend import FULL_YEAR_DAY_THRESHOLD, compute_load_trend
+from energietools.capabilities.lastgang.trend import (
+    FULL_YEAR_DAY_THRESHOLD,
+    MIN_TREND_FENSTER_TAGE,
+    compute_load_trend,
+)
 from energietools.capabilities.tariff_compare.capability import TariffCompareCapability
 
 _CONSUMPTION_SERIES = {
@@ -112,8 +116,8 @@ _TREND_NENNER = {
     ),
     "calendar_yoy.delta_pct": "kWh_a des vollen Kalender-Basisjahres",
     "trend_pct_pro_jahr": (
-        "Median der delta_pct-Werte aus window_yoy (Fallback: calendar_yoy, falls "
-        "window_yoy leer)"
+        "Median der delta_pct-Werte aus window_yoy MIT in_trend=true (Fallback: "
+        "calendar_yoy, falls kein Fenster mit in_trend=true übrig)"
     ),
 }
 
@@ -437,9 +441,19 @@ class LoadTrendCapability(Capability):
                 "deckungsgleiche (Monat,Tag,Std,Min)-Slots, die in beiden Jahren "
                 "vorkommen, je benachbartem Jahrespaar (_aligned_window_yoy)"
             ),
+            "min_fenster_tage": MIN_TREND_FENSTER_TAGE,
+            "min_fenster_tage_regel": (
+                "Fenster mit gemeinsame_tage < min_fenster_tage bekommen "
+                "in_trend=false (+ grund) und fließen NICHT in den Median — "
+                "Korrektheits-Fix: ein Fenster mit nur 1-2 gemeinsamen Slots "
+                "(z.B. Jahreswechsel-Grenzslot) lieferte sonst eine beliebige "
+                "delta_pct-Zahl, die den Median verzerrt"
+            ),
             "trend_aussage_methode": (
-                "Median der window_yoy delta_pct-Werte (Fallback: calendar_yoy, "
-                "falls window_yoy leer); kein LLM"
+                "Median der delta_pct-Werte aus window_yoy MIT in_trend=true "
+                "(Fallback: calendar_yoy, falls kein Fenster übrig); kein LLM. "
+                "Bleibt kein Fenster + keine calendar_yoy übrig: ehrliche "
+                "'zu wenig Deckung'-Aussage statt Wert"
             ),
         }
 
@@ -479,6 +493,8 @@ class LoadTrendCapability(Capability):
                     kwh_a=w.kwh_a,
                     kwh_b=w.kwh_b,
                     delta_pct=w.delta_pct,
+                    in_trend=w.in_trend,
+                    grund=w.grund,
                 )
                 for w in trend.window_yoy
             ],

@@ -118,13 +118,30 @@ class WindowYoYModel(BaseModel):
     bis_jahr: int
     gemeinsame_slots: int = Field(description="Anzahl Slots, die in BEIDEN Jahren existieren")
     gemeinsame_tage: float = Field(
-        description="gemeinsame_slots/96 (Q15-Annahme) — Diagnosezahl, kein Nenner"
+        description=(
+            "Anzahl verschiedener Kalendertage (Monat/Tag) mit mind. einem "
+            "deckungsgleichen Slot — granularitätsunabhängig (Korrektheits-Fix "
+            "2026-07-20; vorher gemeinsame_slots/96 unter Q15-Annahme, was bei "
+            "gröberer Eingabe die Deckung unterschätzte). Basis für den "
+            "Mindest-Deckungs-Filter (in_trend, s. MIN_TREND_FENSTER_TAGE)."
+        )
     )
     kwh_a: float = Field(description="kWh-Summe des Basisjahres, NUR über die gemeinsamen Slots")
     kwh_b: float = Field(
         description="kWh-Summe des Vergleichsjahres, NUR über die gemeinsamen Slots"
     )
     delta_pct: float | None = Field(description="100 * (kwh_b/kwh_a - 1); None wenn kwh_a == 0")
+    in_trend: bool = Field(
+        default=True,
+        description=(
+            "False, wenn gemeinsame_tage < MIN_TREND_FENSTER_TAGE — Fenster bleibt "
+            "sichtbar, fließt aber NICHT in trend_pct_pro_jahr/trend_aussage ein "
+            "(Korrektheits-Fix 2026-07-20)"
+        ),
+    )
+    grund: str | None = Field(
+        default=None, description="Erklärung, warum in_trend False ist (sonst None)"
+    )
 
 
 class LoadTrendResult(BaseModel):

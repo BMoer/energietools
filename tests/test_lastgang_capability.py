@@ -55,6 +55,7 @@ from energietools.capabilities.lastgang.spot import (
 )
 from energietools.capabilities.lastgang.trend import (
     FULL_YEAR_DAY_THRESHOLD,
+    MIN_TREND_FENSTER_TAGE,
     aligned_window_yoy,
     compute_load_trend,
     per_year,
@@ -592,6 +593,92 @@ def test_trend_aussage_leer_bei_nur_einem_jahr_ohne_paar() -> None:
     assert result.trend_pct_pro_jahr is None
 
 
+# --- Mindest-Deckungs-Guard je Fenster (Korrektheits-Fix 2026-07-20) ------
+#
+# Echter Fehlbefund (Bens Serie, docs/ABNAHME-B2C.md C3): ein Fenster mit
+# 4 Slots/0,0 gemeinsamen Tagen (ein Grenz-Slot am Jahreswechsel) und
+# delta_pct +33,1 % ging gleichberechtigt mit einem echten Fenster
+# (192,9 Tage, +9,7 %) in den Median ein -> "Verbrauch steigt ~21 %/Jahr"
+# statt ehrlicher +9,7 %. Fix: Fenster unter MIN_TREND_FENSTER_TAGE
+# gemeinsamen Kalendertagen bekommen in_trend=False + grund und fliessen
+# nicht mehr in trend_pct_pro_jahr/trend_aussage ein (bleiben aber in
+# window_yoy sichtbar). ``gemeinsame_tage`` zaehlt seit demselben Fix echte,
+# granularitaetsunabhaengige Kalendertage statt gemeinsame_slots/96 -- die
+# alte Q15-Schaetzung haette bei den Tages-Testserien hier (1 Slot/Tag) jedes
+# Fenster faelschlich als "zu duenn" geflaggt (261 Tage waeren als 2,7
+# "Tage" gezaehlt worden).
+# ---------------------------------------------------------------------------
+
+
+def test_load_trend_mini_fenster_unter_mindestdeckung_wird_ausgeschlossen() -> None:
+    """(a) Repro des echten Falls: ein Mini-Fenster mit nur 1 gemeinsamen
+    Kalendertag (Jahreswechsel-Grenzwert, +33,1 %) neben einem vollen Fenster
+    (365 gemeinsame Tage, +9,7 %). trend_pct_pro_jahr kommt NUR vom vollen
+    Fenster; das Mini-Fenster bleibt sichtbar, aber in_trend=False."""
+    mini_2023 = [{"ts": datetime(2023, 12, 31, 12, 0).isoformat(), "kwh": 3.756}]
+    voll_2024 = _daily_records(date(2024, 1, 1), date(2024, 12, 31), 5.0)
+    voll_2025 = _daily_records(date(2025, 1, 1), date(2025, 12, 31), 5.0 * 1.097)
+
+    result = compute_load_trend(_daily_tuples(mini_2023 + voll_2024 + voll_2025))
+
+    assert len(result.window_yoy) == 2
+    fenster_mini, fenster_voll = result.window_yoy
+
+    assert (fenster_mini.von_jahr, fenster_mini.bis_jahr) == (2023, 2024)
+    assert fenster_mini.gemeinsame_tage < MIN_TREND_FENSTER_TAGE
+    assert fenster_mini.in_trend is False
+    assert fenster_mini.grund is not None
+    assert fenster_mini.delta_pct == pytest.approx(33.1, abs=0.5)
+
+    assert (fenster_voll.von_jahr, fenster_voll.bis_jahr) == (2024, 2025)
+    assert fenster_voll.gemeinsame_tage >= MIN_TREND_FENSTER_TAGE
+    assert fenster_voll.in_trend is True
+    assert fenster_voll.grund is None
+    assert fenster_voll.delta_pct == pytest.approx(9.7, abs=0.05)
+
+    # Kernaussage des Fixes: NUR das volle Fenster zaehlt, nicht der Median
+    # aus beiden (der wuerde faelschlich ~21 statt 9,7 ergeben).
+    assert result.trend_pct_pro_jahr == pytest.approx(9.7, abs=0.05)
+    assert result.trend_aussage is not None
+    assert "steigt" in result.trend_aussage
+    assert "~10" in result.trend_aussage
+
+
+def test_load_trend_alle_fenster_unter_schwelle_liefert_ehrlichen_grund_ohne_wert() -> None:
+    """(b) Alle Fenster unter der Mindest-Deckung (und keine Kalender-YoY
+    moeglich, da kein volles Jahr) -> trend_pct_pro_jahr bleibt None,
+    trend_aussage verweigert ehrlich statt eines verzerrten Werts."""
+    a = _daily_records(date(2030, 12, 1), date(2030, 12, 5), 4.0)
+    b = _daily_records(date(2031, 12, 1), date(2031, 12, 5), 6.0)
+
+    result = compute_load_trend(_daily_tuples(a + b))
+
+    assert len(result.window_yoy) == 1
+    fenster = result.window_yoy[0]
+    assert fenster.gemeinsame_tage < MIN_TREND_FENSTER_TAGE
+    assert fenster.in_trend is False
+    assert fenster.grund is not None
+
+    assert result.calendar_yoy is None
+    assert result.trend_pct_pro_jahr is None
+    assert result.trend_aussage is not None
+    assert "Zu wenig Deckung" in result.trend_aussage
+
+
+def test_load_trend_gemeinsame_tage_ist_granularitaetsunabhaengig() -> None:
+    """gemeinsame_tage zaehlt echte Kalendertage, nicht gemeinsame_slots/96 --
+    bei Tages-Granularitaet (1 Slot/Tag) muss die Zahl der echten Ueberlappung
+    entsprechen (hier exakt 10 Tage), nicht 10/96 ~ 0,1."""
+    a = _daily_records(date(2050, 1, 1), date(2050, 1, 10), 2.0)
+    b = _daily_records(date(2051, 1, 1), date(2051, 1, 10), 2.0)
+
+    w = aligned_window_yoy(_daily_tuples(a + b), 2050, 2051)
+
+    assert w is not None
+    assert w.gemeinsame_slots == 10
+    assert w.gemeinsame_tage == pytest.approx(10.0, abs=0.01)
+
+
 # --- Referenz Fall B (DoD-Kriterium 5): reproduziert +9,8 %/+9,7 % --------
 # (results_09.md:36-37, CASE_09.md:31-33, out_09.json — nur Aggregate/
 # Kalendergrenzen als Referenz, keine Rohserie, s. Spec §L.2.5/§6.)
@@ -639,6 +726,23 @@ def test_compute_load_trend_referenz_fall_b_reproduziert_9_8_und_9_7_prozent() -
     assert "~10" in result.trend_aussage
 
 
+def test_load_trend_fall_b_fenster_bleiben_in_trend_mit_echten_tageszahlen() -> None:
+    """(c) Regressionscheck fuer den Mindest-Deckungs-Guard: Fall B (Tages-
+    Granularitaet) bleibt komplett in_trend=True. Die Fenster haben echte
+    261/179 gemeinsame Kalendertage (weit ueber MIN_TREND_FENSTER_TAGE=30) --
+    NICHT die alte, granularitaetsabhaengige Q15-Schaetzung gemeinsame_slots/96
+    (~2,7/~1,9), die den neuen Guard hier faelschlich haette ausloesen lassen."""
+    result = compute_load_trend(_daily_tuples(_fall_b_trend_records()))
+
+    w_24_25, w_25_26 = result.window_yoy
+    assert w_24_25.gemeinsame_tage == pytest.approx(261.0, abs=0.5)
+    assert w_24_25.in_trend is True
+    assert w_24_25.grund is None
+    assert w_25_26.gemeinsame_tage == pytest.approx(179.0, abs=0.5)
+    assert w_25_26.in_trend is True
+    assert w_25_26.grund is None
+
+
 # --- Capability-Envelope + Registry + Nenner (L.6) ------------------------
 
 
@@ -657,6 +761,23 @@ def test_load_trend_capability_envelope_reproduziert_referenzfall() -> None:
     assert data["rechenweg"]["full_year_threshold_tage"] == FULL_YEAR_DAY_THRESHOLD
     assert data["caveats"]
     assert result.meta.get("quelle")
+
+
+def test_load_trend_capability_envelope_zeigt_mindest_deckungs_guard() -> None:
+    """Der Mindest-Deckungs-Guard (Korrektheits-Fix 2026-07-20) muss im
+    Envelope sichtbar sein: rechenweg dokumentiert die Schwelle, jedes
+    window_yoy-Element traegt in_trend/grund."""
+    result = LoadTrendCapability().run(consumption=_fall_b_trend_records())
+
+    assert result.ok is True
+    data = result.data
+    assert data["rechenweg"]["min_fenster_tage"] == MIN_TREND_FENSTER_TAGE
+    assert data["rechenweg"].get("min_fenster_tage_regel")
+    for fenster in data["window_yoy"]:
+        assert "in_trend" in fenster
+        assert "grund" in fenster
+        assert fenster["in_trend"] is True
+        assert fenster["grund"] is None
 
 
 def test_load_trend_capability_leere_consumption_liefert_ok_false() -> None:

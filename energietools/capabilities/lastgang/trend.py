@@ -16,15 +16,38 @@ Wenn keine 2 vollen Jahre vorliegen, tritt die **Fenster-YoY** ein: nur
 (Monat,Tag,Std,Min)-Slots, die in BEIDEN Jahren existieren, werden verglichen
 — ein ehrlicher Vergleich trotz Teiljahr/Schalttag (``_aligned_window_yoy``).
 
-Aus den Fenster-YoY-Deltas (Fallback: der einzelnen Kalender-YoY) leitet
-:func:`compute_load_trend` eine deterministische Trend-Aussage ab (F12) —
-kein LLM, Median der ``delta_pct``-Werte.
+**Mindest-Deckungs-Guard je Fenster (Korrektheits-Fix 2026-07-20):** ein
+Fenster kann rein rechnerisch schon ab EINEM gemeinsamen Slot existieren
+(z.B. ein einzelner Grenz-Slot am Jahreswechsel) — ``delta_pct`` ist dann
+eine Zufallszahl aus zwei fast beliebigen Einzelwerten, keine belastbare
+Jahresrate. Deshalb zählt ein Fenster erst ab ``MIN_TREND_FENSTER_TAGE``
+gemeinsamen Kalendertagen (``gemeinsame_tage``, s.u.) in den Median; schwache
+Fenster bleiben in ``window_yoy`` sichtbar (Transparenz), tragen aber
+``in_trend=False`` + einen ``grund`` und fließen NICHT in
+``trend_pct_pro_jahr``/``trend_aussage`` ein. Reale Regression: Bens Serie
+hatte ein Fenster mit 4 Slots/0,0 Tagen Überlappung (+33,1 %) neben einem
+Fenster mit 192,9 Tagen (+9,7 %) — der ungewichtete Median beider Werte ergab
+eine falsche "~21 %/Jahr"-Aussage, obwohl nur der zweite Wert belastbar war.
+
+``gemeinsame_tage`` zählt seit diesem Fix die echten, verschiedenen
+Kalendertage (Monat/Tag) mit mindestens einem deckungsgleichen Slot —
+granularitätsunabhängig (vorher: ``gemeinsame_slots / 96`` unter der
+Annahme fixer Q15-Auflösung, was bei gröberer Eingabe — z.B. Tageswerten —
+die Deckung um den Faktor 96 unterschätzte und den neuen Filter sonst auch
+bei ausreichend abgedeckten Fenstern hätte auslösen lassen).
+
+Aus den Fenster-YoY-Deltas der Fenster mit ``in_trend=True`` (Fallback: der
+einzelnen Kalender-YoY) leitet :func:`compute_load_trend` eine
+deterministische Trend-Aussage ab (F12) — kein LLM, Median der
+``delta_pct``-Werte. Bleibt danach kein Fenster (und keine Kalender-YoY)
+übrig, verweigert die Trend-Aussage ehrlich statt eine dünne Datenlage
+kleinzureden.
 """
 
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime
 from statistics import median
 
@@ -32,11 +55,13 @@ from statistics import median
 # genug für einen echten Kalender-YoY-Vergleich.
 FULL_YEAR_DAY_THRESHOLD = 360
 
-# Q15-Annahme für die "gemeinsame_tage"-Diagnosezahl (Slots/96). Die Capability
-# erwartet 15-min-Auflösung (Spec L.2.2); bei gröberer Eingabe ist dieses Feld
-# nur eine Näherung — delta_pct selbst ist granularitätsunabhängig (Formel
-# arbeitet auf Summen, nicht auf Slot-Zahlen).
-_SLOTS_PRO_TAG_Q15 = 96
+# Korrektheits-Fix 2026-07-20: Mindest-Deckung, ab der ein Fenster-YoY in den
+# Trend-Median darf. Begründung: darunter ist delta_pct statistisch wertlos
+# (siehe Modul-Docstring, realer Fall "4 Slots/0,0 Tage -> +33,1 %"). 30 Tage
+# = ein Kalendermonat gemeinsamer Überlappung — knapp genug, um echte
+# unterjährige Wechsel (z.B. Einzug im Dezember) noch zuzulassen, aber breit
+# genug, um Rand-/Einzel-Slot-Artefakte sicher auszuschließen.
+MIN_TREND_FENSTER_TAGE = 30
 
 
 @dataclass(frozen=True)
@@ -65,7 +90,16 @@ class CalendarYoY:
 
 @dataclass(frozen=True)
 class WindowYoY:
-    """Deckungsgleicher Fenster-Vergleich zweier benachbarter Jahre."""
+    """Deckungsgleicher Fenster-Vergleich zweier benachbarter Jahre.
+
+    ``in_trend``/``grund`` (Korrektheits-Fix 2026-07-20): ``in_trend`` ist
+    ``False``, wenn ``gemeinsame_tage < MIN_TREND_FENSTER_TAGE`` — das Fenster
+    bleibt sichtbar (Transparenz), zählt aber nicht in
+    ``trend_pct_pro_jahr``/``trend_aussage``. ``grund`` erklärt warum (sonst
+    ``None``). Default ``True``/``None``, damit :func:`aligned_window_yoy`
+    unverändert bleibt — die Bewertung passiert in :func:`compute_load_trend`,
+    wo die Schwelle inhaltlich hingehört.
+    """
 
     von_jahr: int
     bis_jahr: int
@@ -74,6 +108,8 @@ class WindowYoY:
     kwh_a: float
     kwh_b: float
     delta_pct: float | None
+    in_trend: bool = True
+    grund: str | None = None
 
 
 @dataclass(frozen=True)
@@ -131,6 +167,14 @@ def aligned_window_yoy(
 
     Liefert ``None``, wenn die beiden Jahre keinen gemeinsamen Slot haben
     (z.B. disjunkte Zeiträume).
+
+    ``gemeinsame_tage`` zählt die echten, verschiedenen (Monat,Tag)-Kombinationen
+    unter den gemeinsamen Slots — NICHT ``gemeinsame_slots / 96``. Die alte
+    Q15-Annahme unterschätzte die Deckung bei gröberer Eingabe (Tageswerte:
+    1 Slot/Tag statt 96) um den Faktor 96 und wäre als Basis für den
+    Mindest-Deckungs-Filter (``MIN_TREND_FENSTER_TAGE``) irreführend gewesen —
+    ein voll abgedecktes Tageswert-Fenster hätte fälschlich als "zu dünn"
+    gegolten. Die neue Zählung ist granularitätsunabhängig (Q15 wie Tageswert).
     """
     by_key: dict[int, dict[tuple[int, int, int, int], float]] = {jahr_a: {}, jahr_b: {}}
     for ts, wert in consumption:
@@ -146,11 +190,12 @@ def aligned_window_yoy(
 
     summe_a = sum(by_key[jahr_a][k] for k in gemeinsame_keys)
     summe_b = sum(by_key[jahr_b][k] for k in gemeinsame_keys)
+    gemeinsame_tage = len({(monat, tag) for monat, tag, _std, _min in gemeinsame_keys})
     return WindowYoY(
         von_jahr=jahr_a,
         bis_jahr=jahr_b,
         gemeinsame_slots=len(gemeinsame_keys),
-        gemeinsame_tage=round(len(gemeinsame_keys) / _SLOTS_PRO_TAG_Q15, 1),
+        gemeinsame_tage=float(gemeinsame_tage),
         kwh_a=round(summe_a, 1),
         kwh_b=round(summe_b, 1),
         delta_pct=round(100 * (summe_b / summe_a - 1), 1) if summe_a else None,
@@ -191,10 +236,33 @@ def _trend_aussage(deltas: list[float]) -> tuple[str | None, float | None]:
     return f"Verbrauch {richtung} ~{abs(gerundet)} %/Jahr.", pct
 
 
+def _mit_deckungsflag(fenster: WindowYoY) -> WindowYoY:
+    """Markiert ein Fenster als ``in_trend=False``, wenn seine Deckung unter
+    ``MIN_TREND_FENSTER_TAGE`` liegt (Korrektheits-Fix 2026-07-20). Gibt sonst
+    das Fenster unverändert zurück (``in_trend=True`` per Default)."""
+    if fenster.gemeinsame_tage >= MIN_TREND_FENSTER_TAGE:
+        return fenster
+    grund = (
+        f"Nur {fenster.gemeinsame_tage:g} gemeinsame Kalendertage zwischen "
+        f"{fenster.von_jahr} und {fenster.bis_jahr} (Mindestdeckung: "
+        f"{MIN_TREND_FENSTER_TAGE} Tage) — delta_pct wäre eine Zufallszahl aus "
+        "zu wenig überlappenden Slots, fließt daher nicht in trend_pct_pro_jahr "
+        "bzw. trend_aussage ein."
+    )
+    return replace(fenster, in_trend=False, grund=grund)
+
+
 def compute_load_trend(consumption: list[tuple[datetime, float]]) -> LoadTrendCompute:
     """Baut den vollständigen Mehrjahres-Trend: Jahres-Kennzahlen,
     Coverage-geguardete Kalender-YoY, Fenster-YoY über alle Jahrespaare und
     die daraus abgeleitete Trend-Aussage (L.2.3).
+
+    Jedes Fenster durchläuft den Mindest-Deckungs-Guard
+    (``MIN_TREND_FENSTER_TAGE``, Korrektheits-Fix 2026-07-20): zu dünne
+    Fenster bleiben in ``window_yoy`` sichtbar, tragen aber ``in_trend=False``
+    und fließen nicht in den Median. Bleibt danach kein Fenster übrig UND
+    keine Kalender-YoY existiert, verweigert die Trend-Aussage ehrlich statt
+    einen dünnen Wert vorzutäuschen.
     """
     jahre = per_year(consumption)
     cal_yoy, verweigert_grund = _calendar_yoy(jahre)
@@ -204,13 +272,28 @@ def compute_load_trend(consumption: list[tuple[datetime, float]]) -> LoadTrendCo
     for a, b in zip(jahre_sortiert, jahre_sortiert[1:]):
         w = aligned_window_yoy(consumption, a, b)
         if w is not None:
-            fenster.append(w)
+            fenster.append(_mit_deckungsflag(w))
 
-    deltas = [w.delta_pct for w in fenster if w.delta_pct is not None]
+    verbleibende_fenster = [w for w in fenster if w.in_trend]
+    deltas = [w.delta_pct for w in verbleibende_fenster if w.delta_pct is not None]
     if not deltas and cal_yoy is not None:
         deltas = [cal_yoy.delta_pct]
 
-    trend_aussage, trend_pct = _trend_aussage(deltas)
+    if not deltas and fenster and not verbleibende_fenster:
+        # Es gab Fenster-Kandidaten, aber ALLE sind unter der Mindest-Deckung
+        # ausgeschieden und keine Kalender-YoY konnte einspringen — ehrlich
+        # verweigern statt einen dünnen/verzerrten Wert auszugeben (task-
+        # Kriterium: "<1 Fenster übrig" nach dem Guard).
+        anzahl = len(fenster)
+        trend_aussage = (
+            f"Zu wenig Deckung für eine Trend-Aussage: alle {anzahl} "
+            f"Jahresfenster liegen unter der Mindestüberlappung von "
+            f"{MIN_TREND_FENSTER_TAGE} gemeinsamen Kalendertagen "
+            "(s. window_yoy[].grund je Fenster)."
+        )
+        trend_pct = None
+    else:
+        trend_aussage, trend_pct = _trend_aussage(deltas)
 
     return LoadTrendCompute(
         per_year=jahre,

@@ -32,10 +32,47 @@ log = logging.getLogger(__name__)
 
 # --- Constants ---
 QUANTILE_BASE_LOAD = 0.15
-INTERVAL_HOURS = 0.25  # 15 min
+# Korrektheits-Fix 2026-07-20: vorher eine GLOBALE, fixe Q15-Annahme, die für
+# JEDE Eingabe-Granularität benutzt wurde (kWh -> kW, period_hours, Monats-
+# Resample, Anomalie-Erkennung, Jahresdauerlinie). Bei Tageswert-Serien
+# (Slot-Abstand 1440 min statt 15 min) wurde eine Tages-kWh durch 0,25 h statt
+# 24 h geteilt -> spitzenlast_kw/grundlast_kw ~96x zu hoch. Jetzt nur noch der
+# FALLBACK, wenn sich aus den Zeitstempeln kein Abstand ableiten lässt (s.
+# ``_intervall_stunden``) — die tatsächlich benutzte Slot-Länge wird JE SERIE
+# aus den Zeitstempel-Abständen abgeleitet und durchgereicht.
+DEFAULT_INTERVAL_HOURS = 0.25  # 15 min (Q15-Fallback)
+# Ab so vielen Minuten Slot-Abstand gilt eine Serie als grob (Tageswerte o.ä.)
+# -- dieselbe Schwelle wie
+# ``energietools.capabilities.lastgang.granularitaet.GRANULARITAET_SCHWELLE_MIN``,
+# hier dupliziert statt importiert: ``tools/`` hängt bewusst NICHT von
+# ``capabilities/`` ab (umgekehrte Abhängigkeitsrichtung im Repo, s.
+# ``capabilities/load_profile/capability.py`` — die Capability importiert
+# lazy AUS diesem Modul, nicht umgekehrt).
+GROBE_SERIE_SCHWELLE_MIN = 60
 HOURS_PER_YEAR = 8760
 NIGHT_START = 22
 NIGHT_END = 4
+
+
+def _intervall_stunden(index: pd.DatetimeIndex) -> tuple[float, float]:
+    """Leitet die Slot-Länge DIESER Serie deterministisch aus den Zeitstempel-
+    Abständen ab: Median der Abstände aufeinanderfolgender, sortierter,
+    EINDEUTIGER Zeitstempel — robust gegen einzelne Lücken/Duplikate/einen
+    einzelnen Ausreißer-Sprung (dieselbe Regel wie
+    ``capabilities.lastgang.granularitaet.slot_abstand_minuten``).
+
+    Liefert ``(interval_hours, interval_minuten)``. Fällt auf
+    ``DEFAULT_INTERVAL_HOURS`` zurück, wenn kein Abstand bestimmbar ist
+    (< 2 verschiedene Zeitstempel, oder — entartet — ein Median <= 0).
+    """
+    eindeutig = index.unique()
+    if len(eindeutig) < 2:
+        return DEFAULT_INTERVAL_HOURS, DEFAULT_INTERVAL_HOURS * 60
+    deltas_minuten = eindeutig.to_series().diff().dropna().dt.total_seconds() / 60
+    minuten = float(deltas_minuten.median()) if len(deltas_minuten) else 0.0
+    if minuten <= 0:
+        return DEFAULT_INTERVAL_HOURS, DEFAULT_INTERVAL_HOURS * 60
+    return minuten / 60, minuten
 
 
 def analyze_load_profile(
@@ -70,7 +107,7 @@ def analyze_load_profile(
                 fehler="Keine Daten übergeben. Bitte consumption_data oder csv_text angeben.",
             )
 
-        df = _prepare_dataframe(consumption_data)
+        df, interval_hours, interval_minuten = _prepare_dataframe(consumption_data)
         if df.empty or len(df) < 96:  # Minimum 1 Tag
             return LoadProfileAnalysis(
                 metrics=_empty_metrics(),
@@ -78,10 +115,12 @@ def analyze_load_profile(
                 fehler="Zu wenig Datenpunkte (mindestens 1 Tag à 96 Intervalle benötigt).",
             )
 
-        metrics = _calculate_metrics(df)
-        anomalien, cluster = _detect_anomalies(df)
+        metrics = _calculate_metrics(df, interval_hours, interval_minuten)
+        anomalien, cluster = _detect_anomalies(df, interval_hours)
         einsparpotenziale = _estimate_savings(metrics, price_per_kwh)
-        visualisierungen = _generate_visualizations(df, metrics) if generate_visualizations else {}
+        visualisierungen = (
+            _generate_visualizations(df, metrics, interval_hours) if generate_visualizations else {}
+        )
 
         sparpotenzial_kwh = sum(s.einsparung_kwh for s in einsparpotenziale)
         sparpotenzial_eur = sum(s.einsparung_eur for s in einsparpotenziale)
@@ -235,8 +274,14 @@ def _find_column(
 # --- Data Preparation ---
 
 
-def _prepare_dataframe(data: list[dict]) -> pd.DataFrame:
-    """Rohdaten zu DataFrame mit DatetimeIndex und consumption_kw konvertieren."""
+def _prepare_dataframe(data: list[dict]) -> tuple[pd.DataFrame, float, float]:
+    """Rohdaten zu DataFrame mit DatetimeIndex und consumption_kw konvertieren.
+
+    Liefert zusätzlich ``(interval_hours, interval_minuten)`` — die für DIESE
+    Serie aus den Zeitstempel-Abständen abgeleitete Slot-Länge (Korrektheits-
+    Fix 2026-07-20, s. ``_intervall_stunden``), NICHT mehr die vorher fixe
+    Q15-Annahme.
+    """
     df = pd.DataFrame(data)
     # utc=True handles mixed timezone offsets (e.g. CET/CEST from Austrian smart meter data)
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
@@ -244,26 +289,36 @@ def _prepare_dataframe(data: list[dict]) -> pd.DataFrame:
     df["timestamp"] = df["timestamp"].dt.tz_convert("Europe/Vienna").dt.tz_localize(None)
     df = df.set_index("timestamp").sort_index()
 
-    # kWh → kW (15-min Intervall)
+    interval_hours, interval_minuten = _intervall_stunden(df.index)
+
+    # kWh → kW über die ERKANNTE Slot-Länge dieser Serie (nicht mehr fix 15 min)
     if "kwh" in df.columns:
-        df["consumption_kw"] = df["kwh"] / INTERVAL_HOURS
+        df["consumption_kw"] = df["kwh"] / interval_hours
     elif "kw" in df.columns:
         df["consumption_kw"] = df["kw"]
 
     df = df[["consumption_kw"]].dropna()
     # Negative Werte entfernen
     df = df[df["consumption_kw"] >= 0]
-    return df
+    return df, interval_hours, interval_minuten
 
 
 # --- Metrics Calculation ---
 
 
-def _calculate_metrics(df: pd.DataFrame) -> LoadProfileMetrics:
-    """Kennzahlen berechnen."""
+def _calculate_metrics(
+    df: pd.DataFrame, interval_hours: float, interval_minuten: float
+) -> LoadProfileMetrics:
+    """Kennzahlen berechnen.
+
+    ``interval_hours``/``interval_minuten``: die für DIESE Serie erkannte
+    Slot-Länge (``_intervall_stunden``, Korrektheits-Fix 2026-07-20) — bei
+    Q15-Daten identisch zur alten fixen Annahme (0,25 h/15 min), bei gröberer
+    Eingabe (z.B. Tageswerten: 24 h/1440 min) NICHT mehr fälschlich 0,25 h.
+    """
     kw = df["consumption_kw"]
-    period_hours = len(kw) * INTERVAL_HOURS  # tatsächlich abgedeckte Stunden des Uploads
-    total_kwh = float(kw.sum() * INTERVAL_HOURS)
+    period_hours = len(kw) * interval_hours  # tatsächlich abgedeckte Stunden des Uploads
+    total_kwh = float(kw.sum() * interval_hours)
     grundlast_kw = float(np.percentile(kw, QUANTILE_BASE_LOAD * 100))
     spitzenlast_kw = float(kw.max())
 
@@ -278,7 +333,7 @@ def _calculate_metrics(df: pd.DataFrame) -> LoadProfileMetrics:
     grundlast_anteil = (grundlast_kw * period_hours) / total_kwh * 100 if total_kwh > 0 else 0
 
     # Monatsaggregation
-    monthly = df.resample("ME").apply(lambda x: float(x.sum() * INTERVAL_HOURS))
+    monthly = df.resample("ME").apply(lambda x: float(x.sum() * interval_hours))
     monthly_kwh = {
         ts.strftime("%Y-%m"): round(val, 1)
         for ts, val in monthly["consumption_kw"].items()
@@ -291,6 +346,23 @@ def _calculate_metrics(df: pd.DataFrame) -> LoadProfileMetrics:
     # Wochenendverbrauch
     weekend_mask = df.index.dayofweek >= 5
     wochenende_mean = float(kw[weekend_mask].mean()) if weekend_mask.any() else 0.0
+
+    # Design-Entscheidung (Fix 2, statt stiller Verweigerung): bei grober
+    # Auflösung (>= GROBE_SERIE_SCHWELLE_MIN) sind grundlast_kw/spitzenlast_kw
+    # rechnerisch korrekt (kWh/interval_hours), aber KEINE echte Intraday-
+    # Spitze, sondern eine Intervall-Mittel-Leistung (bei Tageswerten:
+    # Tagesmittel-Leistung) — das Result macht das über granularitaet_hinweis
+    # explizit, statt die Analyse zu verweigern (total_kwh/monthly_kwh/
+    # Sparpotenziale bleiben auch bei grober Auflösung sinnvoll).
+    granularitaet_hinweis = None
+    if interval_minuten >= GROBE_SERIE_SCHWELLE_MIN:
+        granularitaet_hinweis = (
+            f"Erkanntes Intervall: {interval_minuten:.0f} min (Median der "
+            "Zeitstempel-Abstände) — grundlast_kw/spitzenlast_kw sind bei dieser "
+            f"Granularität eine Intervall-Mittel-Leistung (kWh / {interval_hours:.2f} h), "
+            "KEINE echte Intraday-Spitze. Für eine echte Spitzenlast wird eine "
+            "feinere Auflösung (z.B. 15-min) benötigt."
+        )
 
     return LoadProfileMetrics(
         mean_kw=round(float(kw.mean()), 3),
@@ -306,27 +378,38 @@ def _calculate_metrics(df: pd.DataFrame) -> LoadProfileMetrics:
         monthly_kwh=monthly_kwh,
         nacht_mean_kw=round(nacht_mean, 3),
         wochenende_mean_kw=round(wochenende_mean, 3),
+        interval_minuten=round(interval_minuten, 1),
+        granularitaet_hinweis=granularitaet_hinweis,
     )
 
 
 # --- Anomaly Detection ---
 
 
-def _detect_anomalies(df: pd.DataFrame) -> tuple[list[AnomalyResult], list[ClusterInfo]]:
-    """FDA-basierte Anomalie-Erkennung (fallback auf statistische Methode)."""
-    # Tagesprofile erstellen (96 Intervalle pro Tag)
+def _detect_anomalies(
+    df: pd.DataFrame, interval_hours: float
+) -> tuple[list[AnomalyResult], list[ClusterInfo]]:
+    """FDA-basierte Anomalie-Erkennung (fallback auf statistische Methode).
+
+    ``_build_daily_profiles`` verlangt >=90 Slots/Tag (Q15-Annahme, 96 Slots
+    ~= 1 Tag) — bei gröberer Eingabe (z.B. Tageswerten: 1 Slot/Tag) liefert
+    das bewusst IMMER ``{}`` und damit hier ``([], [])``: Anomalie-Erkennung
+    braucht ein echtes Intraday-Profil, das eine Tageswert-Serie nicht hat.
+    Kein Fix nötig (kein falscher Wert, nur ein sauber geguardetes Feature),
+    NICHT Teil dieses Korrektheits-Fixes (Scope: kW-Metriken/period_hours).
+    """
     daily_profiles = _build_daily_profiles(df)
     if len(daily_profiles) < 14:
         return [], []
 
     try:
-        return _fda_anomaly_detection(daily_profiles)
+        return _fda_anomaly_detection(daily_profiles, interval_hours)
     except ImportError:
         log.info("scikit-fda nicht installiert, verwende statistische Anomalie-Erkennung")
-        return _statistical_anomaly_detection(daily_profiles)
+        return _statistical_anomaly_detection(daily_profiles, interval_hours)
     except Exception as exc:
         log.warning("FDA-Anomalie-Erkennung fehlgeschlagen: %s", exc)
-        return _statistical_anomaly_detection(daily_profiles)
+        return _statistical_anomaly_detection(daily_profiles, interval_hours)
 
 
 def _build_daily_profiles(df: pd.DataFrame) -> dict[date, np.ndarray]:
@@ -341,7 +424,7 @@ def _build_daily_profiles(df: pd.DataFrame) -> dict[date, np.ndarray]:
 
 
 def _fda_anomaly_detection(
-    profiles: dict[date, np.ndarray],
+    profiles: dict[date, np.ndarray], interval_hours: float
 ) -> tuple[list[AnomalyResult], list[ClusterInfo]]:
     """FDA TVD-MSS Anomalie-Erkennung mit scikit-fda."""
     import skfda
@@ -364,7 +447,7 @@ def _fda_anomaly_detection(
         cluster_id = int(labels[i])
         centroid = centroids[cluster_id]
         diff = profile - centroid
-        excess_kwh = float(np.sum(np.maximum(diff, 0)) * INTERVAL_HOURS)
+        excess_kwh = float(np.sum(np.maximum(diff, 0)) * interval_hours)
         peak_dev = float(np.max(np.abs(diff)))
 
         # Anomalie-Schwelle: Tagesabweichung > 2 Standardabweichungen
@@ -391,7 +474,7 @@ def _fda_anomaly_detection(
         cluster_info.append(ClusterInfo(
             cluster_id=cid,
             tage=int(mask.sum()),
-            mean_daily_kwh=round(float(cluster_data.sum(axis=1).mean() * INTERVAL_HOURS), 1),
+            mean_daily_kwh=round(float(cluster_data.sum(axis=1).mean() * interval_hours), 1),
             typische_wochentage=_typical_weekdays(cluster_dates),
         ))
 
@@ -399,7 +482,7 @@ def _fda_anomaly_detection(
 
 
 def _statistical_anomaly_detection(
-    profiles: dict[date, np.ndarray],
+    profiles: dict[date, np.ndarray], interval_hours: float
 ) -> tuple[list[AnomalyResult], list[ClusterInfo]]:
     """Einfache statistische Anomalie-Erkennung (Fallback)."""
     dates = sorted(profiles.keys())
@@ -415,7 +498,7 @@ def _statistical_anomaly_detection(
         max_z = float(np.max(z_scores))
 
         if max_z > 2.5:
-            excess_kwh = float(np.sum(np.maximum(diff, 0)) * INTERVAL_HOURS)
+            excess_kwh = float(np.sum(np.maximum(diff, 0)) * interval_hours)
             anomalien.append(AnomalyResult(
                 datum=d,
                 wochentag=_wochentag(d),
@@ -539,7 +622,7 @@ def _estimate_savings(metrics: LoadProfileMetrics, price: float) -> list[Savings
 
 
 def _generate_visualizations(
-    df: pd.DataFrame, metrics: LoadProfileMetrics
+    df: pd.DataFrame, metrics: LoadProfileMetrics, interval_hours: float
 ) -> dict[str, str]:
     """Visualisierungen als base64 PNG generieren."""
     viz: dict[str, str] = {}
@@ -550,7 +633,7 @@ def _generate_visualizations(
         import matplotlib.pyplot as plt
 
         viz["heatmap"] = _generate_heatmap(df, plt)
-        viz["jahresdauerlinie"] = _generate_duration_curve(df, plt)
+        viz["jahresdauerlinie"] = _generate_duration_curve(df, plt, interval_hours)
         viz["monatsverbrauch"] = _generate_monthly_chart(df, metrics, plt)
     except ImportError:
         log.info("matplotlib nicht installiert — keine Visualisierungen erstellt")
@@ -595,10 +678,10 @@ def _generate_heatmap(df: pd.DataFrame, plt) -> str:
     return result
 
 
-def _generate_duration_curve(df: pd.DataFrame, plt) -> str:
+def _generate_duration_curve(df: pd.DataFrame, plt, interval_hours: float) -> str:
     """Jahresdauerlinie (sortiertes Lastprofil)."""
     sorted_kw = np.sort(df["consumption_kw"].values)[::-1]
-    hours = np.arange(len(sorted_kw)) * INTERVAL_HOURS
+    hours = np.arange(len(sorted_kw)) * interval_hours
 
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.fill_between(hours, sorted_kw, alpha=0.3, color="#22c55e")

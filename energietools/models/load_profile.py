@@ -26,6 +26,14 @@ class LoadProfileMetrics(BaseModel):
     monthly_kwh: dict[str, float] = Field(default_factory=dict)  # YYYY-MM → kWh
     nacht_mean_kw: float = 0.0  # 22:00-04:00
     wochenende_mean_kw: float = 0.0
+    # Korrektheits-Fix 2026-07-20: vorher wurde JEDE Serie als Q15 (15 min)
+    # angenommen — bei Tageswerten (1440 min) wurde eine Tages-kWh durch
+    # 0,25 h statt 24 h geteilt -> spitzenlast_kw ~96x zu hoch. interval_minuten
+    # macht die tatsächlich erkannte Slot-Länge sichtbar (Rechenweg-Pflicht);
+    # granularitaet_hinweis warnt, wenn grundlast_kw/spitzenlast_kw bei grober
+    # Auflösung eine Intervall-Mittel- statt echte Intraday-Spitzenleistung sind.
+    interval_minuten: float = 15.0
+    granularitaet_hinweis: str | None = None
 
 
 class AnomalyResult(BaseModel):

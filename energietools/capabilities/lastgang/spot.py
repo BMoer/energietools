@@ -209,18 +209,36 @@ def extract_tarif_ersparnis(
     ist = data.get("aktueller_tarif") or {}
     ist_eur = ist.get("jahreskosten_eur", ist.get("energiepreis_anteil_eur"))
     best_eur = bester.get("jahreskosten_eur", bester.get("energiepreis_anteil_eur"))
+    # Ersparnis LOKAL aus ist_eur/best_eur (Energie-Basis), NICHT aus
+    # tariff_compare's data["max_ersparnis_eur"] übernommen: seit dem
+    # Gesamtkosten-Fix in tariff_compare (fix/ersparnis-gesamtkosten) ist
+    # max_ersparnis_eur bei netzkosten_vollstaendig=true die GESAMTKOSTEN-
+    # Differenz (Energie + Netz + Gebrauchsabgabe) — hier im Spot-Backtest-
+    # Kontext geht es aber um den ENERGIEPREIS-Hebel (Fix vs. günstigste
+    # Alternative; ``spot_backtest.differenz_eur`` daneben ist ebenfalls rein
+    # energie-basiert, KEIN Netz/GAB). Netz+GAB sind für ist_eur/best_eur
+    # ohnehin identisch (dieselbe PLZ) und ändern den Hebel nicht — Übernahme
+    # von max_ersparnis_eur würde hier wieder zwei Zahlenwelten im selben
+    # Block erzeugen (ist_eur − best_eur ≠ ersparnis_eur). Bleibt konsistent
+    # mit ``_CAVEAT_TARIF_ERSPARNIS_ENERGIEBASIS`` (lastgang/capability.py),
+    # die ist_eur/best_eur bereits als Energiepreis-Anteil dokumentiert.
+    ersparnis_eur = (
+        round(ist_eur - best_eur, 2) if ist_eur is not None and best_eur is not None else None
+    )
     return TarifErsparnisCore(
         verfuegbar=True,
         grund=None,
         ist_eur=ist_eur,
         best_eur=best_eur,
-        ersparnis_eur=data.get("max_ersparnis_eur"),
+        ersparnis_eur=ersparnis_eur,
         lieferant_ist=aktueller_lieferant,
         lieferant_best=bester.get("lieferant"),
         tarif_best=bester.get("tarif_name"),
         netzkosten_vollstaendig=bool(data.get("netzkosten_vollstaendig")),
         basis=(
             "Energiepreis-Jahreskosten brutto (Netzkosten/Gebrauchsabgabe separate "
-            "Blöcke in tariff_compare, s. netzkosten_vollstaendig)"
+            "Blöcke in tariff_compare, s. netzkosten_vollstaendig) — ersparnis_eur "
+            "ist ist_eur minus best_eur auf DERSELBEN Energie-Basis (bewusst NICHT "
+            "tariff_compare's gesamtkosten-basierte max_ersparnis_eur, s. Kommentar)"
         ),
     )

@@ -1046,6 +1046,56 @@ def test_spot_backtest_capability_envelope_beide_bloecke_verfuegbar() -> None:
     assert result.meta.get("quelle")
 
 
+def test_tarif_ersparnis_ist_minus_best_bleibt_konsistent_mit_ersparnis_eur() -> None:
+    """Folgeauftrag zu fix/ersparnis-gesamtkosten: seit tariff_compare's
+    max_ersparnis_eur bei netzkosten_vollstaendig=true die GESAMTKOSTEN-
+    Differenz ist (Energie + Netz + Gebrauchsabgabe), aber ist_eur/best_eur
+    hier WEITERHIN die reine Energiepreis-Basis sind (s.
+    _CAVEAT_TARIF_ERSPARNIS_ENERGIEBASIS), darf ersparnis_eur NICHT mehr
+    blind von tariff_compare übernommen werden — sonst
+    ``ist_eur − best_eur != ersparnis_eur`` (dasselbe "zwei Zahlenwelten"-
+    Muster, eine Ebene tiefer). PLZ 1010 (Wien) löst einen Netzbetreiber auf
+    -> netzkosten_vollstaendig=true, GENAU der Fall, in dem der Bug sichtbar
+    würde. Pinnt die Konsistenz über die ECHTE Pipeline
+    (SpotBacktestCapability -> TariffCompareCapability), keine Hand-Fixture."""
+    start = datetime(2025, 1, 1, 0, 0)
+    consumption = _ts_consumption(start, 72, 1.0)
+    spot_prices = _spot_price_series(start, 72, ct_day=20.0, ct_night=5.0)
+
+    cap = SpotBacktestCapability(tariff_compare=_tariff_compare_mit_fake_katalog())
+    result = cap.run(
+        consumption=consumption,
+        spot_prices=spot_prices,
+        energiepreis_brutto_ct_kwh=24.0,
+        plz="1010",
+        jahresverbrauch_kwh=3500,
+        aktueller_lieferant="Alt AG",
+        aktuelle_grundgebuehr_brutto_eur_monat=8.0,
+    )
+
+    assert result.ok is True
+    block = result.data["tarif_ersparnis"]
+    assert block["netzkosten_vollstaendig"] is True  # genau der Fall, in dem der Bug feuern würde
+    assert block["ist_eur"] == pytest.approx(936.0, abs=0.01)
+    assert block["best_eur"] == pytest.approx(379.2, abs=0.01)
+    assert block["ersparnis_eur"] == pytest.approx(556.8, abs=0.01)
+    assert block["ersparnis_eur"] == pytest.approx(block["ist_eur"] - block["best_eur"], abs=0.01)
+
+    # Gegenprobe: tariff_compare's EIGENE max_ersparnis_eur ist (bewusst) NICHT
+    # dieselbe Zahl — sie ist gesamtkosten-basiert (Energie+Netz+GAB), während
+    # tarif_ersparnis hier auf der Energie-Basis bleibt. Würde ersparnis_eur
+    # weiterhin blind von tariff_compare übernommen, wäre es 592.08 statt
+    # 556.8 — genau die Divergenz, die dieser Test verhindert.
+    tcmp = _tariff_compare_mit_fake_katalog().run(
+        plz="1010", jahresverbrauch_kwh=3500, aktueller_lieferant="Alt AG",
+        aktueller_energiepreis_brutto_ct_kwh=24.0,
+        aktuelle_grundgebuehr_brutto_eur_monat=8.0,
+    )
+    assert tcmp.data["netzkosten_vollstaendig"] is True
+    assert tcmp.data["max_ersparnis_eur"] == pytest.approx(592.08, abs=0.01)
+    assert block["ersparnis_eur"] != pytest.approx(tcmp.data["max_ersparnis_eur"], abs=0.01)
+
+
 def test_spot_backtest_capability_bloecke_unabhaengig_spot_ohne_tarif_felder() -> None:
     """DoD: beide Blöcke unabhängig optional — nur Spot-Eingaben -> Spot
     verfügbar, tarif_ersparnis lehnt MIT Begründung ab (fehlende Felder)."""

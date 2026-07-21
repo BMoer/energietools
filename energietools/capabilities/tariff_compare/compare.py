@@ -21,7 +21,11 @@ Schnitt (Durchstich 1, ARCHITECTURE-2.0 §3.2 B.1):
   EControlUnavailableError-Back-Compat).
 
 Netzkosten und Gebrauchsabgabe sind reguliert/anbieterunabhängig und fließen
-NICHT in den Vergleich/das Ranking ein (eigene Blöcke im Ergebnis).
+NICHT ins RANKING ein (Sortierung/beste_*/bester_gesamt bleiben auf der
+Energie-Basis — eigene Blöcke im Ergebnis, s. Modul-Docstring von ``_enrich``).
+Die ausgewiesene ERSPARNIS (``ersparnis_eur``/``max_ersparnis_eur``) ist davon
+unabhängig: sie ist die Gesamtkosten-Differenz (Energie + Netz + GAB), sofern
+ein Netzbetreiber aufgelöst werden konnte — s. ``_enrich``.
 """
 
 from __future__ import annotations
@@ -230,26 +234,68 @@ def _abdeckungs_block(plz: str, rows: list[dict]) -> VersorgerAbdeckungBlock:
     )
 
 
+def netzkosten_vollstaendig(comparison: TariffComparison) -> bool:
+    """Ehrlichkeits-Gate: Netzkosten nur dann vollständig, wenn Netzkosten > 0
+    sind (0 == kein Netzbetreiber aufgelöst, Fail-open — s. ``vergleiche_tarife``/
+    ``gesamtkosten_szenario``). ``netzbetreiber`` ist im Modell ein reiner ``str``
+    (nie ``None``); die ``is not None``-Prüfung bleibt zur Doku der Absicht stehen.
+
+    EINE Quelle für ``_enrich`` (Ersparnis-Basis) UND
+    ``capability._result_dict``/``_tarif_eintrag`` (Feld-Umbenennung
+    ``jahreskosten_eur``↔``energiepreis_anteil_eur``,
+    ``ersparnis_eur``↔``energiepreis_ersparnis_eur``) — damit beide Stellen nie
+    auseinanderlaufen.
+    """
+    return comparison.netzbetreiber is not None and comparison.netzkosten_eur_jahr > 0
+
+
 def _enrich(comparison: TariffComparison) -> TariffComparison:
     """Ersparnis, Gesamtkosten, Kategorien und Bestenlisten berechnen (immutabel).
 
     ``gesamtkosten = Energie (jahreskosten) + Netzkosten + Gebrauchsabgabe`` —
     die GAB ist per-Tarif, aber NICHT in ``jahreskosten_eur`` (reine Energie).
-    ``ersparnis`` bleibt auf Energiebasis (Netz+GAB ändern sich beim Wechsel
-    praktisch nicht). Gibt eine NEUE Instanz zurück.
+
+    ``ersparnis_eur`` ist die GESAMTKOSTEN-Differenz (aktuell − Alternative),
+    SOFERN ein Netzbetreiber aufgelöst werden konnte (``netzkosten_vollstaendig``
+    oben — Netz ist pro PLZ/VNB konstant über alle Alternativen, GAB ist
+    per-Tarif und fließt hier über ``gesamtkosten_eur`` mit ein). Ohne
+    aufgelösten Netzbetreiber (Fail-open, ``netzkosten_eur_jahr == 0``) wäre
+    eine Gesamtkosten-Differenz NICHT ehrlich (sie würde 0 Netzkosten für
+    beide Seiten unterstellen und die Ersparnis verfälschen) — die Ersparnis
+    bleibt dann auf dem Energie-Anteil (``jahreskosten_eur``-Differenz, wie vor
+    diesem Fix). Konsistent mit dem ``energiepreis_anteil_eur``-Ehrlichkeits-
+    Muster in ``capability._tarif_eintrag``.
+
+    Das RANKING (``beste_fix``/``beste_floater``/``beste_gruen``/
+    ``bester_gesamt``) bleibt bewusst auf der Energie-Basis (s. Modul-
+    Docstring) — ``max_ersparnis_eur`` wird aber NICHT mehr separat aus
+    ``aktuell_kosten``/``bester.jahreskosten_eur`` neu gerechnet, sondern direkt
+    von ``bester.ersparnis_eur`` (dem bereits enriched Wert) übernommen, damit
+    Ranking-Auswahl und ausgewiesene Ersparnis nie auseinanderlaufen (Fund:
+    zwei Zahlenwelten in einem Result, live nachgemessen PLZ 1020/1861 kWh).
+
+    Gibt eine NEUE Instanz zurück.
     """
     aktuell_kosten = comparison.aktueller_tarif.jahreskosten_eur
     netz = comparison.netzkosten_eur_jahr
+    netz_ok = netzkosten_vollstaendig(comparison)
+    aktuell_gesamt = round(
+        aktuell_kosten + netz + comparison.aktueller_tarif.gebrauchsabgabe_eur, 2,
+    )
 
     enriched: list[Tariff] = []
     for t in comparison.alternativen:
+        gesamt = round(t.jahreskosten_eur + netz + t.gebrauchsabgabe_eur, 2)
+        ersparnis = (
+            round(aktuell_gesamt - gesamt, 2)
+            if netz_ok
+            else round(aktuell_kosten - t.jahreskosten_eur, 2)
+        )
         enriched.append(Tariff(
             **{
                 **t.model_dump(),
-                "ersparnis_eur": round(aktuell_kosten - t.jahreskosten_eur, 2),
-                "gesamtkosten_eur": round(
-                    t.jahreskosten_eur + netz + t.gebrauchsabgabe_eur, 2,
-                ),
+                "ersparnis_eur": ersparnis,
+                "gesamtkosten_eur": gesamt,
                 "kategorie": _kategorie(t),
             },
         ))
@@ -270,9 +316,7 @@ def _enrich(comparison: TariffComparison) -> TariffComparison:
     aktuell_enriched = Tariff(
         **{
             **comparison.aktueller_tarif.model_dump(),
-            "gesamtkosten_eur": round(
-                aktuell_kosten + netz + comparison.aktueller_tarif.gebrauchsabgabe_eur, 2,
-            ),
+            "gesamtkosten_eur": aktuell_gesamt,
             "kategorie": "aktuell",
         },
     )
@@ -290,7 +334,7 @@ def _enrich(comparison: TariffComparison) -> TariffComparison:
         beste_floater=floater_tarife,
         beste_gruen=gruen_tarife,
         bester_gesamt=bester,
-        max_ersparnis_eur=round(aktuell_kosten - bester.jahreskosten_eur, 2) if bester else 0.0,
+        max_ersparnis_eur=bester.ersparnis_eur if bester else 0.0,
     )
 
 

@@ -17,6 +17,8 @@ from datetime import datetime
 import pytest
 
 from energietools.capabilities.tariff_compare import (
+    CatalogTariffSource,
+    SnapshotSpotPriceSource,
     TariffCompareCapability,
     vergleiche_tarife,
 )
@@ -408,6 +410,180 @@ class TestNetzkostenFlag:
         for eintrag in [result.data["aktueller_tarif"], *result.data["alternativen"]]:
             assert "jahreskosten_eur" in eintrag
             assert "energiepreis_anteil_eur" not in eintrag
+
+
+# =============================================================================
+# 4b. Ersparnis = Gesamtkosten-Differenz (No-LLM-Math-Fix — vorher zwei
+#     Zahlenwelten in einem Result: ersparnis_eur auf Energiebasis,
+#     gesamtkosten_eur bereits inkl. Netz+GAB. Ben-Entscheidung: Ersparnis =
+#     Gesamtkosten aktuell − Gesamtkosten Alternative, SOFERN ein Netzbetreiber
+#     aufgelöst werden konnte; sonst Energie-Anteil (Ehrlichkeits-Muster wie
+#     energiepreis_anteil_eur).
+# =============================================================================
+
+
+class TestErsparnisGesamtkostenDifferenz:
+    def test_ersparnis_ist_gesamtkosten_differenz_nicht_nur_energie(self):
+        """GAB ist per-Tarif (Wien: % der Netto-Energie) — die Gesamtkosten-
+        Differenz weicht deshalb von der reinen Energie-Differenz ab. Beweist,
+        dass die neue Ersparnis wirklich Netz+GAB einrechnet (nicht zufällig
+        gleich dem alten Energie-Wert bleibt).
+
+        aktuell: jahreskosten 1122,00 (GAB 100,62) → gesamt 1663,04.
+        Anbieter A: jahreskosten 408,00 (GAB 50,64) → gesamt 899,06.
+        Energie-Differenz (alte Definition) = 1122,00 − 408,00 = 714,00.
+        Gesamtkosten-Differenz (neue Definition)
+          = 1663,04 − 899,06 = 763,98 (= 714,00 Energie + 49,98 GAB-Differenz;
+            Netz ist für beide Seiten gleich 440,42 und kürzt sich heraus).
+        """
+        rows = [
+            _fix("a", "Anbieter A", "Guenstig", 8.0, gg_netto=5.0),
+            _fix("b", "Anbieter B", "Teuer", 20.0, gg_netto=5.0),
+        ]
+        cmp = _vergleich(
+            rows, plz="1060",
+            aktueller_energiepreis_brutto_ct_kwh=30.0,
+            aktuelle_grundgebuehr_brutto_eur_monat=6.0,
+        )
+        a = cmp.alternativen[0]
+        assert a.lieferant == "Anbieter A"
+        aktuell = cmp.aktueller_tarif
+
+        naive_energie_differenz = round(aktuell.jahreskosten_eur - a.jahreskosten_eur, 2)
+        gesamtkosten_differenz = round(aktuell.gesamtkosten_eur - a.gesamtkosten_eur, 2)
+        assert naive_energie_differenz == pytest.approx(714.0, abs=0.01)
+        assert gesamtkosten_differenz == pytest.approx(763.98, abs=0.01)
+        # Die neue Ersparnis folgt der Gesamtkosten-, NICHT der Energie-Differenz.
+        assert a.ersparnis_eur == pytest.approx(gesamtkosten_differenz, abs=0.01)
+        assert a.ersparnis_eur != pytest.approx(naive_energie_differenz, abs=0.01)
+
+    def test_max_ersparnis_eur_und_bester_gesamt_laufen_nicht_auseinander(self):
+        """Fund: ``max_ersparnis_eur`` wurde bisher UNABHÄNGIG von
+        ``bester.ersparnis_eur`` neu gerechnet — zwei Formeln für dieselbe
+        Zahl können auseinanderlaufen. Jetzt: EINE Quelle (``bester.ersparnis_eur``)."""
+        rows = [
+            _fix("a", "Anbieter A", "Guenstig", 8.0, gg_netto=5.0),
+            _fix("b", "Anbieter B", "Teuer", 20.0, gg_netto=5.0),
+        ]
+        cmp = _vergleich(
+            rows, plz="1060",
+            aktueller_energiepreis_brutto_ct_kwh=30.0,
+            aktuelle_grundgebuehr_brutto_eur_monat=6.0,
+        )
+        assert cmp.bester_gesamt is not None
+        assert cmp.max_ersparnis_eur == cmp.bester_gesamt.ersparnis_eur
+
+    def test_golden_live_fall_plz1020_flex_start(self):
+        """Golden-Test: exakt der live nachgemessene Fall (21.07., PLZ 1020,
+        1861 kWh, aktueller Tarif MAXENERGY-artig 19,68 ct brutto / 3 €/Monat
+        brutto) gegen den gebündelten Open-Data-Katalog (offline, deterministisch).
+
+        Referenz (live nachgemessen): aktueller Tarif jahreskosten_eur 402,24
+        (GAB 42,18) → gesamtkosten_eur 719,63 (Netz 275,21). Alternative
+        "Flex Start" (EnergieDirect Austria GmbH): jahreskosten_eur 257,70
+        (GAB 32,56) → gesamtkosten_eur 565,47. Ersparnis (NEU, Gesamtkosten-
+        Differenz) = 719,63 − 565,47 = 154,16 (vorher, Energie-Differenz:
+        402,24 − 257,70 = 144,54 — die alte, jetzt korrigierte Zahl).
+
+        Hinweis: pinnt Werte aus dem gebündelten Tarifkatalog-Snapshot; ein
+        künftiger Daten-Refresh kann diese Zahlen verschieben (dann hier neu
+        verifizieren) — die FORMEL (Gesamtkosten-Differenz) ist der Testgegenstand.
+        """
+        cmp = vergleiche_tarife(
+            plz="1020",
+            jahresverbrauch_kwh=1861,
+            aktueller_lieferant="Test-Lieferant",
+            aktueller_energiepreis_brutto_ct_kwh=19.68,
+            aktuelle_grundgebuehr_brutto_eur_monat=3.0,
+            tariff_source=CatalogTariffSource(),
+            spot_source=SnapshotSpotPriceSource(),
+            top_n=200,
+        )
+        aktuell = cmp.aktueller_tarif
+        assert aktuell.jahreskosten_eur == pytest.approx(402.24, abs=0.01)
+        assert aktuell.gebrauchsabgabe_eur == pytest.approx(42.18, abs=0.01)
+        assert cmp.netzkosten_eur_jahr == pytest.approx(275.21, abs=0.01)
+        assert aktuell.gesamtkosten_eur == pytest.approx(719.63, abs=0.01)
+
+        flex = next(t for t in cmp.alternativen if t.tarif_name == "Flex Start")
+        assert flex.jahreskosten_eur == pytest.approx(257.70, abs=0.01)
+        assert flex.gebrauchsabgabe_eur == pytest.approx(32.56, abs=0.01)
+        assert flex.gesamtkosten_eur == pytest.approx(565.47, abs=0.01)
+        assert flex.ersparnis_eur == pytest.approx(154.16, abs=0.01)
+
+        # Capability-Envelope: dasselbe Ergebnis, plus der auditierbare
+        # rechenweg_kurz trägt die neue Ersparnis-Zeile.
+        cap = TariffCompareCapability()
+        result = cap.run(
+            plz="1020", jahresverbrauch_kwh=1861, aktueller_lieferant="Test-Lieferant",
+            aktueller_energiepreis_brutto_ct_kwh=19.68,
+            aktuelle_grundgebuehr_brutto_eur_monat=3.0,
+            top_n=100,
+        )
+        assert result.ok
+        assert result.data["netzkosten_vollstaendig"] is True
+        alt = next(a for a in result.data["alternativen"] if a["tarif_name"] == "Flex Start")
+        assert alt["ersparnis_eur"] == pytest.approx(154.16, abs=0.01)
+        assert result.data["max_ersparnis_eur"] == pytest.approx(154.16, abs=0.01)
+        assert (
+            "Ersparnis = Gesamtkosten aktuell 719.63 € "
+            "− Gesamtkosten Alternative 565.47 € = 154.16 €"
+        ) in alt["rechenweg_kurz"]
+
+    def test_ersparnis_bleibt_energie_anteil_wenn_netzkosten_unvollstaendig(self):
+        """Ohne aufgelösten Netzbetreiber (Fail-open) ist eine Gesamtkosten-
+        Differenz nicht ehrlich (Netz+GAB nicht vertrauenswürdig) — die
+        Ersparnis bleibt auf dem Energie-Anteil, wie vor diesem Fix, und heißt
+        konsistent mit ``jahreskosten_eur``↔``energiepreis_anteil_eur``
+        ``energiepreis_ersparnis_eur`` statt ``ersparnis_eur``."""
+        rows = [_fix("a", "A GmbH", "Fix A 2026", 9.0)]
+        cmp = _vergleich(
+            rows, plz="9999",
+            jahresverbrauch_kwh=3500,
+            aktueller_energiepreis_brutto_ct_kwh=18.0,
+            aktuelle_grundgebuehr_brutto_eur_monat=5.0,
+        )
+        assert cmp.netzkosten_eur_jahr == 0.0
+        a = cmp.alternativen[0]
+        erwartete_energie_differenz = round(
+            cmp.aktueller_tarif.jahreskosten_eur - a.jahreskosten_eur, 2,
+        )
+        assert a.ersparnis_eur == pytest.approx(erwartete_energie_differenz, abs=0.01)
+
+        cap = TariffCompareCapability(
+            tariff_source=FakeTariffSource(rows), spot_source=FakeSpotPriceSource(),
+        )
+        result = cap.run(
+            plz="9999", jahresverbrauch_kwh=3500, aktueller_lieferant="Alt",
+            aktueller_energiepreis_brutto_ct_kwh=18.0,
+            aktuelle_grundgebuehr_brutto_eur_monat=5.0,
+        )
+        assert result.data["netzkosten_vollstaendig"] is False
+        alt = result.data["alternativen"][0]
+        assert "energiepreis_ersparnis_eur" in alt
+        assert "ersparnis_eur" not in alt
+        assert alt["energiepreis_ersparnis_eur"] == pytest.approx(
+            erwartete_energie_differenz, abs=0.01,
+        )
+        assert "Ersparnis = Energiekosten aktuell" in alt["rechenweg_kurz"]
+
+    def test_aktueller_tarif_eintrag_hat_keine_ersparnis_zeile(self):
+        """Die Ersparnis-Zeile ist "vs. Alternative" — im rechenweg_kurz des
+        aktueller_tarif-Eintrags selbst wäre sie tautologisch (0,00) und wird
+        deshalb nicht angehängt."""
+        rows = [_fix("a", "A GmbH", "Fix A 2026", 9.0)]
+        cap = TariffCompareCapability(
+            tariff_source=FakeTariffSource(rows), spot_source=FakeSpotPriceSource(),
+        )
+        result = cap.run(
+            plz="1060", jahresverbrauch_kwh=3500, aktueller_lieferant="Alt",
+            aktueller_energiepreis_brutto_ct_kwh=18.0,
+            aktuelle_grundgebuehr_brutto_eur_monat=5.0,
+        )
+        assert "Ersparnis =" not in result.data["aktueller_tarif"]["rechenweg_kurz"]
+        assert all(
+            "Ersparnis =" in alt["rechenweg_kurz"] for alt in result.data["alternativen"]
+        )
 
 
 class TestLockrabattMarker:

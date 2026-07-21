@@ -699,7 +699,7 @@ class SpotBacktestCapability(Capability):
                     "dünne Sicht auf tariff_compare (top_n=1): ist_eur = "
                     "aktueller Tarif, best_eur = günstigste Alternative "
                     "(alternativen[0], nach jahreskosten_eur sortiert), "
-                    "ersparnis_eur = tariff_compare.max_ersparnis_eur"
+                    "ersparnis_eur = ist_eur - best_eur (Energie-Basis, bewusst NICHT max_ersparnis_eur — das ist seit v0.6.4 gesamtkosten-basiert)"
                 ),
                 "pflichtfelder": list(_TARIF_ERSPARNIS_PFLICHTFELDER),
             },

@@ -15,6 +15,9 @@ from typing import Any
 
 from energietools.capabilities.base import Capability, CapabilityError
 from energietools.capabilities.invoice.facts import PLAUSIBILITAET as _INVOICE_PLAUSIBILITAET
+from energietools.capabilities.tariff_compare.compare import (
+    netzkosten_vollstaendig as _netzkosten_vollstaendig,
+)
 from energietools.capabilities.tariff_compare.compare import vergleiche_tarife
 from energietools.capabilities.tariff_compare.protocols import SpotPriceSource, TariffSource
 from energietools.capabilities.tariff_compare.sources import (
@@ -90,12 +93,27 @@ def rechenweg_kurzform(rechenweg: Rechenweg | None, verbrauch_kwh: float) -> str
     return "; ".join(teile)
 
 
+def _ersparnis_zeile(
+    *, aktuell_eur: float, alternative_eur: float, ersparnis_eur: float, basis: str,
+) -> str:
+    """Auditierbare Ersparnis-Zeile (No-LLM-Math): explizite Subtraktion, damit
+    ``ersparnis_eur``/``energiepreis_ersparnis_eur`` im Result nachrechenbar sind
+    (nicht nur ein freistehendes Feld). ``basis`` = 'Gesamtkosten' (Energie + Netz
+    + Gebrauchsabgabe, ``netzkosten_vollstaendig=true``) ODER 'Energiekosten'
+    (Fail-open, kein Netzbetreiber aufgelöst — Netz/GAB nicht in der Differenz)."""
+    return (
+        f"Ersparnis = {basis} aktuell {aktuell_eur:.2f} € − {basis} Alternative "
+        f"{alternative_eur:.2f} € = {ersparnis_eur:.2f} €"
+    )
+
+
 def _tarif_eintrag(
     t: Tariff,
     verbrauch_kwh: float,
     *,
     voller_rechenweg: bool,
     netzkosten_vollstaendig: bool,
+    aktueller_tarif: Tariff | None = None,
 ) -> dict[str, Any]:
     """Kompakter Ergebnis-Eintrag eines Tarifs (Kurzform; voll on demand).
 
@@ -109,8 +127,35 @@ def _tarif_eintrag(
       (``netzkosten_vollstaendig=false``) ist der Jahres-€-Betrag NUR der
       Energiepreis-Anteil und heißt dann ``energiepreis_anteil_eur`` statt
       ``jahreskosten_eur`` — so kann ihn ein Client nicht als komplette
-      Jahresrechnung ausweisen.
+      Jahresrechnung ausweisen. ``ersparnis_eur`` (Gesamtkosten-Differenz) folgt
+      demselben Muster: ohne aufgelösten Netzbetreiber heißt das Feld
+      ``energiepreis_ersparnis_eur`` (Energie-Anteil-Differenz, No-LLM-Math-Fix:
+      vorher stand ``ersparnis_eur`` IMMER auf Energiebasis, während
+      ``gesamtkosten_eur`` bereits Netz+GAB enthielt — zwei Zahlenwelten in
+      einem Result).
+
+    ``aktueller_tarif``: nur für Alternativen-Einträge gesetzt (nicht für den
+    aktueller_tarif-Eintrag selbst) — liefert die Referenz-Beträge für die
+    Ersparnis-Zeile im ``rechenweg_kurz`` (auditierbare Subtraktion).
     """
+    rechenweg_kurz = rechenweg_kurzform(t.rechenweg, verbrauch_kwh)
+    if aktueller_tarif is not None:
+        basis = "Gesamtkosten" if netzkosten_vollstaendig else "Energiekosten"
+        aktuell_basis_eur = (
+            aktueller_tarif.gesamtkosten_eur if netzkosten_vollstaendig
+            else aktueller_tarif.jahreskosten_eur
+        )
+        alternative_basis_eur = (
+            t.gesamtkosten_eur if netzkosten_vollstaendig else t.jahreskosten_eur
+        )
+        zeile = _ersparnis_zeile(
+            aktuell_eur=aktuell_basis_eur,
+            alternative_eur=alternative_basis_eur,
+            ersparnis_eur=t.ersparnis_eur,
+            basis=basis,
+        )
+        rechenweg_kurz = f"{rechenweg_kurz}; {zeile}" if rechenweg_kurz else zeile
+
     eintrag: dict[str, Any] = {
         "lieferant": t.lieferant,
         "tarif_name": t.tarif_name,
@@ -121,19 +166,23 @@ def _tarif_eintrag(
         # Lockrabatt-Marker: befristeter Neukundenbonus (Pauschale ODER ct/kWh).
         "rabatt_befristet": t.neukundenrabatt_eur > 0 or t.neukundenrabatt_ct_kwh > 0,
         "jahreskosten_jahr2_eur": t.jahreskosten_ohne_rabatt_eur,
-        "ersparnis_eur": t.ersparnis_eur,
         "gesamtkosten_eur": t.gesamtkosten_eur,
         "gebrauchsabgabe_eur": t.gebrauchsabgabe_eur,
         "ist_oekostrom": t.ist_oekostrom,
         "wechsel_link": t.wechsel_link,
-        "rechenweg_kurz": rechenweg_kurzform(t.rechenweg, verbrauch_kwh),
+        "rechenweg_kurz": rechenweg_kurz,
     }
     # Netzkosten-fail-open: der Betrag ist ohne Netzbetreiber NUR der Energie-Anteil
-    # — dann NICHT als jahreskosten_eur (Gesamtrechnung) benennen.
+    # — dann NICHT als jahreskosten_eur (Gesamtrechnung) benennen. ``ersparnis_eur``
+    # ist bei netzkosten_vollstaendig=true die Gesamtkosten-Differenz; im Fail-open-
+    # Fall bleibt ``t.ersparnis_eur`` (aus ``_enrich``) auf Energiebasis und wird
+    # konsistent unter ``energiepreis_ersparnis_eur`` ausgewiesen.
     if netzkosten_vollstaendig:
         eintrag["jahreskosten_eur"] = t.jahreskosten_eur
+        eintrag["ersparnis_eur"] = t.ersparnis_eur
     else:
         eintrag["energiepreis_anteil_eur"] = t.jahreskosten_eur
+        eintrag["energiepreis_ersparnis_eur"] = t.ersparnis_eur
     if voller_rechenweg and t.rechenweg is not None:
         eintrag["rechenweg"] = t.rechenweg.model_dump(mode="json")
     return eintrag
@@ -150,9 +199,8 @@ def _result_dict(
     # spiegelt nur den ENERGIEPREIS-Anteil wider — nie die Gesamtrechnung. Ein
     # Client (auch ein schwaches LLM) MUSS das an ``netzkosten_vollstaendig``
     # zuverlässig erkennen können, statt es im Hinweistext zu übersehen.
-    netzkosten_vollstaendig = (
-        cmp.netzbetreiber is not None and cmp.netzkosten_eur_jahr > 0
-    )
+    # EINE Quelle mit ``_enrich`` (Ersparnis-Basis) — s. ``compare.netzkosten_vollstaendig``.
+    netzkosten_vollstaendig = _netzkosten_vollstaendig(cmp)
     ergebnis_typ = "gesamtkosten" if netzkosten_vollstaendig else "nur_energiepreis"
     result: dict[str, Any] = {
         "plz": cmp.plz,
@@ -167,6 +215,7 @@ def _result_dict(
                 t, verbrauch,
                 voller_rechenweg=voller_rechenweg,
                 netzkosten_vollstaendig=netzkosten_vollstaendig,
+                aktueller_tarif=cmp.aktueller_tarif,
             )
             for t in alternativen
         ],

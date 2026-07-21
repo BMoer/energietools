@@ -249,7 +249,7 @@ class TarifErsparnisBlock(BaseModel):
         default=None, description="Günstigste Markt-Alternative, Energie-Jahreskosten brutto €"
     )
     ersparnis_eur: float | None = Field(
-        default=None, description="ist_eur - best_eur (= tariff_compare.max_ersparnis_eur)"
+        default=None, description="ist_eur - best_eur (Energie-Basis; weicht seit v0.6.4 von max_ersparnis_eur ab, das gesamtkosten-basiert ist)"
     )
     lieferant_ist: str | None = Field(default=None, description="Aktueller Lieferant (Eingabe)")
     lieferant_best: str | None = Field(

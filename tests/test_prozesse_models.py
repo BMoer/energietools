@@ -10,7 +10,13 @@ from datetime import date
 import pytest
 from pydantic import ValidationError
 
-from energietools.prozesse.models import Caveat, Prozess, ProzessMeta, ToolMappingSchritt
+from energietools.prozesse.models import (
+    Caveat,
+    Prozess,
+    ProzessMeta,
+    SignalPraezedenz,
+    ToolMappingSchritt,
+)
 
 _STAND = date(2026, 7, 11)
 
@@ -67,6 +73,41 @@ class TestPflichtbloecke:
         )
         assert prozess.benoetigte_daten == []
         assert prozess.fragen == []
+
+
+class TestSignaleBlock:
+    """Optionaler Block ``signale`` (Fakt-vor-Heuristik-Deklaration, nach ``fragen``)."""
+
+    def test_signale_block_wird_geparst_und_extra_key_abgelehnt(self):
+        prozess = Prozess(
+            meta=ProzessMeta(id="x", prozess_version="1.0.0", stand=_STAND),
+            ziel="Test.",
+            tool_mapping=[ToolMappingSchritt(schritt="s1", capability="tariff_compare")],
+            caveats=[Caveat(trigger="immer", text="Test.")],
+            signale={
+                "electric_heating": {"fakt": "asset.heating.type", "rolle": "heuristik_fuer"},
+            },
+        )
+        assert prozess.signale["electric_heating"].fakt == "asset.heating.type"
+        assert prozess.signale["electric_heating"].rolle == "heuristik_fuer"
+
+        with pytest.raises(ValidationError):
+            SignalPraezedenz(
+                fakt="asset.heating.type", rolle="heuristik_fuer", unbekannter_key="x"
+            )
+
+    def test_signale_default_ist_leeres_dict(self):
+        prozess = Prozess(
+            meta=ProzessMeta(id="x", prozess_version="1.0.0", stand=_STAND),
+            ziel="Test.",
+            tool_mapping=[ToolMappingSchritt(schritt="s1", capability="tariff_compare")],
+            caveats=[Caveat(trigger="immer", text="Test.")],
+        )
+        assert prozess.signale == {}
+
+    def test_signale_eintrag_lehnt_falsche_rolle_ab(self):
+        with pytest.raises(ValidationError):
+            SignalPraezedenz(fakt="asset.heating.type", rolle="falsche_rolle")
 
 
 class TestGedeckteFelder:

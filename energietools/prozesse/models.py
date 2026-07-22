@@ -107,8 +107,21 @@ class Caveat(BaseModel):
     text: str = Field(min_length=1)
 
 
+class SignalPraezedenz(BaseModel):
+    """Ein Eintrag im optionalen Block ``signale`` — gelintete SICHT auf die
+    SSOT-Präzedenz-Tabelle ``lastgang.reconcile.PRAEZEDENZ`` (Fakt vor
+    Heuristik). Deklariert, dass ein Lastgang-Signal NUR eine Heuristik für
+    ein Profil-Feld ist — ein gespeicherter Fakt schlägt es deterministisch."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    fakt: str = Field(min_length=1)
+    rolle: Literal["heuristik_fuer"]
+
+
 class Prozess(BaseModel):
-    """Ein vollständiger Prozess: die sieben D7-Blöcke."""
+    """Ein vollständiger Prozess: die sieben D7-Blöcke + der optionale
+    ``signale``-Block (Fakt-vor-Heuristik-Deklaration, nach ``fragen``)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -116,6 +129,7 @@ class Prozess(BaseModel):
     ziel: str = Field(min_length=1)
     benoetigte_daten: list[BenoetigtesDatum] = Field(default_factory=list)
     fragen: list[Frage] = Field(default_factory=list)
+    signale: dict[str, SignalPraezedenz] = Field(default_factory=dict)
     tool_mapping: list[ToolMappingSchritt] = Field(min_length=1)
     datenqualitaet_abbruch: list[str] = Field(default_factory=list)
     caveats: list[Caveat] = Field(min_length=1)

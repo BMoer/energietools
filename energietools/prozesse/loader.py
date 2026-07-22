@@ -34,6 +34,7 @@ KANONISCHE_BLOCKREIHENFOLGE = (
     "ziel",
     "benoetigte_daten",
     "fragen",
+    "signale",
     "tool_mapping",
     "datenqualitaet_abbruch",
     "caveats",

@@ -22,21 +22,97 @@ class RueckfrageModel(BaseModel):
     motiviert_durch: str = Field(description="Welches Signal/Werte die Frage auslösen")
 
 
+class ProfilAbgleichEintragModel(BaseModel):
+    """Ein Präzedenz-Eintrag (heizung|pv|dauerlast) — Fakt vs. Heuristik (Fakt
+    vor Heuristik, Stufe 2 des Lastgang-Signal-Pipelines)."""
+
+    fakt_feld: str = Field(description="Profil-Feld, z.B. 'asset.heating.type'")
+    wert: str | float | bool | None = Field(
+        default=None, description="Fakt-Wert — None, wenn kein Fakt gespeichert ist"
+    )
+    quelle: str = Field(
+        description="profil|rechnung|messung|prognose|heuristik — 'heuristik' nur ohne Fakt"
+    )
+    stand: str | None = Field(
+        default=None, description="Zeitstempel des Fakts (ISO), falls bekannt"
+    )
+    heuristik_schaetzung: str | None = Field(
+        default=None,
+        description="Deterministisches Label der Lastgang-Heuristik (Gegenprobe, auch mit Fakt)",
+    )
+    status: str = Field(description="konsistent|widerspruch|nicht_pruefbar|kein_fakt")
+    signal: str = Field(description="Name des zugehörigen Lastgang-Signals")
+    signal_roh: str = Field(
+        description="Heuristik-Signal NACH PV-Guard (Stufe 1), VOR Fakt-Präzedenz"
+    )
+    signal_effektiv: str = Field(
+        description="Fakt-konsistent gesetztes Signal (== roh ohne Fakt)"
+    )
+    kennzahl: str = Field(description="Die dem Signal zugrundeliegende Kennzahl + Schwelle")
+
+
+class ProfilAbgleichModel(BaseModel):
+    """Gesamtergebnis des Fakt-Präzedenz-Reconcilers — IMMER präsent
+    (``verfuegbar=False`` ohne ``profil_fakten``, deterministische Shape)."""
+
+    verfuegbar: bool = Field(description="False = kein profil_fakten übergeben")
+    anzahl_widersprueche: int = Field(
+        default=0, description="Anzahl Einträge mit status='widerspruch'"
+    )
+    heizung: ProfilAbgleichEintragModel
+    pv: ProfilAbgleichEintragModel
+    dauerlast: ProfilAbgleichEintragModel
+    unterdrueckte_rueckfragen: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Profil-Felder (alle 7), deren Rückfrage wegen eines gespeicherten Fakts entfällt"
+        ),
+    )
+
+
 class LastgangSignalsResult(BaseModel):
     """Ergebnis von ``lastgang_signals`` (L.1) — Signale + Guards + Rückfragen.
 
     Jede Zahl trägt ihr Fenster/ihre Einheit als Begleitfeld (F7); jede
     Anteils-/Verhältnis-Kennzahl ihre Nenner-Definition in ``nenner`` (L.6).
+
+    Die drei Signal-Felder (``electric_heating``/``pv_self_consumption``/
+    ``high_continuous_load``) sind fakt-konsistent gesetzt (Fakt vor
+    Heuristik) — Herkunft je Feld in ``*_quelle``, die reine
+    Lastgang-Heuristik (VOR einem etwaigen Fakt-Override) in ``*_roh``
+    (nur gesetzt, wenn ein Fakt existiert, Muster ``roh_ws_ratio``).
     """
 
-    # Signale (dreiwertig, str-Enum-Werte "likely"|"unlikely"|"unknown")
+    # Signale (dreiwertig, str-Enum-Werte "likely"|"unlikely"|"unknown") —
+    # fakt-konsistent (== profil_abgleich.<antwort>.signal_effektiv).
     electric_heating: str = Field(
-        description="Elektrische Heizung wahrscheinlich? Bei PV-Guard ggf. auf "
-        "'unknown' herabgestuft — siehe electric_heating_guarded/roh_ws_ratio."
+        description="Elektrische Heizung wahrscheinlich? Fakt-konsistent gesetzt — "
+        "siehe electric_heating_quelle/electric_heating_roh/profil_abgleich.heizung."
     )
-    pv_self_consumption: str = Field(description="PV-Eigenverbrauch wahrscheinlich?")
+    pv_self_consumption: str = Field(
+        description="PV-Eigenverbrauch wahrscheinlich? Fakt-konsistent gesetzt."
+    )
     high_continuous_load: str = Field(
-        description="Dauerläufer (hohe Nacht-Grundlast) wahrscheinlich?"
+        description="Dauerläufer (hohe Nacht-Grundlast) wahrscheinlich? Fakt-konsistent gesetzt."
+    )
+    electric_heating_quelle: str = Field(
+        default="heuristik",
+        description="Herkunft von electric_heating (Fakt-Quelle oder 'heuristik')",
+    )
+    electric_heating_roh: str | None = Field(
+        default=None, description="Lastgang-Heuristik VOR Fakt-Override"
+    )
+    pv_self_consumption_quelle: str = Field(
+        default="heuristik", description="Herkunft von pv_self_consumption"
+    )
+    pv_self_consumption_roh: str | None = Field(
+        default=None, description="Lastgang-Heuristik VOR Fakt-Override"
+    )
+    high_continuous_load_quelle: str = Field(
+        default="heuristik", description="Herkunft von high_continuous_load"
+    )
+    high_continuous_load_roh: str | None = Field(
+        default=None, description="Lastgang-Heuristik VOR Fakt-Override"
     )
 
     # Rohkennzahlen MIT Fenster/Einheit (F7)
@@ -75,6 +151,9 @@ class LastgangSignalsResult(BaseModel):
 
     # Rückfragen (L.1.6)
     rueckfragen: list[RueckfrageModel] = Field(default_factory=list)
+
+    # Fakt-Präzedenz (Fakt vor Heuristik, Stufe 2) — IMMER präsent.
+    profil_abgleich: ProfilAbgleichModel
 
     # Rechenweg + Caveats (Zielbild-Prinzip 3)
     rechenweg: dict = Field(default_factory=dict, description="Schwellen, Fenster, Formeln")

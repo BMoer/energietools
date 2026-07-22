@@ -1,7 +1,7 @@
 meta:
   id: lastganganalyse
-  prozess_version: 1.0.0
-  stand: 2026-07-12
+  prozess_version: 1.1.0
+  stand: 2026-07-22
   market: AT
   license: MIT
 
@@ -72,6 +72,11 @@ fragen:
     feld: meter.q15_optin
     ableitung: "Granularitäts-Guard (F29 (a)): ohne Q15 verweigern lastgang_signals/trend_attribution/spot_backtest mit Begründung — diese Frage ist die aktive Opt-in-Empfehlung aus dem Tageswerte-Pfad (Rezept 07 Hebel 4/6)."
 
+signale:
+  electric_heating:     { fakt: asset.heating.type,     rolle: heuristik_fuer }
+  pv_self_consumption:  { fakt: asset.pv.kwp,           rolle: heuristik_fuer }
+  high_continuous_load: { fakt: asset.continuous_loads, rolle: heuristik_fuer }
+
 tool_mapping:
   - schritt: serien_uebersicht
     capability: list_load_series
@@ -112,12 +117,13 @@ tool_mapping:
     quelle: energietools
     rolle: aktiv
     pflicht_inputs: [consumption]
-    nicht_benutzerdaten: [consumption]
+    nicht_benutzerdaten: [consumption, profil_fakten]
     regeln:
       - "consumption ist die vom Gateway aufgelöste Serie (s. lastprofil_metriken)."
       - "Verweigert bei Tageswerten (interval_minutes >= 60) mit Begründung — dann aktiv den Q15-Opt-in empfehlen (f_q15_optin, F29 (a))."
       - "is_pv aus dem Einspeise-Consent/ZP-Suffix setzen — schaltet die PV-Guards (Netzbezug-Label, electric_heating-Herabstufung, Ledger-F3/F14/F24)."
       - "Treibt den signal-getriebenen Rückfragen-Katalog (fragen-Block) — nur die Fragen stellen, deren Signal feuert."
+      - "profil_fakten löst der Gateway aus der kanonischen Profil-Seite auf (get_page) — Fakt schlägt Heuristik deterministisch im Rechenkern; jede Antwort trägt quelle (s. signale-Block, Fakt vor Heuristik)."
 
   - schritt: mehrjahres_trend
     capability: load_trend
@@ -167,6 +173,11 @@ datenqualitaet_abbruch:
   - "Granularitäts-Guard (F29 (a)): Tageswerte-Serie (kein 15-min-Opt-in, interval_minutes >= 60) -> lastgang_signals/trend_attribution/spot_backtest verweigern mit Begründung + aktiver Q15-Opt-in-Empfehlung (f_q15_optin); load_profile/load_trend laufen weiter, aber mit explizitem Granularitäts-Caveat statt Intraday-Signalen."
 
 caveats:
+  - trigger: "profil_abgleich.anzahl_widersprueche > 0"
+    text: >
+      Ein gespeicherter Profil-Fakt widerspricht dem Lastgang-Muster — die
+      Antwort folgt dem gespeicherten Fakt; prüfe, ob sich etwas geändert hat
+      (Fakt veraltet?).
   - trigger: "is_pv == true"
     text: >
       Die Metriken beschreiben deinen NETZBEZUG, nicht deinen Gesamtverbrauch —

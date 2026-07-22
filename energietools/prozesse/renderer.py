@@ -88,6 +88,13 @@ def render_skill(prozess: Prozess) -> str:
         zeilen.pop()  # letzte Leerzeile der Schleife entfernen (einheitlicher Abstand unten)
     zeilen.append("")
 
+    if prozess.signale:
+        zeilen.append("## Signal-Präzedenz (Fakt vor Heuristik)")
+        zeilen.append("")
+        for signal, eintrag in prozess.signale.items():
+            zeilen.append(f"- **{signal}** ist Heuristik für `{eintrag.fakt}`")
+        zeilen.append("")
+
     zeilen.append("## Tool-Mapping")
     zeilen.append("")
     for schritt in prozess.tool_mapping:

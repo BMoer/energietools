@@ -5,7 +5,7 @@ description: Aus einem Lastgang (15-min-Netzbezug/-Verbrauch, per EDA-Consent) v
 
 # Lastgang-Analyse
 
-**Version:** 1.0.0 · **Stand:** 2026-07-12 · **Markt:** AT · **Lizenz:** MIT
+**Version:** 1.1.0 · **Stand:** 2026-07-22 · **Markt:** AT · **Lizenz:** MIT
 
 ## Ziel
 
@@ -64,6 +64,12 @@ Aus einem Lastgang (15-min-Netzbezug/-Verbrauch, per EDA-Consent) verstehen, was
 - Nur wenn: Consent liefert nur Tageswerte (kein 15-min-Opt-in) — aus list_load_series/get_data_release_status ablesbar
 - Ableitung: Granularitäts-Guard (F29 (a)): ohne Q15 verweigern lastgang_signals/trend_attribution/spot_backtest mit Begründung — diese Frage ist die aktive Opt-in-Empfehlung aus dem Tageswerte-Pfad (Rezept 07 Hebel 4/6).
 
+## Signal-Präzedenz (Fakt vor Heuristik)
+
+- **electric_heating** ist Heuristik für `asset.heating.type`
+- **pv_self_consumption** ist Heuristik für `asset.pv.kwp`
+- **high_continuous_load** ist Heuristik für `asset.continuous_loads`
+
 ## Tool-Mapping
 
 ### serien_uebersicht — `list_load_series` (extern, aktiv)
@@ -89,6 +95,7 @@ Aus einem Lastgang (15-min-Netzbezug/-Verbrauch, per EDA-Consent) verstehen, was
 - Verweigert bei Tageswerten (interval_minutes >= 60) mit Begründung — dann aktiv den Q15-Opt-in empfehlen (f_q15_optin, F29 (a)).
 - is_pv aus dem Einspeise-Consent/ZP-Suffix setzen — schaltet die PV-Guards (Netzbezug-Label, electric_heating-Herabstufung, Ledger-F3/F14/F24).
 - Treibt den signal-getriebenen Rückfragen-Katalog (fragen-Block) — nur die Fragen stellen, deren Signal feuert.
+- profil_fakten löst der Gateway aus der kanonischen Profil-Seite auf (get_page) — Fakt schlägt Heuristik deterministisch im Rechenkern; jede Antwort trägt quelle (s. signale-Block, Fakt vor Heuristik).
 
 ### mehrjahres_trend — `load_trend` (energietools, aktiv)
 - Pflicht-Inputs: consumption
@@ -121,6 +128,7 @@ Aus einem Lastgang (15-min-Netzbezug/-Verbrauch, per EDA-Consent) verstehen, was
 
 ## Caveats (MÜSSEN in die Antwort)
 
+- **Trigger `profil_abgleich.anzahl_widersprueche > 0`:** Ein gespeicherter Profil-Fakt widerspricht dem Lastgang-Muster — die Antwort folgt dem gespeicherten Fakt; prüfe, ob sich etwas geändert hat (Fakt veraltet?).
 - **Trigger `is_pv == true`:** Die Metriken beschreiben deinen NETZBEZUG, nicht deinen Gesamtverbrauch — bei einer PV-Anlage ist der Mittags-Bezug PV-gedeckt und dadurch niedriger als der reale Verbrauch.
 - **Trigger `anzahl_treiber > 0`:** Die Geräte-Zerlegung nennt eine Geräte-KLASSE als Hypothese (z. B. "Kochen", "Elektronik"), NIE ein konkretes Gerät — ein 15-Minuten-Takt kann taktende Einzelgeräte nicht identifizieren, nur andauernde Lastmuster.
 - **Trigger `immer`:** Ein Teiljahr oder Halbjahr im Lastgang wird NICHT auf ein volles Jahr hochgerechnet — ohne Saisonalitäts-Korrektur wäre das kein verlässlicher Jahreswert.

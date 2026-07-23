@@ -40,6 +40,19 @@ class TestRenderSkill:
         for caveat in prozess.caveats:
             assert caveat.trigger in skill
 
+    def test_signal_praezedenz_sektion_erscheint_im_skill(self):
+        prozess = load_prozess("lastganganalyse.yaml")
+        skill = render_skill(prozess)
+        assert "## Signal-Präzedenz (Fakt vor Heuristik)" in skill
+        for signal, eintrag in prozess.signale.items():
+            assert f"**{signal}** ist Heuristik für `{eintrag.fakt}`" in skill
+
+    def test_signal_praezedenz_sektion_fehlt_ohne_signale_block(self):
+        prozess = load_prozess("erstkontakt.yaml")
+        assert not prozess.signale
+        skill = render_skill(prozess)
+        assert "Signal-Präzedenz" not in skill
+
 
 class TestRenderKurzform:
     def test_enthaelt_id_und_version(self):

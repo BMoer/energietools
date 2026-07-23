@@ -35,7 +35,12 @@ from energietools.capabilities.lastgang.capability import (
     LoadTrendCapability,
     SpotBacktestCapability,
 )
-from energietools.capabilities.lastgang.guards import apply_pv_guards, guard_rueckfragen
+from energietools.capabilities.lastgang.guards import (
+    CAVEAT_PV_WIDERSPRUCH,
+    CAVEAT_PV_WIDERSPRUCH_AUS_FAKT,
+    apply_pv_guards,
+    guard_rueckfragen,
+)
 from energietools.capabilities.lastgang.signals import (
     ELECTRIC_HEAT_RATIO,
     HIGH_BASE_W,
@@ -332,6 +337,50 @@ def test_pv_flag_widerspruch_bei_untypischer_mittag_nacht_signatur() -> None:
     assert any("Konsistenz" in c for c in guard.caveats)
 
 
+def test_pv_widerspruch_caveat_neutral_wenn_pv_kenntnis_nur_aus_fakt_stammt() -> None:
+    """E2: stammt die PV-Kenntnis AUSSCHLIESSLICH aus einem gespeicherten
+    Fakt (kein Flag, keine Einspeise-Summe), ist 'PV-Flag ggf. falsch
+    gesetzt' irreführend — es gibt kein Flag, das falsch gesetzt sein
+    könnte. Der neutrale Text ersetzt ihn, bestehende Flag-Semantik
+    (Default False) bleibt unverändert."""
+    hourly = _flat_hourly(0.05)
+    for h in range(10, 16):
+        hourly[h] = 0.5
+    days = [(d, list(hourly)) for d in _days(datetime(2025, 5, 1), 3)]
+    signals = compute_signals(_consumption_tuples(_hour_series(days)))
+    assert signals.midday_dip_ratio is not None and signals.midday_dip_ratio > 1
+
+    guard = apply_pv_guards(
+        signals, is_pv=True, grundlast_kw=None, pv_kenntnis_nur_aus_fakt=True
+    )
+
+    assert guard.pv_flag_widerspruch is True
+    assert CAVEAT_PV_WIDERSPRUCH_AUS_FAKT in guard.caveats
+    assert CAVEAT_PV_WIDERSPRUCH not in guard.caveats
+
+
+def test_capability_pv_widerspruch_caveat_neutral_bei_pv_fakt_ohne_flag() -> None:
+    """Wie oben, aber über die volle Capability: profil_fakten liefert
+    asset.pv.kwp OHNE is_pv-Flag/pv_feedin_kwh — die PV-Kenntnis stammt
+    ausschließlich aus dem Fakt, der Caveat muss neutral sein."""
+    hourly = _flat_hourly(0.05)
+    for h in range(10, 16):
+        hourly[h] = 0.5
+    days = [(d, list(hourly)) for d in _days(datetime(2025, 5, 1), 3)]
+    records = _hour_series(days)
+
+    result = LastgangSignalsCapability().run(
+        consumption=records, profil_fakten={"asset.pv.kwp": 5.0}
+    )
+
+    assert result.ok is True
+    data = result.data
+    assert data["is_pv"] is True
+    assert data["pv_flag_widerspruch"] is True
+    assert CAVEAT_PV_WIDERSPRUCH_AUS_FAKT in data["caveats"]
+    assert CAVEAT_PV_WIDERSPRUCH not in data["caveats"]
+
+
 # ---------------------------------------------------------------------------
 # Referenz-Fixture Fall B (structural, gegen out_09.json — synthetisch nachgebaut)
 # ---------------------------------------------------------------------------
@@ -440,6 +489,150 @@ def test_nenner_deckt_alle_verhaeltnis_kennzahlen_ab() -> None:
     for feld in ratio_felder:
         assert feld in result.data["nenner"], f"Nenner-Eintrag fehlt für {feld}"
         assert result.data["nenner"][feld]  # nicht-leerer Text
+
+
+# ---------------------------------------------------------------------------
+# Fakt vor Heuristik (profil_fakten) — Kein-Fakt-Regression + Referenzfall
+# (WP „Fakt-vor-Heuristik", Bauplan Achse 1 §1.3/§Referenz-JSON)
+# ---------------------------------------------------------------------------
+
+
+def test_capability_ohne_profil_fakten_identisch_zu_bisher() -> None:
+    """Kein-Fakt-Regression: bestehende Felder bleiben WERTGLEICH zur
+    Pellets-False-Positive-Regression oben, neue Felder liefern neutrale
+    Defaults — Fakt-vor-Heuristik darf das Alt-Verhalten ohne profil_fakten
+    nicht verändern."""
+    records = _prosumer_hohe_ws_ratio_consumption()
+
+    result = LastgangSignalsCapability().run(
+        consumption=records, is_pv=True, grundlast_kw=0.06
+    )
+
+    assert result.ok is True
+    data = result.data
+
+    # E3: ALLE 3 Signal-Endfelder unabhängig gegen compute_signals/
+    # apply_pv_guards neu berechnet (vorher nur electric_heating geprüft) —
+    # pv_self_consumption/high_continuous_load lässt der PV-Guard unangefasst
+    # (s. reconcile._signal_roh_werte-Doku), electric_heating kommt aus dem Guard.
+    erwartete_signals = compute_signals(_consumption_tuples(records))
+    erwarteter_guard = apply_pv_guards(erwartete_signals, is_pv=True, grundlast_kw=0.06)
+    assert data["electric_heating"] == erwarteter_guard.electric_heating.value
+    assert data["pv_self_consumption"] == erwartete_signals.pv_self_consumption.value
+    assert data["high_continuous_load"] == erwartete_signals.high_continuous_load.value
+
+    # Alt-Verhalten unverändert (identisch zur Pellets-Regression oben).
+    assert data["electric_heating"] == "unknown"
+    assert data["electric_heating_guarded"] is True
+    assert data["basis_label"] == "Netzbezug"
+    assert data["roh_ws_ratio"] is not None
+
+    # Neue Felder: neutrale Defaults ohne profil_fakten.
+    assert data["electric_heating_quelle"] == "heuristik"
+    assert data["electric_heating_roh"] is None
+    assert data["pv_self_consumption_quelle"] == "heuristik"
+    assert data["pv_self_consumption_roh"] is None
+    assert data["high_continuous_load_quelle"] == "heuristik"
+    assert data["high_continuous_load_roh"] is None
+
+    abgleich = data["profil_abgleich"]
+    assert abgleich["verfuegbar"] is False
+    assert abgleich["anzahl_widersprueche"] == 0
+    assert abgleich["heizung"]["status"] == "kein_fakt"
+    assert abgleich["heizung"]["wert"] is None
+    assert abgleich["unterdrueckte_rueckfragen"] == []
+
+
+def test_capability_fakt_gas_liefert_profil_antwort_im_envelope() -> None:
+    """Referenzfall (Bauplan §Referenz-JSON): Fakt gas + WS-Ratio 2.7 — die
+    Antwort folgt dem gespeicherten Fakt, nicht der Lastgang-Heuristik."""
+    winter_days = [(d, _flat_hourly(0.27)) for d in _days(datetime(2025, 1, 5), 4)]
+    summer_days = [(d, _flat_hourly(0.10)) for d in _days(datetime(2025, 7, 5), 4)]
+    records = _hour_series(winter_days + summer_days)
+
+    result = LastgangSignalsCapability().run(
+        consumption=records, profil_fakten={"asset.heating.type": "gas"},
+    )
+
+    assert result.ok is True
+    data = result.data
+    assert data["winter_summer_ratio"] == pytest.approx(2.7, abs=0.01)
+    assert data["electric_heating"] == "unlikely"
+    assert data["electric_heating_quelle"] == "profil"
+    assert data["electric_heating_roh"] == "likely"
+
+    abgleich = data["profil_abgleich"]
+    assert abgleich["verfuegbar"] is True
+    assert abgleich["anzahl_widersprueche"] == 1
+    heizung = abgleich["heizung"]
+    assert heizung["wert"] == "gas"
+    assert heizung["quelle"] == "profil"
+    assert heizung["status"] == "widerspruch"
+    assert heizung["heuristik_schaetzung"] == "vermutlich_elektrisch"
+    assert heizung["kennzahl"] == "winter_summer_ratio=2.7 (Schwelle 2.5)"
+    assert abgleich["unterdrueckte_rueckfragen"] == ["asset.heating.type"]
+
+    heizungs_fragen = [f for f in data["rueckfragen"] if f["feld"] == "asset.heating.type"]
+    assert heizungs_fragen == []  # Rückfrage entfällt, da Fakt vorhanden
+
+    caveats_joined = " ".join(data["caveats"])
+    assert "gespeicherter Profil-Fakt" in caveats_joined
+    assert data["rechenweg"]["profil_abgleich"]["praezedenz"] == "fakt_vor_heuristik"
+    assert data["rechenweg"]["profil_abgleich"]["heizung"]["status"] == "widerspruch"
+
+
+def test_capability_pv_fakt_aktiviert_netzbezug_guards() -> None:
+    """asset.pv.kwp ohne explizites is_pv-Flag aktiviert trotzdem die
+    PV-Guards (Netzbezug-Label) — der Fakt IST der PV-Hinweis."""
+    days = [(d, _flat_hourly(0.15)) for d in _days(datetime(2025, 4, 1), 3)]
+    records = _hour_series(days)
+
+    result = LastgangSignalsCapability().run(
+        consumption=records, profil_fakten={"asset.pv.kwp": 4.5},
+    )
+
+    assert result.ok is True
+    assert result.data["is_pv"] is True
+    assert result.data["basis_label"] == "Netzbezug"
+    assert result.data["profil_abgleich"]["pv"]["wert"] == 4.5
+    assert result.data["profil_abgleich"]["pv"]["quelle"] == "profil"
+
+
+def test_capability_kaputte_profil_fakten_liefert_ok_false() -> None:
+    days = [(d, _flat_hourly(0.15)) for d in _days(datetime(2025, 4, 1), 3)]
+    records = _hour_series(days)
+
+    result = LastgangSignalsCapability().run(
+        consumption=records, profil_fakten={"asset.heating.type": "kohle"},
+    )
+
+    assert result.ok is False
+    assert result.data is None
+    assert result.error
+
+
+def test_result_field_paths_deckt_profil_abgleich_und_quelle_felder() -> None:
+    pfade = LastgangSignalsCapability().result_field_paths()
+    for feld in (
+        "electric_heating_quelle",
+        "electric_heating_roh",
+        "pv_self_consumption_quelle",
+        "pv_self_consumption_roh",
+        "high_continuous_load_quelle",
+        "high_continuous_load_roh",
+        "profil_abgleich.verfuegbar",
+        "profil_abgleich.anzahl_widersprueche",
+        "profil_abgleich.heizung.wert",
+        "profil_abgleich.heizung.quelle",
+        "profil_abgleich.heizung.status",
+        "profil_abgleich.pv.wert",
+        "profil_abgleich.pv.quelle",
+        "profil_abgleich.pv.status",
+        "profil_abgleich.dauerlast.wert",
+        "profil_abgleich.dauerlast.quelle",
+        "profil_abgleich.dauerlast.status",
+    ):
+        assert feld in pfade, feld
 
 
 # ---------------------------------------------------------------------------

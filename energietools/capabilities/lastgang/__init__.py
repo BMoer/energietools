@@ -38,13 +38,21 @@ from energietools.capabilities.lastgang.capability import (
     LoadTrendCapability,
     SpotBacktestCapability,
 )
+from energietools.capabilities.lastgang.reconcile import (
+    PRAEZEDENZ,
+    ProfilAbgleich,
+    reconcile_signals,
+)
 from energietools.capabilities.lastgang.signals import Signal
 
 __all__ = [
+    "PRAEZEDENZ",
     "LastgangSignalsCapability",
     "LoadTrendCapability",
+    "ProfilAbgleich",
     "Signal",
     "SpotBacktestCapability",
     "TrendAttributionCapability",
     "compute_trend_attribution",
+    "reconcile_signals",
 ]

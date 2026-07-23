@@ -254,3 +254,28 @@ Die Methodik ist nicht nur beschrieben, sondern **ausführbar prüfbar**:
    bestätigen, gegen die Verordnung (BGBl. II Nr. 305/2025) gegenprüfen.
 5. Eine nicht in `plz_netzbereich.json` gelistete PLZ probieren → bestätigen, dass **keine**
    Netzkosten erfunden werden (fail-open).
+
+---
+
+## 6. Fakt vor Heuristik (Lastgang-Signale)
+
+Dasselbe Nachvollziehbarkeits-Prinzip gilt außerhalb der Tarif-/Netzkosten-Schicht auch
+für die Lastgang-Signale (`lastgang_signals`): elektrische Heizung, PV-Eigenverbrauch und
+Dauerläufer sind dort **Heuristiken** aus dem Q15-Muster (Winter/Sommer-Verhältnis,
+Mittags-Delle, Nacht-Grundlast) — plausibel, aber keine Beweise.
+
+- **Provenienz-Envelope.** Jeder Signal-Wert trägt seine Herkunft mit (`*_quelle`:
+  `profil|rechnung|messung|prognose|heuristik`). Kommt ein Wert aus einem vom Nutzer
+  bestätigten Profil-Fakt (z. B. `asset.heating.type=gas`), ist `quelle` niemals
+  `"heuristik"` — eine Heuristik wird nie als Fakt ausgegeben und ein Fakt nie stillschweigend
+  überschrieben.
+- **Präzedenz.** Ein gespeicherter Fakt schlägt IMMER die Lastgang-Heuristik
+  (`capabilities/lastgang/reconcile.py::PRAEZEDENZ`, deklarative SSOT-Tabelle). Das
+  Ergebnis-Feld ist fakt-konsistent gesetzt; die Heuristik verschwindet dabei nicht,
+  sondern bleibt als Gegenprobe sichtbar.
+- **Gegenprobe.** `profil_abgleich` im Result hält je Feld sowohl den Fakt (`wert`,
+  `quelle`, `stand`) als auch die reine Heuristik-Schätzung (`heuristik_schaetzung`,
+  `kennzahl`) nebeneinander — inklusive einem Status
+  (`konsistent|widerspruch|nicht_pruefbar|kein_fakt`) und, bei Widerspruch, einem
+  deterministischen Caveat-Text. So bleibt sichtbar, WARUM eine Antwort vom rohen
+  Lastgang-Muster abweicht, statt die Abweichung zu verstecken.

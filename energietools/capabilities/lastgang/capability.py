@@ -28,11 +28,19 @@ from energietools.capabilities.lastgang.models import (
     LastgangSignalsResult,
     LoadTrendResult,
     PerYearModel,
+    ProfilAbgleichEintragModel,
+    ProfilAbgleichModel,
     RueckfrageModel,
     SpotBacktestBlock,
     SpotBacktestResult,
     TarifErsparnisBlock,
     WindowYoYModel,
+)
+from energietools.capabilities.lastgang.reconcile import (
+    ProfilAbgleich,
+    SignalAbgleich,
+    reconcile_rueckfragen,
+    reconcile_signals,
 )
 from energietools.capabilities.lastgang.signals import (
     ELECTRIC_HEAT_RATIO,
@@ -54,7 +62,56 @@ from energietools.capabilities.lastgang.trend import (
     MIN_TREND_FENSTER_TAGE,
     compute_load_trend,
 )
+from energietools.capabilities.profile import ProfileSource, parse_profil_fakten
 from energietools.capabilities.tariff_compare.capability import TariffCompareCapability
+
+_PROFIL_FAKTEN_SCHEMA = {
+    "type": "object",
+    "additionalProperties": True,
+    "description": (
+        "Vom Gateway aus der kanonischen Profil-Seite aufgelöste Fakten "
+        "({feld: wert} oder {feld: {wert, quelle?, stand?, anker?}}) — NIE vom "
+        "User-LLM erfunden. Ein gespeicherter Fakt schlägt die Lastgang-"
+        "Heuristik deterministisch (Fakt vor Heuristik) — siehe profil_abgleich "
+        "im Result. Optional: ohne profil_fakten verhält sich die Capability "
+        "wie bisher (profil_abgleich.verfuegbar=false)."
+    ),
+}
+
+_ABGLEICH_REGEL = {
+    "heizung": "asset.heating.type in {elektrisch, waermepumpe} -> likely, sonst unlikely",
+    "pv": "asset.pv.kwp vorhanden (kwp>0, ontologie-validiert) -> likely",
+    "dauerlast": "asset.continuous_loads vorhanden (nicht-leerer Text) -> likely",
+}
+
+
+def _eintrag_model(a: SignalAbgleich) -> ProfilAbgleichEintragModel:
+    return ProfilAbgleichEintragModel(
+        fakt_feld=a.fakt_feld,
+        wert=a.wert,
+        quelle=a.quelle,
+        stand=a.stand,
+        heuristik_schaetzung=a.heuristik_schaetzung,
+        status=a.status,
+        signal=a.signal,
+        signal_roh=a.signal_roh,
+        signal_effektiv=a.signal_effektiv,
+        kennzahl=a.kennzahl,
+    )
+
+
+def _rechenweg_abgleich(abgleich: ProfilAbgleich) -> dict[str, Any]:
+    eintrag: dict[str, Any] = {"praezedenz": "fakt_vor_heuristik"}
+    for a in abgleich.abgleiche:
+        eintrag[a.antwort] = {
+            "fakt_feld": a.fakt_feld,
+            "fakt_vorhanden": a.quelle != "heuristik",
+            "regel": _ABGLEICH_REGEL.get(a.antwort, ""),
+            "signal_roh": a.signal_roh,
+            "signal_effektiv": a.signal_effektiv,
+            "status": a.status,
+        }
+    return eintrag
 
 _CONSUMPTION_SERIES = {
     "type": "array",
@@ -222,12 +279,22 @@ def _parse_spot_prices(raw: Any) -> list[dict]:
     return parsed
 
 
-def _ist_pv(kwargs: dict[str, Any]) -> bool:
-    """Konstruktions-Regel für ``is_pv`` (L.1.2): explizites Flag ODER eine
-    positive Einspeise-Summe gilt als PV-Hinweis — die Capability vertraut dem
-    Gateway-Flag nicht blind (s. Plausibilitäts-Check ``pv_flag_widerspruch``)."""
+def _ist_pv(kwargs: dict[str, Any], fakten: ProfileSource) -> tuple[bool, bool]:
+    """Konstruktions-Regel für ``is_pv`` (L.1.2, erweitert um Fakt vor
+    Heuristik): explizites Flag ODER eine positive Einspeise-Summe ODER ein
+    gespeicherter PV-Fakt (``asset.pv.kwp``) gilt als PV-Hinweis — die
+    Capability vertraut dem Gateway-Flag nicht blind (s. Plausibilitäts-Check
+    ``pv_flag_widerspruch``), UND ein bekannter PV-Fakt aktiviert die Guards
+    auch dann, wenn das LLM kein ``is_pv`` mitschickt.
+
+    Gibt ``(is_pv, pv_kenntnis_nur_aus_fakt)`` zurück — Letzteres ist ``True``,
+    wenn die PV-Kenntnis AUSSCHLIESSLICH aus dem Fakt stammt (kein Flag, keine
+    Einspeise-Summe, E2) — steuert die Caveat-Textwahl in
+    :func:`~energietools.capabilities.lastgang.guards.apply_pv_guards`."""
     feedin = kwargs.get("pv_feedin_kwh")
-    return bool(kwargs.get("is_pv", False)) or (feedin is not None and float(feedin) > 0)
+    explizit = bool(kwargs.get("is_pv", False)) or (feedin is not None and float(feedin) > 0)
+    fakt_pv = fakten.get_fakt("asset.pv.kwp") is not None
+    return explizit or fakt_pv, (fakt_pv and not explizit)
 
 
 class LastgangSignalsCapability(Capability):
@@ -272,6 +339,7 @@ class LastgangSignalsCapability(Capability):
                     "PV-Artefakt-Hinweis (L.1.4c), fließt nicht in die Signale ein."
                 ),
             },
+            "profil_fakten": _PROFIL_FAKTEN_SCHEMA,
         },
         "required": ["consumption"],
     }
@@ -294,6 +362,23 @@ class LastgangSignalsCapability(Capability):
             "roh_ws_ratio": "number",
             "grundlast_p15_pv_artefakt": "bool",
             "pv_flag_widerspruch": "bool",
+            "electric_heating_quelle": "str",
+            "electric_heating_roh": "str",
+            "pv_self_consumption_quelle": "str",
+            "pv_self_consumption_roh": "str",
+            "high_continuous_load_quelle": "str",
+            "high_continuous_load_roh": "str",
+            "profil_abgleich.verfuegbar": "bool",
+            "profil_abgleich.anzahl_widersprueche": "number",
+            "profil_abgleich.heizung.wert": "str",
+            "profil_abgleich.heizung.quelle": "str",
+            "profil_abgleich.heizung.status": "str",
+            "profil_abgleich.pv.wert": "number",
+            "profil_abgleich.pv.quelle": "str",
+            "profil_abgleich.pv.status": "str",
+            "profil_abgleich.dauerlast.wert": "str",
+            "profil_abgleich.dauerlast.quelle": "str",
+            "profil_abgleich.dauerlast.status": "str",
         }
 
     def _meta(self, **kwargs: Any) -> dict[str, Any]:
@@ -311,14 +396,33 @@ class LastgangSignalsCapability(Capability):
         interval_minutes = int(kwargs.get("interval_minutes", 15) or 15)
         pv_feedin_kwh = kwargs.get("pv_feedin_kwh")
         grundlast_kw = kwargs.get("grundlast_kw")
-        is_pv = _ist_pv(kwargs)
+        fakten = parse_profil_fakten(kwargs.get("profil_fakten"))
+        is_pv, pv_kenntnis_nur_aus_fakt = _ist_pv(kwargs, fakten)
 
         signals = compute_signals(
             consumption, interval_minutes=interval_minutes, pv_feedin_kwh=pv_feedin_kwh
         )
         rueckfragen = select_rueckfragen(signals)
-        guard = apply_pv_guards(signals, is_pv=is_pv, grundlast_kw=grundlast_kw)
+        guard = apply_pv_guards(
+            signals,
+            is_pv=is_pv,
+            grundlast_kw=grundlast_kw,
+            pv_kenntnis_nur_aus_fakt=pv_kenntnis_nur_aus_fakt,
+        )
         rueckfragen = guard_rueckfragen(rueckfragen, guard=guard)
+
+        # Fakt vor Heuristik (Stufe 2): ein gespeicherter Profil-Fakt schlägt
+        # IMMER die Lastgang-Heuristik — die 3 Signal-Result-Felder unten
+        # kommen NUR NOCH aus diesem Abgleich (signal_effektiv), keine
+        # Direktzugriffe auf guard/signals mehr (ein Weg statt zwei).
+        abgleich = reconcile_signals(signals, guard, fakten)
+        rueckfragen, unterdrueckte_felder = reconcile_rueckfragen(rueckfragen, fakten)
+        abgleich = dataclasses.replace(
+            abgleich, unterdrueckte_rueckfragen=tuple(unterdrueckte_felder)
+        )
+        heizung = next(a for a in abgleich.abgleiche if a.antwort == "heizung")
+        pv = next(a for a in abgleich.abgleiche if a.antwort == "pv")
+        dauerlast = next(a for a in abgleich.abgleiche if a.antwort == "dauerlast")
 
         rechenweg = {
             "schwellen": {
@@ -342,14 +446,24 @@ class LastgangSignalsCapability(Capability):
             },
             "interval_minutes": interval_minutes,
             "guards_aktiv": is_pv,
+            "profil_abgleich": _rechenweg_abgleich(abgleich),
         }
 
-        caveats = [_CAVEAT_15MIN, *guard.caveats]
+        abgleich_caveats = [a.caveat for a in abgleich.abgleiche if a.caveat]
+        caveats = [_CAVEAT_15MIN, *guard.caveats, *abgleich_caveats]
 
         result = LastgangSignalsResult(
-            electric_heating=guard.electric_heating.value,
-            pv_self_consumption=signals.pv_self_consumption.value,
-            high_continuous_load=signals.high_continuous_load.value,
+            electric_heating=heizung.signal_effektiv,
+            pv_self_consumption=pv.signal_effektiv,
+            high_continuous_load=dauerlast.signal_effektiv,
+            electric_heating_quelle=heizung.quelle,
+            electric_heating_roh=heizung.signal_roh if heizung.quelle != "heuristik" else None,
+            pv_self_consumption_quelle=pv.quelle,
+            pv_self_consumption_roh=pv.signal_roh if pv.quelle != "heuristik" else None,
+            high_continuous_load_quelle=dauerlast.quelle,
+            high_continuous_load_roh=(
+                dauerlast.signal_roh if dauerlast.quelle != "heuristik" else None
+            ),
             winter_summer_ratio=signals.winter_summer_ratio,
             night_base_w=signals.night_base_w,
             night_fenster=NIGHT_FENSTER_LABEL,
@@ -367,6 +481,14 @@ class LastgangSignalsCapability(Capability):
                 RueckfrageModel(feld=f.feld, frage=f.frage, motiviert_durch=f.motiviert_durch)
                 for f in rueckfragen
             ],
+            profil_abgleich=ProfilAbgleichModel(
+                verfuegbar=abgleich.verfuegbar,
+                anzahl_widersprueche=abgleich.anzahl_widersprueche,
+                heizung=_eintrag_model(heizung),
+                pv=_eintrag_model(pv),
+                dauerlast=_eintrag_model(dauerlast),
+                unterdrueckte_rueckfragen=list(abgleich.unterdrueckte_rueckfragen),
+            ),
             rechenweg=rechenweg,
             caveats=caveats,
             nenner=dict(_NENNER),

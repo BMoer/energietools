@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "energietools"
-version = "0.6.4"
+version = "0.7.0"
 description = "Open-Source Toolkit für den österreichischen Energiemarkt"
 authors = [{ name = "Benjamin Mörzinger", email = "b.moerzinger@gmail.com" }]
 license = { text = "MIT" }

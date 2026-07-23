@@ -100,6 +100,7 @@ def lint_prozess(
                 )
 
     fehler.extend(_lint_caveat_pfade(prozess, reg))
+    fehler.extend(_lint_signal_praezedenz(prozess, reg))
     return fehler
 
 
@@ -161,6 +162,97 @@ def _lint_caveat_pfade(prozess: Prozess, reg: CapabilityRegistry) -> list[LintFe
                 f"Trigger '{caveat.trigger}': Ordnungsvergleich '{op}' auf nicht-"
                 f"numerischem Feld '{pfad}' (Art '{bekannt[pfad]}')",
             ))
+    return fehler
+
+
+def _lint_signal_praezedenz(prozess: Prozess, reg: CapabilityRegistry) -> list[LintFehler]:
+    """Regel (f): der optionale ``signale``-Block ist eine gelintete SICHT auf
+    ``lastgang.reconcile.PRAEZEDENZ`` (Fakt vor Heuristik, SSOT = Code).
+
+    - Ein aktiver ``lastgang_signals``-Schritt OHNE ``signale``-Block ist ein
+      Doku-Loch (``signale.fehlt``).
+    - Die ``signale``-Keys müssen 1:1 den Signalen aus ``SIGNAL_FELD_MAPPING``
+      entsprechen, inklusive der zugeordneten ``fakt``-Werte — sonst ist die
+      YAML-Doku von der Code-SSOT abgedriftet (``signale.praezedenz_drift``).
+    - Jedes ``signale``-Signal muss ein reales Result-Feld der Capability sein
+      (``signale.unbekanntes_signal``), jeder ``fakt`` muss durch
+      ``benoetigte_daten``/``fragen`` gedeckt sein (``signale.fakt_nicht_gedeckt``).
+    - Ein ``signale``-Block OHNE aktiven ``lastgang_signals``-Schritt ist
+      verwaiste Doku (``signale.verwaist``).
+    """
+    from energietools.capabilities.lastgang.reconcile import SIGNAL_FELD_MAPPING
+
+    pid = prozess.meta.id
+    fehler: list[LintFehler] = []
+
+    lastgang_aktiv = any(
+        schritt.quelle == "energietools"
+        and schritt.capability == "lastgang_signals"
+        and schritt.rolle == "aktiv"
+        for schritt in prozess.tool_mapping
+    )
+
+    if not lastgang_aktiv:
+        if prozess.signale:
+            fehler.append(
+                LintFehler(
+                    pid, None, "signale.verwaist",
+                    "signale-Block vorhanden, aber kein aktiver lastgang_signals-Schritt "
+                    "im tool_mapping — verwaiste Doku?",
+                ),
+            )
+        return fehler
+
+    if not prozess.signale:
+        fehler.append(
+            LintFehler(
+                pid, None, "signale.fehlt",
+                "lastgang_signals ist aktiv, aber der signale-Block fehlt oder ist leer "
+                "(Fakt-vor-Heuristik-Deklaration Pflicht, s. lastgang.reconcile.PRAEZEDENZ)",
+            ),
+        )
+        return fehler
+
+    erwartete_keys = set(SIGNAL_FELD_MAPPING)
+    vorhandene_keys = set(prozess.signale)
+    if vorhandene_keys != erwartete_keys:
+        fehler.append(
+            LintFehler(
+                pid, None, "signale.praezedenz_drift",
+                f"signale-Keys {sorted(vorhandene_keys)} != PRAEZEDENZ-Signale "
+                f"{sorted(erwartete_keys)} (lastgang.reconcile.SIGNAL_FELD_MAPPING)",
+            ),
+        )
+
+    cap_pfade = (
+        reg.get("lastgang_signals").result_field_paths() if "lastgang_signals" in reg.names else {}
+    )
+    for signal, eintrag in prozess.signale.items():
+        erwarteter_fakt = SIGNAL_FELD_MAPPING.get(signal)
+        if erwarteter_fakt is not None and eintrag.fakt != erwarteter_fakt:
+            fehler.append(
+                LintFehler(
+                    pid, None, "signale.praezedenz_drift",
+                    f"signale.{signal}.fakt={eintrag.fakt!r} != PRAEZEDENZ-Fakt "
+                    f"{erwarteter_fakt!r}",
+                ),
+            )
+        if signal not in cap_pfade:
+            fehler.append(
+                LintFehler(
+                    pid, None, "signale.unbekanntes_signal",
+                    f"signale.{signal}: kein Result-Feld von lastgang_signals",
+                ),
+            )
+        if eintrag.fakt not in prozess.gedeckte_felder:
+            fehler.append(
+                LintFehler(
+                    pid, None, "signale.fakt_nicht_gedeckt",
+                    f"signale.{signal}.fakt={eintrag.fakt!r} ist nicht durch "
+                    "benoetigte_daten/fragen gedeckt",
+                ),
+            )
+
     return fehler
 
 

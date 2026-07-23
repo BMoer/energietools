@@ -4,6 +4,12 @@
 """PV-bedingte Guards für die Lastgang-Signale (L.1.4 — NEU ggü. der gridbert-
 Quelle, Ledger F3/F14/F24).
 
+**Stufe 1 der Lastgang-Signal-Pipeline** (Evidenz-Guard: PV verzerrt den
+Netzbezug, s.u.) — davon strikt getrennt ist **Stufe 2**
+(``lastgang.reconcile``: Fakt-Präzedenz, Fakt vor Heuristik). Reihenfolge:
+``compute_signals -> apply_pv_guards (hier, Stufe 1) -> reconcile_signals
+(reconcile.py, Stufe 2)``.
+
 Ein Netzbezug-Lastgang bei einem PV-Prosumer erzeugt False Positives, die ein
 reiner Verbrauchskanal nicht hat: der Mittags-Bezug ist PV-gedeckt, also sieht
 jede Kennzahl auf Netzbezug-Basis nach weniger Verbrauch aus als real
@@ -50,6 +56,15 @@ CAVEAT_PV_WIDERSPRUCH = (
     "PV-Flag ggf. falsch gesetzt: Mittags-Bezug > Nacht-Bezug ist bei PV "
     "untypisch (Konsistenz prüfen, kein Hard-Fail)."
 )
+# E2: stammt die PV-Kenntnis AUSSCHLIESSLICH aus einem gespeicherten Fakt
+# (kein Flag, keine Einspeise-Summe), ist "PV-Flag ggf. falsch gesetzt"
+# irreführend — es gibt gar kein Flag, das falsch gesetzt sein könnte. Der
+# bestätigte Fakt steht nicht zur Debatte; nur die Serie/der Kanal ist zu
+# prüfen.
+CAVEAT_PV_WIDERSPRUCH_AUS_FAKT = (
+    "Trotz gespeicherter PV-Anlage kein Mittags-Dip im Netzbezug — "
+    "Serie/Kanal prüfen."
+)
 
 _GUARDED_HEATING_FRAGE = (
     "Dein Netzbezug ist im Winter deutlich höher als im Sommer (Winter/Sommer-"
@@ -78,11 +93,20 @@ def apply_pv_guards(
     *,
     is_pv: bool,
     grundlast_kw: float | None,
+    pv_kenntnis_nur_aus_fakt: bool = False,
 ) -> PvGuardResult:
     """Wendet die PV-Guards (L.1.4) auf ein Roh-Signal-Ergebnis an.
 
     Bei ``is_pv=False`` (Fall B, reiner Verbrauchskanal) unverändert
     durchgereicht — die Guards sind PV-bedingt, nicht pauschal (Ledger-F14).
+
+    ``pv_kenntnis_nur_aus_fakt`` (E2, Default ``False`` — bestehende Flag-
+    Semantik unverändert): ``True`` nur, wenn ``is_pv`` ausschließlich aus
+    einem gespeicherten Profil-Fakt stammt (kein explizites Flag, keine
+    Einspeise-Summe) — dann ist der Konsistenz-Caveat neutral formuliert
+    (:data:`CAVEAT_PV_WIDERSPRUCH_AUS_FAKT` statt
+    :data:`CAVEAT_PV_WIDERSPRUCH`), weil es kein Flag gibt, das falsch
+    gesetzt sein könnte.
     """
     if not is_pv:
         return PvGuardResult(
@@ -109,7 +133,9 @@ def apply_pv_guards(
 
     widerspruch = signals.midday_dip_ratio is not None and signals.midday_dip_ratio > 1
     if widerspruch:
-        caveats.append(CAVEAT_PV_WIDERSPRUCH)
+        caveats.append(
+            CAVEAT_PV_WIDERSPRUCH_AUS_FAKT if pv_kenntnis_nur_aus_fakt else CAVEAT_PV_WIDERSPRUCH
+        )
 
     return PvGuardResult(
         basis_label="Netzbezug",

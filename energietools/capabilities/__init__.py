@@ -16,12 +16,22 @@ from energietools.capabilities.base import (
     CapabilityRegistry,
     CapabilityResult,
 )
+from energietools.capabilities.profile import (
+    PROFIL_FELDER,
+    FaktWert,
+    InMemoryProfileFacts,
+    ProfileSource,
+)
 from energietools.capabilities.registry import default_registry
 
 __all__ = [
+    "PROFIL_FELDER",
     "Capability",
     "CapabilityError",
     "CapabilityRegistry",
     "CapabilityResult",
+    "FaktWert",
+    "InMemoryProfileFacts",
+    "ProfileSource",
     "default_registry",
 ]

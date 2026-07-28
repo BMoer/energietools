@@ -46,10 +46,13 @@ kleinzureden.
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from dataclasses import dataclass, replace
 from datetime import date, datetime
 from statistics import median
+
+from energietools.capabilities.lastgang.granularitaet import slot_abstand_minuten
 
 # Ledger-F11: ab so vielen abgedeckten Kalendertagen gilt ein Jahr als "voll"
 # genug für einen echten Kalender-YoY-Vergleich.
@@ -62,6 +65,14 @@ FULL_YEAR_DAY_THRESHOLD = 360
 # unterjährige Wechsel (z.B. Einzug im Dezember) noch zuzulassen, aber breit
 # genug, um Rand-/Einzel-Slot-Artefakte sicher auszuschließen.
 MIN_TREND_FENSTER_TAGE = 30
+
+# Korrektheits-Fix L3 (2026-07-28): Anteil der für ein Jahr erwarteten Slots,
+# ab dem ein Kalendertag im Tagessummen-Pfad als vollständig gemessen gilt.
+# 90 % lässt Zeitumstellungstage (92 statt 96 Q15-Slots) und einzelne Lücken
+# durch, verwirft aber angebrochene Rand-/Teiltage, die als voller Tag
+# gezählt die Jahressumme verwässern würden.
+_TAGES_DECKUNG_MIN = 0.9
+_MINUTEN_PRO_TAG = 1440
 
 
 @dataclass(frozen=True)
@@ -158,6 +169,28 @@ def per_year(consumption: list[tuple[datetime, float]]) -> list[JahresKennzahl]:
     return out
 
 
+def _tagessummen(
+    punkte: list[tuple[datetime, float]], abstand_min: float
+) -> dict[tuple[int, int], float]:
+    """kWh je (Monat,Tag) — nur für vollständig gemessene Kalendertage.
+
+    Ein Tag zählt ab ``_TAGES_DECKUNG_MIN`` der für diese Auflösung erwarteten
+    Slots (Q15: 96, Stundenwerte: 24, Tageswerte: 1). Angebrochene Tage — der
+    erste/letzte Tag einer Serie, der Umstellungstag beim Q15-Opt-in — würden
+    sonst als voller Tag in die Jahressumme eingehen und das Delta verzerren.
+    """
+    summen: dict[tuple[int, int], float] = defaultdict(float)
+    anzahl: dict[tuple[int, int], int] = defaultdict(int)
+    for ts, wert in punkte:
+        key = (ts.month, ts.day)
+        summen[key] += wert
+        anzahl[key] += 1
+
+    erwartet = max(1, round(_MINUTEN_PRO_TAG / abstand_min)) if abstand_min > 0 else 1
+    mindest_slots = max(1, math.ceil(erwartet * _TAGES_DECKUNG_MIN))
+    return {key: wert for key, wert in summen.items() if anzahl[key] >= mindest_slots}
+
+
 def aligned_window_yoy(
     consumption: list[tuple[datetime, float]], jahr_a: int, jahr_b: int
 ) -> WindowYoY | None:
@@ -175,26 +208,59 @@ def aligned_window_yoy(
     Mindest-Deckungs-Filter (``MIN_TREND_FENSTER_TAGE``) irreführend gewesen —
     ein voll abgedecktes Tageswert-Fenster hätte fälschlich als "zu dünn"
     gegolten. Die neue Zählung ist granularitätsunabhängig (Q15 wie Tageswert).
+
+    **Gemischte Auflösung (Korrektheits-Fix L3, 2026-07-28):** Der
+    Slot-Schlüssel setzt stillschweigend voraus, dass beide Jahre dieselbe
+    Auflösung haben. Liegt ein Jahr als Tageswerte und das andere als Q15 vor
+    — der Normalfall nach einem Q15-Opt-in mit Tageswert-Backfill —, dann
+    trägt derselbe Schlüssel links einen ganzen Tag und rechts eine
+    Viertelstunde. Das Delta ist dann kein Messergebnis, sondern der
+    Auflösungsunterschied (realer Fall: -43,4 % statt "etwa gleich"; im Test
+    -99 %). Deshalb wird die Auflösung je Jahr aus den Zeitstempeln abgeleitet
+    und bei Ungleichheit auf **Tagessummen** verglichen — die einzige Ebene,
+    auf der beide Seiten dasselbe bedeuten. Bei gleicher Auflösung bleibt der
+    slot-genaue Vergleich unverändert.
     """
-    by_key: dict[int, dict[tuple[int, int, int, int], float]] = {jahr_a: {}, jahr_b: {}}
-    for ts, wert in consumption:
-        if ts.year not in (jahr_a, jahr_b):
-            continue
-        key = (ts.month, ts.day, ts.hour, ts.minute)
-        jahres_dict = by_key[ts.year]
-        jahres_dict[key] = jahres_dict.get(key, 0.0) + wert
+    punkte_a = [(ts, wert) for ts, wert in consumption if ts.year == jahr_a]
+    punkte_b = [(ts, wert) for ts, wert in consumption if ts.year == jahr_b]
 
-    gemeinsame_keys = by_key[jahr_a].keys() & by_key[jahr_b].keys()
-    if not gemeinsame_keys:
-        return None
+    abstand_a = slot_abstand_minuten(ts for ts, _ in punkte_a)
+    abstand_b = slot_abstand_minuten(ts for ts, _ in punkte_b)
+    gemischte_aufloesung = (
+        abstand_a is not None and abstand_b is not None and abstand_a != abstand_b
+    )
 
-    summe_a = sum(by_key[jahr_a][k] for k in gemeinsame_keys)
-    summe_b = sum(by_key[jahr_b][k] for k in gemeinsame_keys)
-    gemeinsame_tage = len({(monat, tag) for monat, tag, _std, _min in gemeinsame_keys})
+    if gemischte_aufloesung:
+        tage_a = _tagessummen(punkte_a, abstand_a)
+        tage_b = _tagessummen(punkte_b, abstand_b)
+        gemeinsame_tages_keys = tage_a.keys() & tage_b.keys()
+        if not gemeinsame_tages_keys:
+            return None
+        summe_a = sum(tage_a[k] for k in gemeinsame_tages_keys)
+        summe_b = sum(tage_b[k] for k in gemeinsame_tages_keys)
+        anzahl_slots = len(gemeinsame_tages_keys)
+        gemeinsame_tage = len(gemeinsame_tages_keys)
+    else:
+        by_key: dict[int, dict[tuple[int, int, int, int], float]] = {jahr_a: {}, jahr_b: {}}
+        for ts, wert in consumption:
+            if ts.year not in (jahr_a, jahr_b):
+                continue
+            key = (ts.month, ts.day, ts.hour, ts.minute)
+            jahres_dict = by_key[ts.year]
+            jahres_dict[key] = jahres_dict.get(key, 0.0) + wert
+
+        gemeinsame_keys = by_key[jahr_a].keys() & by_key[jahr_b].keys()
+        if not gemeinsame_keys:
+            return None
+        summe_a = sum(by_key[jahr_a][k] for k in gemeinsame_keys)
+        summe_b = sum(by_key[jahr_b][k] for k in gemeinsame_keys)
+        anzahl_slots = len(gemeinsame_keys)
+        gemeinsame_tage = len({(monat, tag) for monat, tag, _std, _min in gemeinsame_keys})
+
     return WindowYoY(
         von_jahr=jahr_a,
         bis_jahr=jahr_b,
-        gemeinsame_slots=len(gemeinsame_keys),
+        gemeinsame_slots=anzahl_slots,
         gemeinsame_tage=float(gemeinsame_tage),
         kwh_a=round(summe_a, 1),
         kwh_b=round(summe_b, 1),

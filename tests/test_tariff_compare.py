@@ -16,12 +16,17 @@ from datetime import datetime
 
 import pytest
 
+from energietools.capabilities.invoice.facts import PLAUSIBILITAET as _INVOICE_PLAUSIBILITAET
 from energietools.capabilities.tariff_compare import (
     CatalogTariffSource,
     SnapshotSpotPriceSource,
     TariffCompareCapability,
     vergleiche_tarife,
 )
+
+# tariff_compare validiert die Grundgebühr gegen dieselbe Konstante wie der
+# Rechnungspfad — der Test leitet die Schwelle daher ab, statt sie zu wiederholen.
+_GG_OBERGRENZE = _INVOICE_PLAUSIBILITAET["grundgebuehr_eur_monat"][1]
 
 
 class FakeTariffSource:
@@ -660,7 +665,11 @@ class TestCapabilityEnvelope:
         ({"aktueller_energiepreis_brutto_ct_kwh": -999.0}, "energiepreis"),
         ({"aktueller_energiepreis_brutto_ct_kwh": "viel"}, "Zahleneingabe"),
         ({"aktuelle_grundgebuehr_brutto_eur_monat": -5.0}, "grundgeb"),
-        ({"aktuelle_grundgebuehr_brutto_eur_monat": 999.0}, "grundgeb"),
+        # Oberhalb der Grenze — aus der Konstante abgeleitet statt als feste Zahl.
+        # Vorher stand hier 999.0, gewählt als "weit über 30"; mit der Anhebung auf
+        # 1.000 (Gewerbekunden, 2026-07-28) lag der Wert plötzlich INNERHALB und der
+        # Test schlug fehl, obwohl das Verhalten korrekt war.
+        ({"aktuelle_grundgebuehr_brutto_eur_monat": _GG_OBERGRENZE + 1.0}, "grundgeb"),
     ])
     def test_input_validierung(self, kwargs, fragment):
         base = dict(

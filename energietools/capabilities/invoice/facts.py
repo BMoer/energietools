@@ -36,11 +36,25 @@ _DE_DATUM_RE = re.compile(r"(\d{2})\.(\d{2})\.(\d{4})")
 
 # Plausibilitätsgrenzen (brutto) für österreichische Energierechnungen —
 # identisch zu ``tools.invoice_parser._PLAUSIBILITY`` (eine Quelle der Zahlen).
+#
+# Die Obergrenzen fangen **Einheiten- und Zahlendreher**, sie unterstellen keine
+# Kundengröße. Bis 2026-07-28 taten sie genau das: `verbrauch_kwh <= 100.000` und
+# `grundgebuehr <= 30 EUR/Monat` beschrieben einen Haushalt und wiesen damit reale
+# Betriebe ab — ein betreuter Kunde liegt bei rund 136.300 kWh im Jahr, und
+# Grundgebühren von 50 bis 200 EUR/Monat sind mit Lastprofilzähler normal. Das traf
+# ausgerechnet die Fälle, für die das Berater-Tier gebaut ist.
+#
+# Die Grenzen liegen jetzt dort, wo ein Wert nur noch ein Erfassungsfehler sein kann:
+# 20 GWh Jahresverbrauch fängt den Wh-statt-kWh-Dreher (Faktor 1.000), 1.000 EUR
+# Grundgebühr im Monat den Jahres-statt-Monats-Dreher bei realen Gewerbewerten. Gegen
+# vertauschte Größenordnungen innerhalb des plausiblen Bereichs schützen nicht diese
+# Schranken, sondern die Untergrenzen, der Anker-Zwang (jede Zahl braucht ein
+# wörtliches Zitat) und die Cross-Field-Prüfungen.
 PLAUSIBILITAET = {
     "arbeitspreis_ct_kwh": (3.0, 80.0),
-    "grundgebuehr_eur_monat": (0.0, 30.0),
-    "verbrauch_kwh": (10.0, 100_000.0),
-    "kosten_eur": (5.0, 50_000.0),
+    "grundgebuehr_eur_monat": (0.0, 1_000.0),
+    "verbrauch_kwh": (10.0, 20_000_000.0),
+    "kosten_eur": (5.0, 5_000_000.0),
 }
 
 # Effektivpreis-Anker (EUR/kWh) + Brutto-Floor des deterministischen

@@ -646,13 +646,22 @@ def parse_invoice(file_path: str | Path) -> Invoice:
 
 # --- Deterministic post-processing (NO LLM, pure Python) ---------------------
 
-# Plausibility bounds for Austrian energy invoices
-_PLAUSIBILITY = {
-    "arbeitspreis_ct_kwh": (3.0, 80.0),      # ct/kWh brutto (3-80 is wide)
-    "grundgebuehr_eur_monat": (0.0, 30.0),    # EUR/month brutto
-    "verbrauch_kwh": (10.0, 100_000.0),       # kWh/year
-    "energiekosten_eur_brutto": (5.0, 50_000.0),
-}
+# Plausibility bounds for Austrian energy invoices.
+#
+# Derived from capabilities.invoice.facts.PLAUSIBILITAET instead of restating the
+# numbers. They used to be duplicated here and in gridbert's postprocess.py, all three
+# claiming to be "one source"; when the limits were widened for commercial customers on
+# 2026-07-28, only one copy moved and the other two would have kept rejecting the very
+# invoices the first one accepted. The only difference is the key for the cost bound.
+def _plausibility_bounds() -> dict[str, tuple[float, float]]:
+    from energietools.capabilities.invoice.facts import PLAUSIBILITAET
+
+    bounds = dict(PLAUSIBILITAET)
+    bounds["energiekosten_eur_brutto"] = bounds.pop("kosten_eur")
+    return bounds
+
+
+_PLAUSIBILITY = _plausibility_bounds()
 
 
 def _safe_float(val: object, default: float = 0.0) -> float:

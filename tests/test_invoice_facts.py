@@ -376,3 +376,44 @@ class TestFinalizeCapability:
             result = FinalizeInvoiceCapability().run(**_payload(energieart=art))
             assert result.ok is True, f"{art}: {result.error}"
             assert result.data["invoice"]["energieart"] == art
+
+
+class TestGewerbeGroessenordnungen:
+    """Die Plausibilitaetsgrenzen kodierten einen Haushalt, keine Plausibilitaet.
+
+    Befund 2026-07-28: `verbrauch_kwh <= 100.000` und `grundgebuehr <= 30 EUR/Monat`
+    schlossen genau die Faelle aus, fuer die das Berater-Tier gebaut ist — ein
+    realer Kunde (Startup House) liegt bei rund 136.300 kWh im Jahr. Das Gate soll
+    Einheiten- und Zahlendreher fangen, nicht eine Kundengroesse unterstellen.
+    """
+
+    def test_gewerbeverbrauch_wird_angenommen(self):
+        # 136.300 kWh/Jahr: realer Wert eines betreuten Betriebs, vorher abgelehnt.
+        facts, fehler = pruefe_invoice_facts(_payload(
+            verbrauch_kwh=136_300.0,
+            summe_energieentgelte={"wert_eur": 27_260.0, "ist_netto": True},
+            rechnungsbetrag_brutto_eur=39_000.0,
+        ))
+        assert fehler == [], f"Gewerbeverbrauch abgelehnt: {_regeln(fehler)}"
+        assert facts is not None
+
+    def test_hohe_grundgebuehr_wird_angenommen(self):
+        # Lastprofilzaehler: Grundgebuehren von 50-200 EUR/Monat sind normal.
+        facts, fehler = pruefe_invoice_facts(_payload(
+            grundgebuehr={"wert_eur": 120.0, "zeitraum": "monat", "ist_netto": True},
+        ))
+        assert fehler == [], f"Gewerbe-Grundgebuehr abgelehnt: {_regeln(fehler)}"
+        assert facts is not None
+
+    def test_einheitendreher_wird_weiter_gefangen(self):
+        # Wh statt kWh eingelesen: der Schutz, den das Gate wirklich leisten soll.
+        facts, fehler = pruefe_invoice_facts(_payload(verbrauch_kwh=136_300_000.0))
+        assert facts is None
+        assert any("plausibilitaet" in r for r in _regeln(fehler))
+
+    def test_absurde_grundgebuehr_wird_weiter_gefangen(self):
+        facts, fehler = pruefe_invoice_facts(_payload(
+            grundgebuehr={"wert_eur": 9_000.0, "zeitraum": "monat", "ist_netto": True},
+        ))
+        assert facts is None
+        assert any("plausibilitaet" in r for r in _regeln(fehler))

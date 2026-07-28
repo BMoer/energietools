@@ -872,6 +872,70 @@ def test_load_trend_gemeinsame_tage_ist_granularitaetsunabhaengig() -> None:
     assert w.gemeinsame_tage == pytest.approx(10.0, abs=0.01)
 
 
+# --- L3: gemischte Granularitaet (Tageswerte vs. Q15) --------------------
+# Produkt-Lerning L3 (Case 12, 23.07.2026): meldete "2025 -> 2026: -43,4 %",
+# obwohl die Monatssummen nur wenige Prozent auseinanderlagen. Ursache: der
+# (Monat,Tag,Std,Min)-Slotschluessel stellt einen Tageswert (ein Slot = ein
+# ganzer Tag) einer Viertelstunde gegenueber. Betrifft jede Serie mit
+# Q15-Opt-in nach einem Tageswert-Backfill.
+
+
+def _q15_records(start: date, end: date, kwh_je_tag: float) -> list[dict]:
+    """96 Viertelstundenwerte je Kalendertag in [start, end] (inklusive)."""
+    out: list[dict] = []
+    tag = start
+    while tag <= end:
+        for slot in range(96):
+            ts = datetime(tag.year, tag.month, tag.day) + timedelta(minutes=15 * slot)
+            out.append({"ts": ts.isoformat(), "kwh": round(kwh_je_tag / 96, 6)})
+        tag += timedelta(days=1)
+    return out
+
+
+def test_aligned_window_yoy_mischt_tageswerte_und_q15_nicht_slotweise() -> None:
+    """Gleicher Tagesverbrauch in beiden Jahren, nur andere Aufloesung ->
+    das Delta muss ~0 sein. Vor dem Fix stellte der Slotschluessel einen
+    ganzen Tag einer Viertelstunde gegenueber (~-99 %)."""
+    a = _daily_records(date(2025, 1, 1), date(2025, 2, 20), 10.0)
+    b = _q15_records(date(2026, 1, 1), date(2026, 2, 20), 10.0)
+
+    w = aligned_window_yoy(_daily_tuples(a + b), 2025, 2026)
+
+    assert w is not None
+    assert w.delta_pct == pytest.approx(0.0, abs=0.5)
+    assert w.gemeinsame_tage == pytest.approx(51.0, abs=0.01)
+
+
+def test_aligned_window_yoy_gemischt_erkennt_echte_veraenderung() -> None:
+    """Der Aggregationspfad darf keine Veraenderung verschlucken: +20 % bei
+    gemischter Aufloesung muessen als +20 % ankommen."""
+    a = _daily_records(date(2025, 3, 1), date(2025, 4, 20), 10.0)
+    b = _q15_records(date(2026, 3, 1), date(2026, 4, 20), 12.0)
+
+    w = aligned_window_yoy(_daily_tuples(a + b), 2025, 2026)
+
+    assert w is not None
+    assert w.delta_pct == pytest.approx(20.0, abs=0.5)
+
+
+def test_aligned_window_yoy_gemischt_verwirft_angebrochene_tage() -> None:
+    """Ein Q15-Tag mit nur wenigen Slots ist kein Tagesverbrauch. Er darf die
+    Summe nicht als voller Tag verwaessern, sondern faellt raus."""
+    a = _daily_records(date(2025, 5, 1), date(2025, 6, 20), 10.0)
+    b = _q15_records(date(2026, 5, 1), date(2026, 6, 19), 10.0)
+    # 20.06.2026 nur bis 01:00 gemessen (4 Slots statt 96)
+    angebrochen = [
+        {"ts": (datetime(2026, 6, 20) + timedelta(minutes=15 * s)).isoformat(), "kwh": 10.0 / 96}
+        for s in range(4)
+    ]
+
+    w = aligned_window_yoy(_daily_tuples(a + b + angebrochen), 2025, 2026)
+
+    assert w is not None
+    assert w.gemeinsame_tage == pytest.approx(50.0, abs=0.01)  # 20.06. verworfen
+    assert w.delta_pct == pytest.approx(0.0, abs=0.5)
+
+
 # --- Referenz Fall B (DoD-Kriterium 5): reproduziert +9,8 %/+9,7 % --------
 # (results_09.md:36-37, CASE_09.md:31-33, out_09.json — nur Aggregate/
 # Kalendergrenzen als Referenz, keine Rohserie, s. Spec §L.2.5/§6.)

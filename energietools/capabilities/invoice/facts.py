@@ -204,7 +204,42 @@ _BETRAG_ANKER_FELDER = (
     "rechnungsbetrag_brutto_eur", "grundgebuehr", "arbeitspreis",
 )
 
-_ZAHL_TOKEN_RE = re.compile(r"[0-9][0-9.,  ]*[0-9]|[0-9]")
+# Leerzeichen, die in Rechnungstexten als Tausendertrenner auftreten. PDF-Copy
+# und deutsche Typografie liefern nicht das ASCII-Leerzeichen, sondern schmale
+# geschuetzte Varianten - die galten vorher gar nicht als Trenner (L16).
+_TRENN_LEERZEICHEN = "\u00a0\u202f\u2009\u2007\u2008\u2005\u2006"
+
+# Ein Zahl-Token ist eine Ziffernfolge OHNE Leerzeichen. Bis 30.07.2026 stand das
+# Leerzeichen in der Zeichenklasse - dadurch verschmolz eine Rechnungs-Tabellen-
+# zeile ("01.01.2025 31.12.2025 3.500,00") zu EINEM Token, das keinen Wert mehr
+# traf. Wer die Zeile woertlich zitierte (genau das verlangt die Ablehnung), bekam
+# deshalb `anker_verbrauch_fehlt` - die haeufigste Ablehnung im Live-Betrieb.
+_ZAHL_TOKEN_RE = re.compile(r"[0-9][0-9.,]*[0-9]|[0-9]")
+
+# Der Tausendertrenner-Fall, den das Leerzeichen in der Klasse abdecken sollte:
+# ein 1-3-stelliger Kopf plus mindestens eine per Leerzeichen abgesetzte
+# Dreiergruppe ("3 500", "2 562,30"). Die Lookarounds verhindern, dass die Gruppe
+# mitten in einer laengeren Ziffernfolge ansetzt ("41230 3500" bleibt zwei Zahlen).
+_ZAHL_GRUPPE_RE = re.compile(r"(?<![0-9])[0-9]{1,3}(?: [0-9]{3})+(?:[.,][0-9]+)?(?![0-9])")
+
+
+def _normalisiere_trenn_leerzeichen(text: str) -> str:
+    """Typografische Leerzeichen auf das ASCII-Leerzeichen heben (neuer String)."""
+    for zeichen in _TRENN_LEERZEICHEN:
+        text = text.replace(zeichen, " ")
+    return text
+
+
+def _ist_tausendergruppierung(t: str, trenner: str) -> bool:
+    """True, wenn ``trenner`` in ``t`` echte Dreiergruppen abtrennt (``3.500``,
+    ``1.200.000``) — und nicht bloß irgendwo steht.
+
+    Ohne diese Prüfung galt die Tausender-Deutung für JEDES Vorkommen: ``350,0``
+    wurde damit auch als ``3500`` gelesen und belegte im Anker-Gate einen Wert,
+    der zehnmal so groß ist wie der zitierte. Für ein Gate, das die Zahlenkette
+    einer Rechnung beweisen soll, ist das der teuerste denkbare Fehler.
+    """
+    return re.fullmatch(rf"[0-9]{{1,3}}(?:{re.escape(trenner)}[0-9]{{3}})+", t) is not None
 
 
 def _zahl_kandidaten(token: str) -> set[float]:
@@ -212,9 +247,11 @@ def _zahl_kandidaten(token: str) -> set[float]:
 
     ',' und '.' können Tausender- ODER Dezimaltrenner sein; ohne Locale-Annahme
     werden beide Deutungen erzeugt, sodass der Aufrufer prüfen kann, ob EINE den
-    Zielwert trifft. Bewusst rein syntaktisch — kein Semantik-Anspruch.
+    Zielwert trifft. Bewusst rein syntaktisch — kein Semantik-Anspruch. Die
+    Tausender-Deutung setzt aber echte Dreiergruppen voraus (s.
+    ``_ist_tausendergruppierung``).
     """
-    t = token.replace(" ", "").replace(" ", "")
+    t = _normalisiere_trenn_leerzeichen(token).replace(" ", "")
     if not any(c.isdigit() for c in t):
         return set()
     kandidaten: set[float] = set()
@@ -233,10 +270,12 @@ def _zahl_kandidaten(token: str) -> set[float]:
             _try(t.replace(".", "").replace(",", "."))  # ',' Dezimal, '.' Tausender
     elif hat_komma:
         _try(t.replace(",", "."))                       # ',' als Dezimaltrenner
-        _try(t.replace(",", ""))                        # ',' als Tausendertrenner
+        if _ist_tausendergruppierung(t, ","):
+            _try(t.replace(",", ""))                    # ',' als Tausendertrenner
     elif hat_punkt:
         _try(t)                                         # '.' als Dezimaltrenner
-        _try(t.replace(".", ""))                        # '.' als Tausendertrenner
+        if _ist_tausendergruppierung(t, "."):
+            _try(t.replace(".", ""))                    # '.' als Tausendertrenner
     else:
         _try(t)
     return kandidaten
@@ -246,11 +285,21 @@ def _wert_im_zitat(wert: float, zitat: str) -> bool:
     """True, wenn der transkribierte Zahlenwert wörtlich im Zitat vorkommt.
 
     Deterministischer Zahlen-Match mit Separator-Normalisierung (',' / '.' /
-    Leerzeichen / NBSP). KEIN semantischer Abgleich — nur die Ziffernfolge muss
-    (in einer der beiden Trenner-Deutungen) den Wert ergeben.
+    Leerzeichen inkl. der typografischen Varianten). KEIN semantischer Abgleich —
+    nur die Ziffernfolge muss (in einer der Trenner-Deutungen) den Wert ergeben.
+
+    Zwei Token-Wege, weil das Leerzeichen beides sein kann: **Trenner zwischen**
+    zwei Zahlen (Tabellenzeile) und Trenner **innerhalb** einer Zahl
+    (Tausendergruppe). Statt sich für eine Deutung zu entscheiden, werden beide
+    erzeugt — dieselbe Logik, mit der ``_zahl_kandidaten`` '.' und ',' behandelt.
     """
     ziel = round(float(wert), 2)
-    for token in _ZAHL_TOKEN_RE.findall(zitat):
+    normalisiert = _normalisiere_trenn_leerzeichen(zitat)
+    tokens = [
+        *_ZAHL_TOKEN_RE.findall(normalisiert),    # Zahlen ohne Leerzeichen
+        *_ZAHL_GRUPPE_RE.findall(normalisiert),   # Tausendergruppen mit Leerzeichen
+    ]
+    for token in tokens:
         for kandidat in _zahl_kandidaten(token):
             if abs(round(kandidat, 2) - ziel) <= 0.01:
                 return True
@@ -290,6 +339,55 @@ def _belegte_anker_felder(facts: InvoiceFacts) -> set[str]:
         if wert is not None and _wert_im_zitat(wert, anker.zitat):
             belegt.add(anker.feld)
     return belegt
+
+
+def _wert_deutsch(wert: float) -> str:
+    """Zahl in der Schreibweise, in der sie auf einer österreichischen Rechnung
+    steht (``2.562,30``) — das Beispiel in der Ablehnung dient dem User-LLM als
+    Vorlage, und eine Python-``repr``-Zahl (``2562.3``) steht dort nie."""
+    mit_gruppen = f"{wert:,.2f}"
+    return mit_gruppen.replace(",", "\x00").replace(".", ",").replace("\x00", ".")
+
+
+def _zitat_gekuerzt(zitat: str, grenze: int = 80) -> str:
+    """Zitat für die Rückfrage kürzen — es geht ins Tool-Result zurück an den
+    Absender, nie ins Log (D2.2-Logging-Policy), soll die Meldung aber nicht
+    fluten, wenn jemand eine halbe Rechnungsseite eingereicht hat."""
+    einzeilig = " ".join(zitat.split())
+    return einzeilig if len(einzeilig) <= grenze else einzeilig[: grenze - 1] + "…"
+
+
+def _anker_ursache(facts: InvoiceFacts, kandidaten: tuple[str, ...]) -> str:
+    """Benennt, WORAN der fehlende Beleg liegt — statt nur, DASS er fehlt.
+
+    Zwei Ursachen, die bis 30.07.2026 dieselbe Meldung bekamen: der Anker nennt
+    gar nicht das erwartete Feld, oder er nennt es, trägt den transkribierten
+    Wert aber nicht im Zitat. Das User-LLM konnte daraus nicht ableiten, was zu
+    ändern ist, und probierte blind weiter (L16: fünf Anläufe in 32 Sekunden).
+    """
+    werte = _numerische_feldwerte(facts)
+    # Nur Anker auf ein Feld, das auch einen Wert trägt — ein Anker auf ein
+    # unbefülltes Feld kann nichts belegen und hat keinen Wert zum Gegenlesen.
+    treffer = [
+        a for a in facts.quellen_anker
+        if a.feld in kandidaten and werte.get(a.feld) is not None
+    ]
+    if treffer:
+        anker = treffer[0]
+        wert = werte[anker.feld]
+        return (
+            f"Dein Anker für '{anker.feld}' zitiert \"{_zitat_gekuerzt(anker.zitat)}\" — "
+            f"darin kommt der von dir übermittelte Wert {_wert_deutsch(wert)} nicht vor. "
+            "Zitiere die Rechnungszeile, in der genau diese Zahl steht."
+        )
+    erwartet = " oder ".join(f"'{k}'" for k in kandidaten)
+    genannt = sorted({a.feld for a in facts.quellen_anker})
+    if not genannt:
+        return f"Du hast gar keinen Quellen-Anker geschickt; erwartet wird einer für {erwartet}."
+    return (
+        f"Deine Anker nennen {', '.join(repr(f) for f in genannt)} — erwartet wird "
+        f"{erwartet}. Das Feld im Anker muss exakt so heißen wie im Payload."
+    )
 
 
 def _pruefe_plausibilitaet(facts: InvoiceFacts) -> list[dict[str, Any]]:
@@ -460,16 +558,28 @@ def _pruefe_gates(facts: InvoiceFacts) -> list[dict[str, Any]]:
     if "verbrauch_kwh" not in belegt:
         fehler.append(_fehler(
             "quellen_anker", "anker_verbrauch_fehlt", None,
-            "Es fehlt ein Quellen-Anker für den Verbrauch: zitiere die "
-            "Rechnungszeile wörtlich, in der die verbrauch_kwh-Zahl steht "
-            "(feld='verbrauch_kwh', der Wert muss im Zitat vorkommen).",
+            "Es fehlt ein belegter Quellen-Anker für den Verbrauch. "
+            + _anker_ursache(facts, ("verbrauch_kwh",))
+            + " So sieht ein gültiger Anker aus: "
+            + f'{{"feld": "verbrauch_kwh", "zitat": "Jahresverbrauch '
+            + f'{_wert_deutsch(facts.verbrauch_kwh)} kWh"}}',
         ))
+    werte = _numerische_feldwerte(facts)
+    betrags_felder = tuple(f for f in _BETRAG_ANKER_FELDER if f in werte)
     if not belegt & set(_BETRAG_ANKER_FELDER):
+        beispiel_feld = betrags_felder[0] if betrags_felder else "rechnungsbetrag_brutto_eur"
+        beispiel_wert = werte.get(beispiel_feld)
+        beispiel = (
+            f'{{"feld": "{beispiel_feld}", "zitat": '
+            f'"Rechnungsbetrag {_wert_deutsch(beispiel_wert)}"}}'
+            if beispiel_wert is not None
+            else '{"feld": "rechnungsbetrag_brutto_eur", "zitat": "Rechnungsbetrag 812,44"}'
+        )
         fehler.append(_fehler(
             "quellen_anker", "anker_betrag_fehlt", None,
-            "Es fehlt ein Quellen-Anker für mindestens einen Betrag (z.B. "
-            "rechnungsbetrag_brutto_eur oder summe_energieentgelte): feld muss "
-            "exakt das befüllte Feld benennen und der Betrag im Zitat stehen.",
+            "Es fehlt ein belegter Quellen-Anker für mindestens einen Betrag. "
+            + _anker_ursache(facts, betrags_felder or _BETRAG_ANKER_FELDER)
+            + f" So sieht ein gültiger Anker aus: {beispiel}",
         ))
     return fehler
 

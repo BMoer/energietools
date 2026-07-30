@@ -270,6 +270,78 @@ class TestRegeln:
             assert "anker_verbrauch_fehlt" in _regeln(fehler)
             assert "anker_betrag_fehlt" not in _regeln(fehler)
 
+    def test_anker_trenner_deutung_nur_bei_echter_tausendergruppe(self):
+        # ',' und '.' werden bewusst doppeldeutig gelesen (Dezimal ODER Tausender),
+        # damit "3.500" (de) und "3,500" (en) beide 3500 belegen. Das galt aber auch
+        # dort, wo nach dem Trenner KEINE volle Dreiergruppe steht: "350,0" belegte
+        # so den Wert 3500 — ein Faktor-10-Fehler mitten im Beleg-Gate.
+        for zitat in ("Jahresverbrauch 350,0 kWh", "Jahresverbrauch 35,00 kWh"):
+            facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+                {"feld": "verbrauch_kwh", "zitat": zitat},
+                {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+            ]))
+            assert facts is None, f"{zitat!r} darf 3500 nicht belegen"
+            assert "anker_verbrauch_fehlt" in _regeln(fehler)
+
+    def test_anker_ablehnung_nennt_die_ursache_falscher_feldname(self):
+        # L16: Bis 30.07.2026 war die Meldung für zwei ganz verschiedene Ursachen
+        # identisch. Das LLM konnte nicht ableiten, was zu ändern ist, und riet.
+        # Fall (a): der Anker nennt ein Feld, das es nicht gibt.
+        facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+            {"feld": "jahresverbrauch", "zitat": "wurden 3.500 kWh verbraucht"},
+            {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+        ]))
+        assert facts is None
+        rueckfrage = next(f["rueckfrage"] for f in fehler if f["regel"] == "anker_verbrauch_fehlt")
+        assert "jahresverbrauch" in rueckfrage      # was geschickt wurde
+        assert "verbrauch_kwh" in rueckfrage        # was erwartet wird
+        assert "3500" in rueckfrage.replace(".", "").replace(",", "")  # Beispiel mit echtem Wert
+
+    def test_anker_ablehnung_nennt_die_ursache_wert_fehlt_im_zitat(self):
+        # Fall (b): Feldname stimmt, aber das Zitat trägt die Zahl nicht.
+        facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+            {"feld": "verbrauch_kwh", "zitat": "siehe Verbrauchsuebersicht"},
+            {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+        ]))
+        assert facts is None
+        rueckfrage = next(f["rueckfrage"] for f in fehler if f["regel"] == "anker_verbrauch_fehlt")
+        assert "siehe Verbrauchsuebersicht" in rueckfrage   # das eingereichte Zitat
+        assert "3500" in rueckfrage.replace(".", "").replace(",", "")
+
+    def test_anker_ablehnung_regel_id_bleibt_stabil(self):
+        # Die Regel-ID ist das einzige, was in mcp_events landet — sie darf sich
+        # durch die neuen Meldungstexte nicht ändern, sonst bricht die Telemetrie.
+        facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+            {"feld": "irgendwas", "zitat": "ohne Zahlen"},
+        ]))
+        assert facts is None
+        assert {"anker_verbrauch_fehlt", "anker_betrag_fehlt"} <= _regeln(fehler)
+
+    def test_anker_auf_unbefuelltes_feld_lehnt_ab_statt_zu_crashen(self):
+        # Ein Anker darf auf ein Feld zeigen, das im Payload gar nicht befüllt ist
+        # (hier: grundgebuehr, während auch alle anderen Betragsfelder fehlen).
+        # Die Validierung muss das als Ablehnung melden — ein Crash wäre für den
+        # Aufrufer ein Serverfehler statt einer korrigierbaren Rückfrage.
+        facts, fehler = pruefe_invoice_facts({
+            "energieart": "strom", "lieferant": "Testkraft", "plz": "1060",
+            "verbrauch_kwh": 3500.0,
+            "zeitraum_von": "2025-01-01", "zeitraum_bis": "2025-12-31",
+            "quellen_anker": [{"feld": "grundgebuehr", "zitat": "Grundgebuehr laut AGB"}],
+        })
+        assert facts is None
+        assert "anker_betrag_fehlt" in _regeln(fehler)
+        assert all(isinstance(f["rueckfrage"], str) for f in fehler)
+
+    def test_anker_echte_tausendergruppen_bleiben_gueltig(self):
+        # Gegenprobe: die Doppeldeutung selbst bleibt — sie ist der Grund, warum
+        # deutsche und englische Schreibweise beide durchgehen.
+        for zitat in ("3.500 kWh", "3,500 kWh", "3 500 kWh", "3500 kWh", "3.500,00 kWh"):
+            facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+                {"feld": "verbrauch_kwh", "zitat": zitat},
+                {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+            ]))
+            assert fehler == [], f"{zitat!r}: {fehler}"
+
     def test_plz_lehnt_unicode_ziffern_ab(self):
         # Fund 4: arabisch-indische + Fullwidth-Ziffern sind keine gültige PLZ.
         for plz in ("١٠٦٠", "１０６０"):  # 1060

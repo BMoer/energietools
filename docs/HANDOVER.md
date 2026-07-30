@@ -29,17 +29,12 @@
 - [ ] **Restliche SEO/GEO-Punkte umsetzen.** Erledigt ist nur Punkt 1 des Plans
       („GitHub energietools"). Die Punkte 2 ff. liegen bei Ben und wurden in dieser
       Session nicht genannt.
-- [ ] **PyPI-Release 0.7.2 entscheiden.** Entweder publizieren (dann README-Install-
-      Zeile zurückdrehen) oder bewusst nicht — dann ist der git+https-Weg der Dauerzustand.
-- [ ] **Vault-Page `energietools` nachziehen** (Engram #2). Sie sagt „121 Stromtarife
-      von ~60 Versorgern, Stand 23.07.2026"; real sind es **119 Tarife / 60 Versorger,
-      Stand 2026-07-30** (`energietools/data/tariffs/MANIFEST.json`). Wichtiger als die
-      Zahl selbst ist der Fund: **der Katalog schwankt täglich** (121 → 119 innerhalb
-      dieser Session, weil der Scraper zweimal dazwischen pushte). Harte Tarifzahlen
-      in externen Texten veralten deshalb sofort — im README und in der GitHub-
-      Description steht bewusst „over 100 / 100+".
-      *Konnte in dieser Session nicht geschrieben werden: der Shell-Zugriff auf
-      `vault-read.sh` / `vault-write.sh` wurde vom Permission-Classifier blockiert.*
+- [ ] **PyPI-Upload 0.7.4 ausführen.** Die Artefakte liegen gebaut und geprüft in
+      `dist/` (twine check PASSED, in frischem venv installiert, beide
+      README-Beispiele daraus ausgeführt). Es fehlt nur der Upload mit Bens Token:
+      `python3 -m twine upload dist/energietools-0.7.4*`. Danach die Install-Zeile im
+      README auf `pip install energietools` zurückdrehen und den PyPI-Stand auf der
+      Vault-Page `energietools` nachtragen.
 - [ ] **Zwei Worktrees offen** — nicht angefasst, gehören anderen Arbeitssträngen:
       `~/.claude/jobs/e7963402/tmp/et-v061` (`fix/v061-load-trend-meta`) und
       `~/Projekte/energietools-sim-fixes` (`sim-fixes`).

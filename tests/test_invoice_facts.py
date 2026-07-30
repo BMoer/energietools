@@ -225,6 +225,51 @@ class TestRegeln:
             ]))
             assert fehler == [], f"{zitat}: {fehler}"
 
+    def test_anker_zitat_aus_einer_rechnungs_tabellenzeile(self):
+        # L16: Die Ablehnung verlangt, "die Rechnungszeile wörtlich zu zitieren".
+        # Genau das schlug fehl — der Tokenizer verschmolz alle durch Leerzeichen
+        # getrennten Zahlen einer Tabellenzeile zu EINEM Token, das dann keinen
+        # Wert mehr traf. Erster Fremd-User 30.07.2026: 3x anker_verbrauch_fehlt.
+        for zitat in (
+            "01.01.2025 31.12.2025 3.500,00 kWh",       # Zeitraum-Spalten davor
+            "Zaehlerstand 41230 3500,0",                # zwei Zahlen, nur Leerzeichen
+            "Strom 3.500,00 18,00 1.200,00",            # Wert mitten in vier Spalten
+        ):
+            facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+                {"feld": "verbrauch_kwh", "zitat": zitat},
+                {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+            ]))
+            assert fehler == [], f"{zitat!r}: {fehler}"
+
+    def test_anker_zitat_mit_typografischem_tausendertrenner(self):
+        # PDF-Copy und deutsche Typografie setzen als Tausendertrenner nicht das
+        # ASCII-Leerzeichen, sondern U+202F/U+2009. Beide wurden vom Tokenizer
+        # gar nicht als Trenner erkannt, das Zitat galt als beleglos.
+        for trenner in (" ", " ", " "):
+            zitat = f"Jahresverbrauch 3{trenner}500,00 kWh"
+            facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+                {"feld": "verbrauch_kwh", "zitat": zitat},
+                {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+            ]))
+            assert fehler == [], f"{trenner!r}: {fehler}"
+
+    def test_anker_gate_bleibt_streng_trotz_tabellen_toleranz(self):
+        # Gegenprobe zu den beiden Tests darüber: die Toleranz darf NUR die
+        # Tokenisierung betreffen, nicht das Gate. Ein Zitat ohne den
+        # transkribierten Wert bleibt beleglos — auch wenn es voller Zahlen ist.
+        for zitat in (
+            "01.01.2025 31.12.2025 2.900,00 kWh",   # Tabellenzeile, aber falscher Wert
+            "Zaehlerstand 41230 41235",             # zwei Zahlen, keine ist 3500
+            "Verbrauch siehe Uebersicht auf Seite 2",  # gar keine Zahl
+        ):
+            facts, fehler = pruefe_invoice_facts(_payload(quellen_anker=[
+                {"feld": "verbrauch_kwh", "zitat": zitat},
+                {"feld": "rechnungsbetrag_brutto_eur", "zitat": "Endbetrag 1.200,00 EUR"},
+            ]))
+            assert facts is None, f"{zitat!r} darf nicht als Beleg gelten"
+            assert "anker_verbrauch_fehlt" in _regeln(fehler)
+            assert "anker_betrag_fehlt" not in _regeln(fehler)
+
     def test_plz_lehnt_unicode_ziffern_ab(self):
         # Fund 4: arabisch-indische + Fullwidth-Ziffern sind keine gültige PLZ.
         for plz in ("١٠٦٠", "１０６０"):  # 1060

@@ -85,16 +85,16 @@ Repos.
 `pip install` und losrechnen - mit Rechenweg:
 
 ```python
-from energietools.capabilities.tariffs import compare_against_catalog
+from energietools.capabilities.tariff_compare import vergleiche_tarife, CatalogTariffSource
 
 # Vergleiche deinen Tarif gegen den Open-Data-Katalog - offline, auditierbar.
-result = compare_against_catalog(
-    verbrauch_kwh=3200,
-    aktueller_lieferant="Wien Energie",
-    aktueller_energiepreis_ct_kwh=25.0,   # brutto, aus deiner Rechnung
-    aktuelle_grundgebuehr_eur_monat=6.0,  # brutto
-    gebrauchsabgabe_rate=0.07,            # Wien
+result = vergleiche_tarife(
     plz="1060",
+    jahresverbrauch_kwh=3200,
+    aktueller_lieferant="Wien Energie",
+    aktueller_energiepreis_brutto_ct_kwh=25.0,   # brutto, aus deiner Rechnung
+    aktuelle_grundgebuehr_brutto_eur_monat=6.0,  # brutto
+    tariff_source=CatalogTariffSource(),
 )
 print(f"Max Ersparnis: {result.max_ersparnis_eur:.0f} EUR / Jahr")
 # Jeder Tarif trägt einen vollständigen Rechenweg:

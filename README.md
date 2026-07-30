@@ -10,7 +10,7 @@ number can be checked by hand. It is the calculation core behind
 Claude and ChatGPT access to these tools.
 
 ```bash
-pip install git+https://github.com/BMoer/energietools
+pip install energietools
 ```
 
 ---

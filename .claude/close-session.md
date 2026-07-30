@@ -3,8 +3,8 @@
 prod: energietools ist eine **Library**, kein Dienst. „prod" heisst hier zweierlei:
 (a) der **öffentliche GitHub-Stand** `BMoer/energietools` auf `main` — das Repo ist
 public und der auditierbare Kern von Gridbert, jeder Push ist sofort nach aussen
-sichtbar; (b) ein **PyPI-Release**, den es noch nicht gibt (Stand 2026-07-30: 404,
-`pyproject` steht auf 0.7.2). Es läuft nichts, was man „deployen" müsste.
+sichtbar; (b) das **PyPI-Paket** `energietools` (erster Release 0.7.4 am
+2026-07-30, manuell). Es läuft nichts, was man „deployen" müsste.
 
 ## dev_servers
 stop_at_close:
@@ -25,11 +25,14 @@ prod_relevant: alles auf `main` (public Repo). Ein PyPI-Release ist ein bewusste
 check: `git status --short` + `git log --oneline origin/main..HEAD` (unpushed?);
   PyPI-Stand via `curl -s -o /dev/null -w "%{http_code}" https://pypi.org/pypi/energietools/json`
   gegen `version` in `pyproject.toml`.
-procedure: Release ist manuell und bisher nie gelaufen — es gibt **keine CI**
-  (`.github/` existiert nicht). Weicht die PyPI-Version von `pyproject.toml` ab,
-  nur als „prod ≠ live"-Zeile ins Handover, nicht selbst publizieren.
-health: `pip install git+https://github.com/BMoer/energietools` in einem frischen
-  venv, danach `python -c "import energietools"`.
+procedure: Release ist manuell — es gibt **keine CI** (`.github/` existiert nicht).
+  `version` in `pyproject.toml` heben, dann `python3 -m build` und
+  `python3 -m twine upload dist/*`. Den Upload macht **Ben selbst** (sein Token,
+  Version ist danach unwiderruflich belegt); weicht die PyPI-Version von
+  `pyproject.toml` ab, nur als „prod ≠ live"-Zeile ins Handover.
+health: `pip install energietools` in einem frischen venv — nicht aus `dist/`,
+  sonst testet man die Platte statt PyPI —, danach das erste README-Beispiel
+  daraus ausführen.
 
 ## handover
 file: docs/HANDOVER.md

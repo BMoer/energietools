@@ -82,6 +82,64 @@ def resolve_netzbetreiber(plz: str) -> NetzkostenEntry | None:
     return None  # keiner oder mehrdeutig (geteilte PLZ) → fail-open
 
 
+def netzbetreiber_kandidaten(plz: str) -> list[tuple[NetzkostenEntry, list[str]]]:
+    """Alle VNB, die für eine PLZ in Frage kommen, je mit ihren Gemeinden.
+
+    :func:`resolve_netzbetreiber` liefert bei einer geteilten PLZ ``None``, und das
+    ist richtig: raten hiesse eine falsche Netzrechnung. Fuer den Aufrufer ist ein
+    blankes ``None`` aber nicht unterscheidbar von "PLZ unbekannt", und er kann dem
+    Nutzer nicht sagen, was fehlt. Diese Funktion macht die Mehrdeutigkeit sichtbar,
+    damit eine einzige Rueckfrage sie aufloest ("Linz oder Leonding?").
+
+    Beispiel 4020: ``[(LINZ NETZ, ["Linz"]), (Netz OOe, ["Leonding"])]``.
+
+    Returns:
+        Leer, wenn die PLZ unbekannt ist oder keine Gemeinde aufloest. Ein Eintrag
+        bei eindeutiger PLZ. Mehrere Eintraege bei geteilter PLZ, sortiert nach
+        Anzahl der Gemeinden (die groesste zuerst).
+    """
+    info = plz_info(plz)
+    if info is None:
+        return []
+
+    alle = load_alle_vnb()
+    nach_vnb: dict[str, tuple[NetzkostenEntry, list[str]]] = {}
+    for g in info.gemeinden:
+        nb = _vnb_fuer_gemeinde(g.name, g.bundesland, alle)
+        if nb is None:
+            continue
+        eintrag = nach_vnb.setdefault(nb.key, (nb, []))
+        if g.name not in eintrag[1]:
+            eintrag[1].append(g.name)
+
+    kandidaten = list(nach_vnb.values())
+    kandidaten.sort(key=lambda k: (-len(k[1]), k[0].key))
+    return kandidaten
+
+
+def netzbetreiber_fuer_gemeinde(plz: str, gemeinde: str) -> NetzkostenEntry | None:
+    """Der VNB fuer eine PLZ, wenn die Gemeinde bekannt ist.
+
+    Der Weg aus einer geteilten PLZ heraus: der Nutzer nennt seine Gemeinde, und
+    damit ist der Netzbereich eindeutig. Der Gemeindename wird gegen die Gemeinden
+    der PLZ geprueft, damit eine falsch geratene Gemeinde nicht doch einen VNB
+    liefert.
+
+    Returns:
+        ``None``, wenn die PLZ unbekannt ist, die Gemeinde nicht zu dieser PLZ
+        gehoert oder sich fuer sie kein eindeutiger VNB findet.
+    """
+    info = plz_info(plz)
+    if info is None:
+        return None
+
+    gesucht = gemeinde.strip().casefold()
+    for g in info.gemeinden:
+        if g.name.casefold() == gesucht:
+            return _vnb_fuer_gemeinde(g.name, g.bundesland, load_alle_vnb())
+    return None
+
+
 def _vnb_fuer_gemeinde(
     gemeinde: str, bundesland: str, alle: tuple[NetzkostenEntry, ...]
 ) -> NetzkostenEntry | None:

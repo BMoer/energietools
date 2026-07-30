@@ -1,13 +1,16 @@
 # energietools
 
 energietools is an MIT-licensed Python library for Austrian energy market
-calculations. It knows over 100 electricity tariffs from 60 suppliers (the
-catalogue is rebuilt daily from supplier websites, not bought from a feed) and
-the grid fees of all 14 Austrian network areas, resolved down to postcode level.
-Every calculation is deterministic and returns its full calculation path, so any
-number can be checked by hand. It is the calculation core behind
-[Gridbert](https://www.gridbert.at), an MCP service that gives AI agents like
-Claude and ChatGPT access to these tools.
+calculations. It carries the grid fees of all 14 Austrian network areas, resolved
+down to postcode level, and an open snapshot of the electricity tariff catalogue,
+currently 119 tariffs from 57 suppliers, collected from supplier websites rather
+than bought from a feed. Every calculation is deterministic and returns its full
+calculation path, so any number can be checked by hand.
+
+It is the calculation core behind [Gridbert](https://www.gridbert.at), an MCP
+service that gives AI agents like Claude and ChatGPT access to these tools. The
+catalogue Gridbert runs on is larger and rebuilt every night; the snapshot in
+this repository is the part published openly.
 
 ```bash
 pip install energietools

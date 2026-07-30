@@ -153,3 +153,82 @@ def test_default_registry_enthaelt_netz_capabilities() -> None:
     namen = set(default_registry().names)
     assert {"netzkosten", "gesamtkosten", "netz_verfuegbar"} <= namen
     assert "tarifvergleich_inkl_netz" not in namen
+
+
+# --- Geteilte PLZ aufloesbar machen (ergaenzt 2026-07-30) -------------------
+#
+# resolve_netzbetreiber() bleibt bei einer geteilten PLZ bewusst bei None.
+# Die beiden Funktionen hier machen die Mehrdeutigkeit sichtbar und aufloesbar,
+# ohne dieses Verhalten anzutasten.
+
+
+def test_kandidaten_bei_geteilter_plz() -> None:
+    """4020 deckt Linz und Leonding ab, also zwei Netzbereiche."""
+    from energietools.capabilities.netz import netzbetreiber_kandidaten
+
+    kandidaten = netzbetreiber_kandidaten("4020")
+    keys = {nb.key for nb, _ in kandidaten}
+    assert keys == {"linz_netz", "netz_ooe"}
+    gemeinden = {nb.key: gem for nb, gem in kandidaten}
+    assert gemeinden["linz_netz"] == ["Linz"]
+    assert gemeinden["netz_ooe"] == ["Leonding"]
+
+
+def test_kandidaten_bei_eindeutiger_plz() -> None:
+    """Eindeutige PLZ liefert genau einen Kandidaten, denselben wie der Resolver."""
+    from energietools.capabilities.netz import (
+        netzbetreiber_kandidaten,
+        resolve_netzbetreiber,
+    )
+
+    kandidaten = netzbetreiber_kandidaten("1010")
+    assert len(kandidaten) == 1
+    assert kandidaten[0][0].key == resolve_netzbetreiber("1010").key == "wiener_netze"
+
+
+def test_kandidaten_bei_unbekannter_plz() -> None:
+    """Unbekannte PLZ → leere Liste, nicht None. Fail-open wie der Resolver."""
+    from energietools.capabilities.netz import netzbetreiber_kandidaten
+
+    assert netzbetreiber_kandidaten("99999") == []
+
+
+def test_gemeinde_loest_geteilte_plz_auf() -> None:
+    """Mit der Gemeinde ist der Netzbereich eindeutig."""
+    from energietools.capabilities.netz import netzbetreiber_fuer_gemeinde
+
+    assert netzbetreiber_fuer_gemeinde("4020", "Linz").key == "linz_netz"
+    assert netzbetreiber_fuer_gemeinde("4020", "Leonding").key == "netz_ooe"
+    assert netzbetreiber_fuer_gemeinde("9020", "Klagenfurt am Wörthersee").key == (
+        "stadtwerke_klagenfurt"
+    )
+
+
+def test_gemeinde_wird_gegen_die_plz_geprueft() -> None:
+    """Eine Gemeinde, die nicht zur PLZ gehoert, liefert nichts.
+
+    Sonst koennte eine geratene Gemeinde eine falsche Netzrechnung erzeugen, und
+    das ist genau der Fehler, den das fail-open verhindern soll.
+    """
+    from energietools.capabilities.netz import netzbetreiber_fuer_gemeinde
+
+    assert netzbetreiber_fuer_gemeinde("4020", "Wien") is None
+    assert netzbetreiber_fuer_gemeinde("99999", "Linz") is None
+
+
+def test_gemeinde_unabhaengig_von_gross_klein() -> None:
+    """Nutzereingaben kommen selten in der Schreibweise des Registers."""
+    from energietools.capabilities.netz import netzbetreiber_fuer_gemeinde
+
+    assert netzbetreiber_fuer_gemeinde("4020", "linz").key == "linz_netz"
+    assert netzbetreiber_fuer_gemeinde("4020", "  LEONDING ").key == "netz_ooe"
+
+
+def test_resolver_verhalten_unveraendert() -> None:
+    """Die Ergaenzungen aendern nichts am bestehenden Resolver."""
+    from energietools.capabilities.netz import resolve_netzbetreiber
+
+    assert resolve_netzbetreiber("4020") is None
+    assert resolve_netzbetreiber("6020") is None
+    assert resolve_netzbetreiber("1010").key == "wiener_netze"
+    assert resolve_netzbetreiber("4030").key == "linz_netz"

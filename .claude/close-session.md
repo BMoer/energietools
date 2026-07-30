@@ -62,3 +62,11 @@ script: (keins) — ersatzweise `python -m pytest -q` vor dem Abschluss, wenn di
     Audit-Versprechen des Repos steht und fällt damit.
   - `TODO.md` ist **kein** Handover, sondern die Liste bewusst offener inhaltlicher
     Lücken (Stand 2026-06-03). Offene Session-Punkte gehören in `docs/HANDOVER.md`.
+  - **Vault-Zugriff war bis 2026-07-30 blockiert** und ist es ohne die Freigabe
+    wieder: `vault-read.sh`/`vault-write.sh` lesen `ENGRAM_TOKEN` aus
+    `~/.claude/hooks/.env` und schicken es per `curl --oauth2-bearer` an einen
+    externen Host — für den Auto-Mode-Classifier sieht das wie Credential-
+    Exfiltration aus (es gab nie eine `deny`-Regel, nur die Heuristik). Gelöst
+    durch vier `allow`-Einträge in `~/.claude/settings.local.json` (`~`- und
+    absoluter Pfad je Script). Bricht der Vault-Zugriff wieder weg, zuerst dort
+    nachsehen.

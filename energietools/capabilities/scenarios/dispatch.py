@@ -28,7 +28,20 @@ from energietools.components.battery import Battery
 
 @dataclass(frozen=True)
 class DispatchResult:
-    """Bilanz eines Eigenverbrauchs-Durchlaufs (kWh + Kennzahlen)."""
+    """Bilanz eines Eigenverbrauchs-Durchlaufs (kWh + Kennzahlen).
+
+    Konventionen (identisch mit :func:`simulate_battery`, damit derselbe
+    Feldname im ganzen Modul dasselbe bedeutet):
+
+    - ``battery_charge_kwh``: in den SOC EINGELAGERTE Energie (nach
+      Ladewirkungsgrad). Die vom Bus bezogene Rohmenge ist
+      ``battery_charge_from_bus_kwh`` — die Differenz ist der Ladeverlust.
+    - ``cycles``: ``battery_charge_kwh / capacity_kwh`` (Vollzyklen SOC-seitig).
+    - ``self_consumption_rate``: (direkt gedeckt + aus dem Speicher geliefert)
+      / Erzeugung. Energie, die am Ende NOCH IM SPEICHER liegt
+      (``battery_soc_residual_kwh``), zählt NICHT als Eigenverbrauch — sie ist
+      weder verbraucht noch eingespeist.
+    """
 
     capacity_kwh: float
     production_kwh: float
@@ -40,6 +53,9 @@ class DispatchResult:
     self_consumption_rate: float
     self_sufficiency_rate: float
     cycles: float
+    self_consumed_direct_kwh: float = 0.0
+    battery_charge_from_bus_kwh: float = 0.0
+    battery_soc_residual_kwh: float = 0.0
 
 
 def run_self_consumption(
@@ -61,13 +77,15 @@ def run_self_consumption(
 
     ctx = StepContext(dt_hours=dt_hours)
     bat = battery
-    tot_prod = tot_cons = charge = discharge = grid_import = grid_feed = 0.0
+    tot_prod = tot_cons = discharge = grid_import = grid_feed = 0.0
+    charge_from_bus = direct = 0.0
 
     for prod, cons in zip(production_kwh, consumption_kwh, strict=True):
+        direct += min(prod, cons)
         surplus = prod - cons
         step, bat = bat.step(surplus, ctx)
         if surplus >= 0:
-            charge += step.consumed_kwh
+            charge_from_bus += step.consumed_kwh
             grid_feed += max(surplus - step.consumed_kwh, 0.0)
         else:
             discharge += step.produced_kwh
@@ -75,7 +93,17 @@ def run_self_consumption(
         tot_prod += prod
         tot_cons += cons
 
-    self_consumption_rate = (tot_prod - grid_feed) / tot_prod if tot_prod > 0 else 0.0
+    # SOC-seitige Ladung (nach Ladewirkungsgrad) — dieselbe Konvention wie
+    # simulate_battery/pvtool, damit `cycles` überall dasselbe zählt.
+    charge = charge_from_bus * battery.charge_efficiency
+    # Was am Ende noch im Speicher liegt: eingelagert minus (geliefert / Entladewirkungsgrad).
+    eff_d = battery.discharge_efficiency
+    residual = charge - (discharge / eff_d if eff_d > 0 else 0.0)
+
+    # Eigenverbrauch = direkt gedeckt + aus dem Speicher geliefert. Der Rest-SOC
+    # ist NICHT eigenverbraucht (er ist weder im Haus verbraucht noch eingespeist).
+    self_consumed = direct + discharge
+    self_consumption_rate = self_consumed / tot_prod if tot_prod > 0 else 0.0
     self_sufficiency_rate = (tot_cons - grid_import) / tot_cons if tot_cons > 0 else 0.0
     cycles = charge / battery.capacity_kwh if battery.capacity_kwh > 0 else 0.0
 
@@ -90,6 +118,9 @@ def run_self_consumption(
         self_consumption_rate=round(self_consumption_rate, 4),
         self_sufficiency_rate=round(self_sufficiency_rate, 4),
         cycles=round(cycles, 2),
+        self_consumed_direct_kwh=round(direct, 4),
+        battery_charge_from_bus_kwh=round(charge_from_bus, 4),
+        battery_soc_residual_kwh=round(max(residual, 0.0), 4),
     )
 
 

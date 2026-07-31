@@ -32,6 +32,12 @@ class PeakShavingResult:
     battery_charge_kwh: float
     battery_discharge_kwh: float
     cycles: float
+    grid_charge_kwh: float = 0.0
+    #: Der Speicher konnte NIE laden — ohne diese Meldung wäre das Ergebnis eine
+    #: stille 0 € (Produkt-Learning L13: Betriebe ohne PV haben nie Überschuss,
+    #: und ohne ``grid_charge_threshold_kw`` gibt es keine zweite Ladequelle).
+    kein_ladefenster: bool = False
+    hinweis: str | None = None
 
 
 def _group_max(values: Sequence[float], keys: Sequence[Hashable]) -> dict[Hashable, float]:
@@ -54,6 +60,7 @@ def run_peak_shaving(
     dt_hours: float = 0.25,
     combine_self_consumption: bool = True,
     baseline_peak_kw: float | None = None,
+    grid_charge_threshold_kw: float | None = None,
 ) -> PeakShavingResult:
     """Greedy Peak-Shaving über eine Netto-Last-Zeitreihe (Port von pvtool).
 
@@ -67,6 +74,16 @@ def run_peak_shaving(
         dt_hours: Intervalllänge (h).
         combine_self_consumption: zusätzlich Eigenverbrauch unter der Schwelle decken.
         baseline_peak_kw: optionaler Override der Baseline-Spitze (Daten-Korrektur).
+        grid_charge_threshold_kw: Netzladung in Schwachlastzeiten — der Speicher lädt
+            aus dem Netz, solange der Netzbezug dabei unter dieser kW-Schwelle bleibt.
+            ``None`` = nur aus Überschuss laden (unverändertes pvtool-Port-Verhalten).
+            Ohne diesen Parameter kann ein Betrieb OHNE PV nie laden (Produkt-Learning
+            L13); das Ergebnis meldet das dann über ``kein_ladefenster``.
+
+    Note:
+        Der Netzladestrom zählt in ``grid_purchase_kwh`` mit und verteuert damit die
+        Energiebilanz — die Ersparnis kommt aus dem Leistungspreis, nicht aus der
+        Arbeit. ``energy_savings_eur`` wird bei Netzladung folgerichtig negativ.
     """
     n = len(net_demand_kwh)
     if len(month_index) != n:
@@ -109,9 +126,20 @@ def run_peak_shaving(
     max_discharge_interval = max_power_kw * dt
     threshold_kwh = peak_threshold_kw * dt
 
+    # Netzladung (L13): unter dieser kWh-Grenze je Intervall darf aus dem Netz
+    # geladen werden. Ohne sie hat ein Betrieb ohne PV keine Ladequelle.
+    grid_charge_limit_kwh = (
+        grid_charge_threshold_kw * dt if grid_charge_threshold_kw is not None else None
+    )
+    # Bei Netzladung wird NICHT zusätzlich unter der Schwelle entladen: die Energie
+    # käme dann aus dem Netz zum selben Arbeitspreis zurück ins Netz-gedeckte
+    # Intervall — ein reiner Wirkungsgradverlust, der obendrein den Speicher für
+    # die Spitze leer laufen lässt (gemessen: Spitze blieb dabei unverändert).
+    eigenverbrauch_decken = combine_self_consumption and grid_charge_limit_kwh is None
+
     soc = min_soc
     actual_grid_kw: list[float] = []
-    grid_purchase = charge = discharge = 0.0
+    grid_purchase = charge = discharge = grid_charge = 0.0
 
     for nd in net_demand_kwh:
         grid_kwh = 0.0
@@ -129,7 +157,7 @@ def run_peak_shaving(
             can_chg = min(surplus * eff_c, max_soc - soc, max_charge_interval)
             soc += can_chg
             charge += can_chg
-        elif combine_self_consumption:  # unter Schwelle: Eigenverbrauch decken
+        elif eigenverbrauch_decken:  # unter Schwelle: Eigenverbrauch decken
             can_dis = min(soc - min_soc, nd / eff_d if eff_d > 0 else 0.0, max_discharge_interval)
             delivered = can_dis * eff_d
             soc -= can_dis
@@ -139,6 +167,21 @@ def run_peak_shaving(
         else:  # unter Schwelle, kein Eigenverbrauch: Netz deckt
             grid_kwh = nd
             grid_purchase += nd
+
+        # Schwachlast-Netzladung: nur so viel, dass der Netzbezug dieses Intervalls
+        # unter der Ladeschwelle bleibt (erzeugt also selbst keine neue Spitze).
+        if grid_charge_limit_kwh is not None and grid_kwh < grid_charge_limit_kwh:
+            kopf_kwh = grid_charge_limit_kwh - grid_kwh
+            can_chg = min(kopf_kwh * eff_c, max_soc - soc, max_charge_interval)
+            can_chg = max(can_chg, 0.0)
+            if can_chg > 0.0:
+                vom_netz = can_chg / eff_c if eff_c > 0 else 0.0
+                soc += can_chg
+                charge += can_chg
+                grid_charge += vom_netz
+                grid_purchase += vom_netz
+                grid_kwh += vom_netz
+
         actual_grid_kw.append(grid_kwh / dt)
 
     achieved_monthly = _group_max(actual_grid_kw, month_index)
@@ -147,6 +190,17 @@ def run_peak_shaving(
     demand_savings = baseline_demand_charge - achieved_demand_charge
     energy_savings = (baseline_grid_purchase - grid_purchase) * grid_buy_price_eur
     cycles = charge / cap if cap > 0 else 0.0
+
+    kein_ladefenster = charge <= 0.0
+    hinweis = None
+    if kein_ladefenster:
+        hinweis = (
+            "Der Speicher hat in dieser Zeitreihe NIE geladen: die Netto-Last ist nie "
+            "negativ (kein PV-Überschuss) und Netzladung ist nicht freigegeben. Das "
+            "Ergebnis ist deshalb 0 EUR — nicht weil sich Spitzenkappung nicht lohnt, "
+            "sondern weil der Fall so nicht gerechnet werden kann. Mit "
+            "grid_charge_threshold_kw (Laden in Schwachlastzeiten) erneut rechnen."
+        )
 
     return PeakShavingResult(
         capacity_kwh=cap,
@@ -160,4 +214,7 @@ def run_peak_shaving(
         battery_charge_kwh=round(charge, 1),
         battery_discharge_kwh=round(discharge, 1),
         cycles=round(cycles, 1),
+        grid_charge_kwh=round(grid_charge, 1),
+        kein_ladefenster=kein_ladefenster,
+        hinweis=hinweis,
     )

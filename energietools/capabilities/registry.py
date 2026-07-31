@@ -38,6 +38,10 @@ from energietools.capabilities.netz.capability import (
 )
 from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
 from energietools.capabilities.providers.capability import VersorgerAbdeckungCapability
+from energietools.capabilities.pv.capability import (
+    PVPotenzialCapability,
+    SpeicherDimensionierungCapability,
+)
 from energietools.capabilities.scenarios.capability import ScenariosCapability
 from energietools.capabilities.tariff_compare.capability import TariffCompareCapability
 from energietools.capabilities.tariffs.capability import TariffCatalogCapability
@@ -72,6 +76,10 @@ def default_registry() -> CapabilityRegistry:
     registry.register(FinanceCapability())
     # Simulationsbaukasten: Batterie-Größen-Sweep (ersetzt das alte battery_sim).
     registry.register(ScenariosCapability())
+    # PV auf dem ECHTEN Lastgang: Potenzial je Anlagengröße + Speicher-Dimensionierung.
+    # Beide bekommen das Stundenprofil vom Konsumenten injiziert (kein Netz im Kern).
+    registry.register(PVPotenzialCapability())
+    registry.register(SpeicherDimensionierungCapability())
     # Wärmepumpe: diskreter Heizkostenvergleich (COP real, Lastgang-Dispatch Platzhalter).
     registry.register(HeatPumpCapability())
     # Lastprofil-Analyse: dedizierte Capability (WP2-S) statt generischer

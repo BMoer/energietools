@@ -1,0 +1,93 @@
+name: Release to PyPI
+
+# Veröffentlicht energietools auf PyPI — ohne Token, über Trusted Publishing.
+#
+# Warum ohne Token: 0.7.4 und 0.7.5 gingen von Hand raus (`python3 -m build &&
+# twine upload`), mit einem API-Token auf Bens Rechner. Der ist verloren
+# gegangen, und ein neuer wäre dasselbe Problem ein Jahr später. Bei Trusted
+# Publishing beweist GitHub gegenüber PyPI die Herkunft des Laufs (OIDC) —
+# es gibt kein Geheimnis, das man verlieren, teilen oder rotieren müsste.
+#
+# EINMALIG auf PyPI einzutragen (pypi.org → energietools → Manage → Publishing):
+#   Owner:            BMoer
+#   Repository:       energietools
+#   Workflow name:    release.yml
+#   Environment:      pypi
+#
+# Danach: Tag pushen (`git tag -a vX.Y.Z -m … && git push --follow-tags`) —
+# oder diesen Workflow von Hand starten, wenn der Tag schon steht.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Tag oder Commit, der veröffentlicht wird (z. B. v0.7.5)'
+        required: true
+
+jobs:
+  build:
+    name: Build und prüfen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Abhängigkeiten
+        run: python -m pip install --upgrade build twine pytest
+
+      - name: Tests
+        # Ein roter Test darf nicht auf PyPI landen — dort ist eine Version
+        # unwiderruflich, sie lässt sich nur zurückziehen, nie ersetzen.
+        run: |
+          python -m pip install -e .
+          python -m pytest -q
+
+      - name: Bauen
+        run: python -m build
+
+      - name: Artefakte prüfen
+        run: python -m twine check dist/*
+
+      - name: Version gegen den Tag prüfen
+        # Schützt vor dem Fall, dass jemand einen Tag setzt, ohne die Version in
+        # pyproject.toml zu heben — PyPI lehnte das mit einer verwirrenden
+        # Meldung ab, oder schlimmer: es ginge als falsche Version durch.
+        run: |
+          REF="${{ github.event.inputs.ref || github.ref_name }}"
+          TAG_VERSION="${REF#v}"
+          PKG_VERSION="$(python -c 'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')"
+          echo "Tag: ${TAG_VERSION} | pyproject: ${PKG_VERSION}"
+          if [ "${TAG_VERSION}" != "${PKG_VERSION}" ]; then
+            echo "::error::Tag ${TAG_VERSION} und pyproject ${PKG_VERSION} stimmen nicht überein."
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish:
+    name: Auf PyPI veröffentlichen
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      # Das ist der ganze Zauber: erlaubt dem Lauf, sich gegenüber PyPI
+      # auszuweisen. Kein Token, kein Secret.
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - uses: pypa/gh-action-pypi-publish@release/v1

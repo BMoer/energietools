@@ -21,9 +21,10 @@ ins Tool-Result.
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import date
-from typing import Any, Literal
+from typing import Any, Literal, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -174,6 +175,48 @@ def _fehler(feld: str, regel: str, wert: Any, rueckfrage: str) -> dict[str, Any]
     return {"feld": feld, "regel": regel, "wert": wert, "rueckfrage": rueckfrage}
 
 
+def _verschachteltes_modell(annotation: Any) -> type[BaseModel] | None:
+    """Das BaseModel einer (ggf. optionalen) Feld-Annotation, sonst ``None``.
+
+    ``Betrag | None`` → ``Betrag``. Die Zielform wird damit aus dem Modell
+    ABGELEITET statt zweitgepflegt — ein neues Feld in ``PreisCtKwh`` erscheint
+    ohne Zutun in der Rückfrage.
+    """
+    for kandidat in (annotation, *get_args(annotation)):
+        if isinstance(kandidat, type) and issubclass(kandidat, BaseModel):
+            return kandidat
+    return None
+
+
+def _slot_beispiel(annotation: Any, zahl: Any) -> Any:
+    """Beispielwert für einen Slot der Zielform. ``zahl`` füllt den Zahl-Slot."""
+    if get_origin(annotation) is Literal:
+        return get_args(annotation)[0]
+    if annotation is bool:
+        return True
+    if annotation in (float, int):
+        return zahl if isinstance(zahl, (int, float)) and not isinstance(zahl, bool) else 0.0
+    return "…"
+
+
+def _zielform(feld: str, geliefert: Any) -> str | None:
+    """JSON-Beispiel der erwarteten Objektform — der gelieferte Wert wird
+    ÜBERNOMMEN, nicht verworfen (er war ja richtig abgelesen)."""
+    info = InvoiceFacts.model_fields.get(feld)
+    if info is None:
+        return None
+    modell = _verschachteltes_modell(info.annotation)
+    if modell is None:
+        return None
+    beispiel: dict[str, Any] = {}
+    zahl_offen = True
+    for name, slot in modell.model_fields.items():
+        ist_zahl = slot.annotation in (float, int)
+        beispiel[name] = _slot_beispiel(slot.annotation, geliefert if ist_zahl and zahl_offen else None)
+        zahl_offen = zahl_offen and not ist_zahl
+    return json.dumps(beispiel, ensure_ascii=False)
+
+
 def _schema_fehler(exc: ValidationError) -> list[dict[str, Any]]:
     """Pydantic-Fehler → strukturierte D2.2-Fehler (Werte nur im Result, nie im Log)."""
     out: list[dict[str, Any]] = []
@@ -183,6 +226,20 @@ def _schema_fehler(exc: ValidationError) -> list[dict[str, Any]]:
         # Nur skalare Werte zurückspiegeln — keine ganzen Objekte duplizieren.
         if not isinstance(wert, (str, int, float, bool)) and wert is not None:
             wert = None
+        # Form- statt Wertfehler: ein Objekt-Feld kam als nackter Skalar. Bis
+        # 2026-07-31 bekam dieser Fall dieselbe "lies erneut ab"-Rückfrage wie ein
+        # echter Lesefehler — belegt am 30.07. 08:26, wo dasselbe LLM sieben
+        # Sekunden später dieselbe (richtige) Zahl erneut schickte. Der Wert war
+        # nie das Problem, nur seine Verpackung.
+        form = _zielform(feld, wert) if err.get("type") == "model_type" else None
+        if form is not None:
+            out.append(_fehler(
+                feld, f"schema_{err.get('type')}", wert,
+                f"Feld '{feld}' erwartet ein Objekt, keinen einzelnen Wert. Dein Wert "
+                f"ist übernommen — verpacke ihn genau so: {form}. "
+                "'ist_netto' sagt, ob die Zahl auf der Rechnung ohne USt ausgewiesen ist.",
+            ))
+            continue
         out.append(_fehler(
             feld,
             f"schema_{err.get('type', 'invalid')}",

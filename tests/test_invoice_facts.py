@@ -534,3 +534,41 @@ class TestGewerbeGroessenordnungen:
         ))
         assert facts is None
         assert any("plausibilitaet" in r for r in _regeln(fehler))
+
+
+class TestFormFehlerStattWertFehler:
+    """Ein Objekt-Feld als Skalar geschickt ist ein FORM-Fehler, kein Lesefehler.
+
+    Befund 2026-07-31 (Live-Events 30.07. 08:26, zweimal im Abstand von sieben
+    Sekunden): das User-LLM schickte `arbeitspreis: 24.5` statt
+    `{"wert_ct_kwh": 24.5, "ist_netto": true}`. Die Rueckfrage lautete "Lies den
+    Wert erneut woertlich von der Rechnung ab" — der Wert war aber richtig
+    abgelesen, nur nicht verpackt. Das LLM las erneut ab, schickte dieselbe Zahl
+    und wurde erneut abgelehnt. Dieselbe Klasse von Sackgasse wie L16 bei den
+    Ankern: die Meldung sagt, DASS etwas falsch ist, nicht WAS zu aendern ist.
+    """
+
+    def test_skalar_statt_objekt_nennt_die_erwartete_form(self):
+        facts, fehler = pruefe_invoice_facts(_payload(arbeitspreis=24.5))
+        assert facts is None
+        (f,) = [f for f in fehler if f["feld"] == "arbeitspreis"]
+        # Die Rueckfrage muss die Zielform zeigen — beide Pflichtfelder.
+        assert "wert_ct_kwh" in f["rueckfrage"]
+        assert "ist_netto" in f["rueckfrage"]
+        # Und den bereits gelesenen Wert uebernehmen, statt neu ablesen zu lassen.
+        assert "24.5" in f["rueckfrage"] or "24,5" in f["rueckfrage"]
+        assert "erneut" not in f["rueckfrage"].lower()
+
+    def test_grundgebuehr_als_skalar_nennt_den_zeitraum(self):
+        facts, fehler = pruefe_invoice_facts(_payload(grundgebuehr=5.0))
+        assert facts is None
+        (f,) = [f for f in fehler if f["feld"] == "grundgebuehr"]
+        assert "zeitraum" in f["rueckfrage"]
+        assert "monat" in f["rueckfrage"]
+
+    def test_echter_lesefehler_behaelt_die_ableseaufforderung(self):
+        # Gegenprobe: ein falsch getippter Text bleibt ein Lesefehler.
+        facts, fehler = pruefe_invoice_facts(_payload(plz="10x0"))
+        assert facts is None
+        (f,) = [f for f in fehler if f["feld"] == "plz"]
+        assert "erneut" in f["rueckfrage"].lower()

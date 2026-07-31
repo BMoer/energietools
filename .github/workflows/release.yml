@@ -46,8 +46,15 @@ jobs:
       - name: Tests
         # Ein roter Test darf nicht auf PyPI landen — dort ist eine Version
         # unwiderruflich, sie lässt sich nur zurückziehen, nie ersetzen.
+        #
+        # Mit [all], nicht nackt: die Tests decken auch Pfade ab, die optionale
+        # Pakete brauchen (pdfplumber, openpyxl). Und scikit-fda ist der
+        # einzige Ort, an dem der FDA-Zweig der Anomalie-Erkennung überhaupt
+        # ausgeführt wird — weder Bens Rechner noch der Produktionscontainer
+        # haben es installiert, dort greift immer der Fallback. Ohne diesen
+        # Lauf wäre der Zweig dauerhaft ungetestet.
         run: |
-          python -m pip install -e .
+          python -m pip install -e ".[all]"
           python -m pytest -q
 
       - name: Bauen

@@ -385,6 +385,107 @@ def _calculate_metrics(
 
 # --- Anomaly Detection ---
 
+# Mindestzahl Tage, ab der eine Verteilung der Tagesabstände schätzbar ist.
+# Darunter ist jede Schwelle geraten.
+_MIN_TAGE_FUER_SCHWELLE = 14
+
+# Skalierungsfaktor MAD → Standardabweichung bei Normalverteilung.
+_MAD_ZU_SIGMA = 1.4826
+
+# Wie viele robuste Sigma ein Tag vom typischen Tag entfernt sein muss.
+_ANOMALIE_K = 3.0
+
+
+def _ueber_robuster_schwelle(abstaende: np.ndarray, k: float) -> set[int]:
+    """Indizes, deren Abstand ungewöhnlich groß ist (Median + k·MAD).
+
+    Robust: Median und MAD statt Mittelwert und Sigma — fünf Extremtage ziehen
+    die Schwelle nicht so hoch, dass sie sich selbst verstecken.
+
+    **Null ist ein mögliches Ergebnis.** Bei gleichförmigen Tagen kommt nichts
+    heraus. Eine feste Quantils-Schwelle ("die obersten 5 %") meldete
+    stattdessen immer 5 %, auch wenn es nichts zu melden gibt.
+
+    Ist die MAD null (über die Hälfte der Werte identisch), greift die
+    Standardabweichung als Ersatzmaßstab; ohne diesen Guard läge die Schwelle
+    exakt auf dem Median und jeder minimal abweichende Tag wäre ein Ausreißer.
+    """
+    median_abstand = float(np.median(abstaende))
+    mad = float(np.median(np.abs(abstaende - median_abstand)))
+    streuung = mad * _MAD_ZU_SIGMA if mad > 0 else float(np.std(abstaende))
+    if streuung <= 0:
+        return set()
+    schwelle = median_abstand + k * streuung
+    return set(np.flatnonzero(abstaende > schwelle).tolist())
+
+
+def tages_ausreisser_typisiert(
+    tage: np.ndarray,
+    k: float = _ANOMALIE_K,
+) -> dict[int, str]:
+    """Ungewöhnliche Tage als ``{index: "magnitude" | "shape" | "both"}``.
+
+    ``tage`` ist eine Matrix (n_tage × n_slots) mit einem Tagesprofil je Zeile.
+
+    Warum zwei Kennzahlen statt einer (Befund 31.07.2026, nachgemessen an 937
+    Tagesprofilen):
+
+    Der Vorgänger verglich das **Maximum** der Slot-Abweichungen eines Tages
+    gegen die **punktweise** Streuung über alle Tage. Bei 96 Slots reißt dieses
+    Maximum eine 2–2,5-Sigma-Grenze fast beliebig oft: gemessen 542 von 937
+    Tagen (57,8 %), bei einem Median der Kennzahl von 2,68 gegen eine Schwelle
+    von 2,5 — die Schwelle lag *unter* dem Median. Geprüft wurde faktisch "hat
+    dieser Tag irgendeinen ungewöhnlichen Moment", und das hat jeder Tag.
+
+    Eine einzelne Abstandskennzahl über die rohen Profile behebt das nur halb:
+    sie ist nach unten gedeckelt (weniger als null Verbrauch geht nicht) und
+    nach oben offen. In der Messung markierte sie 91 Tage — und **keinen
+    einzigen der 39 Urlaubstage**, obwohl Abwesenheit die aussagekräftigste
+    Anomalie eines Haushalts ist. Hohe Tage verdrängten die niedrigen aus der
+    Verteilung.
+
+    Deshalb getrennt, entlang der Unterscheidung, die ``AnomalyResult.typ``
+    ohnehin behauptet:
+
+    * **magnitude** — das Tagesniveau. Abstand der logarithmierten Tagessumme
+      zum Median; der Logarithmus macht Halbierung und Verdopplung
+      gleich weit, sonst gewönne die offene Seite immer.
+    * **shape** — die Tagesform. Abstand des auf Tagessumme 1 normierten
+      Profils zum normierten Median-Tag; unabhängig davon, wie viel an dem Tag
+      verbraucht wurde.
+
+    Gemessen an derselben Serie: 43 von 937 Tagen (4,6 %), darunter alle 39
+    Urlaubstage.
+    """
+    if tage.ndim != 2 or len(tage) < _MIN_TAGE_FUER_SCHWELLE:
+        return {}
+
+    tagessummen = tage.sum(axis=1)
+    niveau_abstand = np.abs(np.log1p(tagessummen) - np.log1p(np.median(tagessummen)))
+    magnitude = _ueber_robuster_schwelle(niveau_abstand, k)
+
+    # Form: jedes Profil auf Tagessumme 1 normiert. Tage ohne jeden Verbrauch
+    # haben keine Form — sie bleiben auf null und fallen der Niveau-Prüfung zu.
+    summen_spalte = tagessummen.reshape(-1, 1)
+    formen = np.divide(
+        tage, summen_spalte, out=np.zeros_like(tage, dtype=float), where=summen_spalte > 0
+    )
+    form_abstand = np.sqrt(np.mean((formen - np.median(formen, axis=0)) ** 2, axis=1))
+    shape = _ueber_robuster_schwelle(form_abstand, k)
+
+    typen: dict[int, str] = {}
+    for i in sorted(magnitude | shape):
+        if i in magnitude and i in shape:
+            typen[i] = "both"
+        else:
+            typen[i] = "magnitude" if i in magnitude else "shape"
+    return typen
+
+
+def tages_ausreisser(tage: np.ndarray, k: float = _ANOMALIE_K) -> list[int]:
+    """Indizes ungewöhnlicher Tage, aufsteigend (s. ``tages_ausreisser_typisiert``)."""
+    return sorted(tages_ausreisser_typisiert(tage, k=k))
+
 
 def _detect_anomalies(
     df: pd.DataFrame, interval_hours: float
@@ -441,29 +542,32 @@ def _fda_anomaly_detection(
     labels = kmeans.fit_predict(fd)
     centroids = kmeans.cluster_centers_.data_matrix.squeeze()
 
-    # Anomalien: Tage die stark von ihrem Cluster-Mittelwert abweichen
+    # Anomalien: Tage, die innerhalb IHRES Clusters ungewöhnlich weit vom
+    # typischen Tag entfernt sind. Die Schwelle je Cluster einzeln bestimmen —
+    # ein Wochenend-Cluster streut anders als ein Werktags-Cluster, und eine
+    # gemeinsame Schwelle bestrafte den streuenderen von beiden.
     anomalien: list[AnomalyResult] = []
-    for i, (d, profile) in enumerate(zip(dates, data_matrix)):
-        cluster_id = int(labels[i])
-        centroid = centroids[cluster_id]
-        diff = profile - centroid
-        excess_kwh = float(np.sum(np.maximum(diff, 0)) * interval_hours)
-        peak_dev = float(np.max(np.abs(diff)))
-
-        # Anomalie-Schwelle: Tagesabweichung > 2 Standardabweichungen
+    for cluster_id in range(n_clusters):
         cluster_mask = labels == cluster_id
+        cluster_idx = np.flatnonzero(cluster_mask)
+        if len(cluster_idx) == 0:
+            continue
         cluster_data = data_matrix[cluster_mask]
-        cluster_std = np.std(cluster_data - centroid)
+        centroid = centroids[cluster_id]
 
-        if cluster_std > 0 and np.max(np.abs(diff)) > 2 * cluster_std:
+        for lokal, typ in tages_ausreisser_typisiert(cluster_data).items():
+            global_idx = int(cluster_idx[lokal])
+            d = dates[global_idx]
+            diff = data_matrix[global_idx] - centroid
             anomalien.append(AnomalyResult(
                 datum=d,
                 wochentag=_wochentag(d),
-                typ=_classify_anomaly(diff, cluster_std),
+                typ=typ,
                 cluster_id=cluster_id,
-                abweichung_kwh=round(excess_kwh, 2),
-                spitzen_abweichung_kw=round(peak_dev, 3),
+                abweichung_kwh=round(float(np.sum(np.maximum(diff, 0)) * interval_hours), 2),
+                spitzen_abweichung_kw=round(float(np.max(np.abs(diff))), 3),
             ))
+    anomalien.sort(key=lambda a: a.datum)
 
     # Cluster-Info
     cluster_info: list[ClusterInfo] = []
@@ -484,39 +588,33 @@ def _fda_anomaly_detection(
 def _statistical_anomaly_detection(
     profiles: dict[date, np.ndarray], interval_hours: float
 ) -> tuple[list[AnomalyResult], list[ClusterInfo]]:
-    """Einfache statistische Anomalie-Erkennung (Fallback)."""
+    """Statistische Anomalie-Erkennung ohne Clustering (Fallback).
+
+    Das ist der Pfad, der **produktiv läuft**: ``scikit-fda`` ist im
+    Gateway-Container nicht installiert, ``_detect_anomalies`` fängt den
+    ImportError und landet hier. Der Befund vom 31.07.2026 (57,8 % der Tage
+    als Anomalie) stammt von hier, nicht aus dem FDA-Pfad.
+
+    Ohne Cluster ist der Maßstab die Gesamtheit der Tage; die Schwelle selbst
+    steckt in ``tages_ausreisser`` und ist dieselbe wie im FDA-Pfad.
+    """
     dates = sorted(profiles.keys())
     data_matrix = np.array([profiles[d] for d in dates])
 
-    mean_profile = np.mean(data_matrix, axis=0)
-    std_profile = np.std(data_matrix, axis=0)
+    typischer_tag = np.median(data_matrix, axis=0)
 
     anomalien: list[AnomalyResult] = []
-    for i, (d, profile) in enumerate(zip(dates, data_matrix)):
-        diff = profile - mean_profile
-        z_scores = np.abs(diff) / np.maximum(std_profile, 0.001)
-        max_z = float(np.max(z_scores))
-
-        if max_z > 2.5:
-            excess_kwh = float(np.sum(np.maximum(diff, 0)) * interval_hours)
-            anomalien.append(AnomalyResult(
-                datum=d,
-                wochentag=_wochentag(d),
-                typ="magnitude" if np.mean(z_scores) > 2 else "shape",
-                abweichung_kwh=round(excess_kwh, 2),
-                spitzen_abweichung_kw=round(float(np.max(np.abs(diff))), 3),
-            ))
+    for i, typ in tages_ausreisser_typisiert(data_matrix).items():
+        diff = data_matrix[i] - typischer_tag
+        anomalien.append(AnomalyResult(
+            datum=dates[i],
+            wochentag=_wochentag(dates[i]),
+            typ=typ,
+            abweichung_kwh=round(float(np.sum(np.maximum(diff, 0)) * interval_hours), 2),
+            spitzen_abweichung_kw=round(float(np.max(np.abs(diff))), 3),
+        ))
 
     return anomalien, []
-
-
-def _classify_anomaly(diff: np.ndarray, cluster_std: float) -> str:
-    """Anomalie-Typ klassifizieren."""
-    magnitude = np.mean(np.abs(diff)) > 1.5 * cluster_std
-    shape = np.std(diff) > 1.5 * cluster_std
-    if magnitude and shape:
-        return "both"
-    return "magnitude" if magnitude else "shape"
 
 
 def _wochentag(d: date) -> str:

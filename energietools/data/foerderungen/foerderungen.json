@@ -1,0 +1,1818 @@
+[
+ {
+  "id": "bund-eag-invest-pv-speicher",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "pv",
+  "name": "EAG-Investitionszuschuss Photovoltaik & Stromspeicher",
+  "foerderstelle": "EAG-Abwicklungsstelle (OeMAG), im Auftrag des Bundes (BMWET)",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "3. Call 2026 (nächster offener Call): 08.10.–22.10.2026, Budget 8 Mio. € (Kat. A–D je 2 Mio.). 1. Call (23.04.–11.05.2026, abgeschlossen) wegen hoher Nachfrage (rd. 29.000 Anträge, rd. 135 Mio. € Nachfrage) von 40 auf 70 Mio. € aufgestockt. 2. Call (16.–30.06.2026, Prüfung laut Abwicklungsstelle am 09.07.2026 abgeschlossen): 12 Mio. €. Gesamtvolumen 2026 über alle drei Calls: rd. 90 Mio. €.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "PV bis 10 kWp (Kategorie A)",
+     "wert": "150 €/kWp"
+    },
+    {
+     "bezeichnung": "PV >10–20 kWp (Kategorie B)",
+     "wert": "140 €/kWp"
+    },
+    {
+     "bezeichnung": "PV >20–100 kWp (Kategorie C)",
+     "wert": "bis 130 €/kWp"
+    },
+    {
+     "bezeichnung": "PV >100–1.000 kWp (Kategorie D)",
+     "wert": "bis 120 €/kWp"
+    },
+    {
+     "bezeichnung": "Stromspeicher",
+     "wert": "150 €/kWh nutzbarer Kapazität"
+    },
+    {
+     "bezeichnung": "Made in Europe-Bonus",
+     "wert": "bis zu 30 % Aufschlag auf den Fördersatz (je 10 % für europäische PV-Module, Wechselrichter, Speicher)"
+    },
+    {
+     "bezeichnung": "Obergrenze",
+     "wert": "max. 30 % der förderfähigen Nettokosten"
+    }
+   ],
+   "text": "PV 150/140/130/120 €/kWp gestaffelt nach Kategorie A–D, Speicher 150 €/kWh nutzbarer Kapazität, bis zu 30 % Made-in-Europe-Bonus, max. 30 % der förderfähigen Nettokosten"
+  },
+  "bedingungen": [
+   "Antrag muss vor Inbetriebnahme der Anlage gestellt werden — Baubeginn/Beauftragung vorher ausdrücklich erlaubt (§4 Abs.1 Z2 EAG-Investitionszuschüsseverordnung-Strom, BGBl. II Nr. 64/2023 idF BGBl. II Nr. 12/2026)",
+   "Beginn der Arbeiten darf nicht vor dem 21.04.2022 liegen",
+   "Speicher wird nur gefördert in Kombination mit einer neuen/erweiterten PV-Anlage, nicht als reines Nachrüsten",
+   "Zuschlag per Ticket-Verfahren innerhalb der Call-Fenster: Kat. A/B First-Come-First-Served, Kat. C/D verkehrtes Bieterverfahren nach Förderbedarf",
+   "Nachträgliche Antragstellung bei PV <100 kWp innerhalb 6 Monaten nach Fördervertragsabschluss möglich (zweimalige Verlängerung um je bis zu 9 Monate)"
+  ],
+  "zielgruppe": "Privathaushalte (Eigentümer), auch Betriebe/Gemeinden in anderen Kategorien",
+  "antrags_url": "https://einreichen.eag-abwicklungsstelle.at/eag/login",
+  "quellen": [
+   {
+    "url": "https://pvaustria.at/eag-investzuschuss/",
+    "abrufdatum": "2026-08-01",
+    "typ": "sekundaer"
+   },
+   {
+    "url": "https://www.wko.at/foerderungen/eag-investitionszuschuss-2026-photovoltaik-stromspeicher",
+    "abrufdatum": "2026-08-01",
+    "typ": "sekundaer"
+   },
+   {
+    "url": "https://www.eag-abwicklungsstelle.at/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.bmwet.gv.at/Presse/AktuellePressemeldungen/Zweiter-EAG-F%C3%B6rdercall.html",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20012195",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": "2026-10-08/2026-10-22"
+ },
+ {
+  "id": "bund-eag-marktpraemie",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "pv",
+  "name": "EAG-Marktprämie für PV-Anlagen (Ausschreibung)",
+  "foerderstelle": "EAG-Abwicklungsstelle (OeMAG)",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "2. Ausschreibung zur Marktprämie für PV-Anlagen (Laufzeit 27.05.–11.06.2026) wurde am 10.07.2026 bezuschlagt. Geringe Relevanz für Gridbert-Haushalte — betrifft typischerweise größere Anlagen/Direktvermarktung, nicht das typische Einfamilienhaus-Dach mit Überschusseinspeisung zum Marktpreis.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [],
+   "text": "Marktprämie im Ausschreibungsverfahren, keine fixe €/kWp-Zahl im Dokument genannt — primär für größere/gewerbliche Erzeuger ohne Investitionszuschuss"
+  },
+  "bedingungen": [
+   "Alternative zum Investitionszuschuss, nicht kombinierbar"
+  ],
+  "zielgruppe": "größere/gewerbliche PV-Erzeuger (Direktvermarktung), nicht die typische Gridbert-Zielgruppe",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.eag-abwicklungsstelle.at/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-geraete-retter-praemie",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "geraete",
+  "name": "Geräte-Retter-Prämie (Nachfolger des Reparaturbonus)",
+  "foerderstelle": "Bundesministerium für Land- und Forstwirtschaft, Klima- und Umweltschutz, Regionen und Wasserwirtschaft (BMLUK)",
+  "status": "offen",
+  "status_seit": "2026-01-12",
+  "status_detail": "Aktiv, Reparatur/Service/Wartung sowie Kostenvoranschläge für elektrische/elektronische Haushaltsgeräte auf offizieller Geräteliste",
+  "foerderhoehe": {
+   "typ": "prozent",
+   "werte": [
+    {
+     "bezeichnung": "Reparaturfall",
+     "wert": "50 % der Bruttokosten, max. 130 €"
+    },
+    {
+     "bezeichnung": "Kostenvoranschlag",
+     "wert": "max. 30 €"
+    }
+   ],
+   "text": "50 % der Bruttokosten, max. 130 € pro Reparaturfall; max. 30 € für einen Kostenvoranschlag"
+  },
+  "bedingungen": [
+   "Gerät muss auf offizieller Geräteliste stehen (u.a. Kaffeemaschine, Wasserkocher, Waschmaschine, Fernsehgerät, Laptop)",
+   "Einlösung bei Partnerbetrieben",
+   "Bon 3 Wochen gültig",
+   "kein direkter Strom-/Heizkosten-Hebel, aber plausibler Zusatz-Tipp bei Geräte-Themen (Reparatur statt Neukauf)"
+  ],
+  "zielgruppe": "geschäftsfähige Privatpersonen mit Wohnsitz in Österreich",
+  "antrags_url": "https://www.xn--gerte-retter-prmie-ntbm.at",
+  "quellen": [
+   {
+    "url": "https://www.oesterreich.gv.at/de/themen/umwelt_und_klima/energie_und_ressourcen_sparen/geraete-retter-praemie",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-energiemanagement-flexibilisierung",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "sonstiges",
+  "name": "Energiemanagement – Flexibilisierung im Verteilnetz (Private Haushalte 2026)",
+  "foerderstelle": "Klima- und Energiefonds (tri-ministeriell getragen: BMLUK, BMIMI, BMWET, dazu BMF für Teilagenden; Vorsitz im Präsidium wechselt jährlich)",
+  "status": "offen",
+  "status_seit": "2026-06-23",
+  "status_detail": "Registrierung so lange möglich, wie Budgetmittel verfügbar sind, längstens bis 15.04.2027, 12:00 Uhr. Gesamttopf 4,9 Mio. € (indikativ je 2,45 Mio. € für Haushalte bzw. Betriebe/Gemeinden/Vereine).",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Basisförderung",
+     "wert": "50 % der förderfähigen Kosten (inkl. USt), max. 600 € pro Haushalt"
+    },
+    {
+     "bezeichnung": "Begleitforschungs-Bonus",
+     "wert": "zusätzlich einmalig 100 € bei Zustimmung zur Teilnahme (Viertelstundenwerte/Erfahrungsbericht nach einem Betriebsjahr)"
+    }
+   ],
+   "text": "50 % der förderfähigen Kosten, max. 600 €, plus optional 100 € Bonus bei Teilnahme an der Begleitforschung"
+  },
+  "bedingungen": [
+   "System muss mindestens zwei von: PV-/Erneuerbaren-Erzeugungsanlage, Stromspeicher, E-Auto-Ladestelle, Wärmepumpe/elektrische Warmwasserbereitung steuern",
+   "Netzanschluss auf Netzebene 7 (Standard-Haushaltsanschluss)",
+   "vollständige Montage durch Fachfirma",
+   "5 Jahre Betriebsverpflichtung",
+   "max. 1 Antrag pro Person/Standort",
+   "Rechnungen vor Registrierung werden nicht anerkannt",
+   "zweistufig: Online-Registrierung, danach Antragstellung binnen 6 Monaten"
+  ],
+  "zielgruppe": "Privatpersonen mit haushaltsüblichem Netzanschluss",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.umweltfoerderung.at/privatpersonen/energiemanagement-fuer-privatpersonen",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.klimafonds.gv.at/wp-content/uploads/2026/06/Leitfaden-Energiemanagement-Haushalte.pdf",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20005371",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-sanierungsbonus",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "sanierung",
+  "name": "Sanierungsbonus (thermisch-energetische Sanierung)",
+  "foerderstelle": "BMLUK / KPC (Kommunalkredit Public Consulting)",
+  "status": "geschlossen",
+  "status_seit": "2026-02-02",
+  "status_detail": "Eingestellt zugunsten des Kesseltausch-Budgets; mittlerweile ist auch das Gesamtprogramm 'Sanierungsoffensive' komplett budgeterschöpft. Wörtliches Zitat: 'Die Förderungsaktion Sanierungsoffensive mit \"Sanierungsbonus\" und \"Kesseltausch\" wurde mit großem Erfolg beendet. Die zur Verfügung stehenden Förderungsmittel wurden ausgeschöpft. Eine neue Registrierung bzw. Antragstellung ist daher derzeit nicht möglich.'",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Gesamtförderung (historisch)",
+     "wert": "bis 42.000 €"
+    }
+   ],
+   "text": "Historisch (Stand 2026-03-05, VOR Schließung 02.02.2026): bis 42.000 €. Historische Sätze aus dem Vorgänger-Katalog von energietools (energietools/data/foerderungen.json, Stand 2026-03-05, VOR der 2026-07-31-Recherche und nicht durch diese neu verifiziert). Nur ergänzt, weil das Programm ohnehin geschlossen ist — kein Aktualitäts-Risiko für Nutzer:innen. Primärquelle für den Fördersatz selbst: nicht erneut geprüft."
+  },
+  "bedingungen": [
+   "Bereits gestellte Anträge/Registrierungen bleiben gültig",
+   "Statusabfrage über kpc-online.at/mfp/login"
+  ],
+  "zielgruppe": "Ein-/Zweifamilienhaus & mehrgeschossiger Wohnbau",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.sanierungsoffensive.gv.at/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.umweltfoerderung.at/privatpersonen/sanierungsbonus-ein-zweifamilienhaus-und-reihenhaus-2026/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "unsicher_grund": null,
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-kesseltausch",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "heizungstausch",
+  "name": "Kesseltausch (Ein-/Zweifamilienhaus, Reihenhaus, mehrgeschossiger Wohnbau)",
+  "foerderstelle": "BMLUK / KPC",
+  "status": "geschlossen",
+  "status_seit": "2026-07-10",
+  "status_detail": "Budgeterschöpft, keine Neuregistrierung möglich. Blieb nach der Sanierungsbonus-Schließung (02.02.2026) zunächst offen und wurde erst am 10.07.2026 zusammen mit 'Sauber Heizen für Alle' beendet.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Wärmepumpe (historisch)",
+     "wert": "bis 7.500 €"
+    },
+    {
+     "bezeichnung": "Fernwärme-Anschluss (historisch)",
+     "wert": "bis 6.500 €"
+    },
+    {
+     "bezeichnung": "Holzzentralheizung (historisch)",
+     "wert": "bis 8.500 €"
+    },
+    {
+     "bezeichnung": "Bonus Solaranlage (historisch)",
+     "wert": "2.500 €"
+    },
+    {
+     "bezeichnung": "Bonus Tiefenbohrung/Brunnen (historisch)",
+     "wert": "5.000 €"
+    }
+   ],
+   "text": "Historisch (Stand 2026-03-05, VOR Schließung 10.07.2026): bis 7.500 € (Wärmepumpe) / 6.500 € (Fernwärme) / 8.500 € (Holzheizung), zzgl. Boni 2.500 € (Solaranlage) bzw. 5.000 € (Tiefenbohrung/Brunnen). Historische Sätze aus dem Vorgänger-Katalog von energietools (energietools/data/foerderungen.json, Stand 2026-03-05, VOR der 2026-07-31-Recherche und nicht durch diese neu verifiziert). Nur ergänzt, weil das Programm ohnehin geschlossen ist — kein Aktualitäts-Risiko für Nutzer:innen. Primärquelle für den Fördersatz selbst: nicht erneut geprüft."
+  },
+  "bedingungen": [],
+  "zielgruppe": "Ein-/Zweifamilienhaus, Reihenhaus, mehrgeschossiger Wohnbau",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.umweltfoerderung.at/privatpersonen/kesseltausch-ein-zweifamilienhaus-und-reihenhaus-2026/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-sauber-heizen-fuer-alle",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "heizungstausch",
+  "name": "Sauber Heizen für Alle 2026 (einkommensschwache Haushalte)",
+  "foerderstelle": "BMLUK / KPC",
+  "status": "geschlossen",
+  "status_seit": "2026-07-10",
+  "status_detail": "Wörtliches Zitat land-oberoesterreich.gv.at: 'Das Förderprogramm wurde mit 10.07.2026 eingestellt.' Live rebestätigt auf umweltfoerderung.at: 'Förderungsaktion erfolgreich beendet. Registrierungen ... sind nicht mehr möglich.' Bereits erfolgte Registrierungen bleiben laut NÖ-Landesseite 9 Monate gültig.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Anschluss Fernwärme",
+     "wert": "max. 28.469 €"
+    },
+    {
+     "bezeichnung": "Pellet-/Hackgutkessel",
+     "wert": "max. 36.180 €"
+    },
+    {
+     "bezeichnung": "Scheitholzkessel",
+     "wert": "max. 30.055 €"
+    },
+    {
+     "bezeichnung": "Luft/Wasser-Wärmepumpe",
+     "wert": "max. 25.586 €"
+    },
+    {
+     "bezeichnung": "Sole/Wasser- bzw. Wasser/Wasser-Wärmepumpe",
+     "wert": "max. 37.550 €"
+    }
+   ],
+   "text": "Bis zu 100 % Förderung (je nach Heizungstechnologie), technologiespezifische Maximalbeträge zwischen 25.586 € und 37.550 €; Zusatzzuschuss zur Bundes-/Länder-Basisförderung"
+  },
+  "bedingungen": [
+   "Zielgruppe: unterste zwei Einkommensdezile (Einpersonenhaushalt Nettomonatseinkommen bis 1.867,00 €/Monat, 12x, Basis EU-SILC 2024)"
+  ],
+  "zielgruppe": "einkommensschwache Haushalte (unterste zwei Einkommensdezile)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.land-oberoesterreich.gv.at/270992.htm",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.umweltfoerderung.at/fileadmin/user_upload/umweltfoerderung/private/sauber_heizen_fuer_alle/SHFA2026_Infoblatt.pdf",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-eride-wallbox",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "wallbox",
+  "name": "E-Ladeinfrastruktur Private 2025 \"eRide\" (Wallbox)",
+  "foerderstelle": "BMIMI (Bundesministerium für Innovation, Mobilität und Infrastruktur), abgewickelt über KPC/eMove Austria",
+  "status": "geschlossen",
+  "status_seit": "2026-03-31",
+  "status_detail": "Budget ausgeschöpft, vorzeitig beendet ('wegen ausgeschöpften Budgets vorzeitig beendet'). 31.03.2026 ist das offiziell kommunizierte, spätestmögliche Registrierungs-Enddatum laut Wayback-Snapshot vom 05.03.2026 der Programmseite; ein exakteres vorzeitiges Datum war nicht auffindbar. Eine angekündigte Wiederauffüllung 'Anfang April 2026' durch das Verkehrsministerium konnte auch nach zwei Verifikationsrunden NICHT bestätigt werden — nicht als Fakt an Nutzer weitergeben.",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [
+    {
+     "bezeichnung": "Wallbox/intelligentes 3-phasiges Ladekabel, Ein-/Zweifamilienhaus",
+     "wert": "400 €"
+    },
+    {
+     "bezeichnung": "Wallbox als Einzelanlage, Mehrparteienhaus",
+     "wert": "800 €"
+    },
+    {
+     "bezeichnung": "Wallbox mit Lastmanagement, Gemeinschaftsanlage Mehrparteienhaus",
+     "wert": "1.500 €"
+    }
+   ],
+   "text": "400 € (EFH/ZFH), 800 € (Einzelanlage MFH), 1.500 € (Gemeinschaftsanlage mit Lastmanagement, MFH)"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Private E-Fahrzeug-Halter:innen",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.umweltfoerderung.at/privatpersonen/e-ladeinfrastruktur-private-2025-eride/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.umweltfoerderung.at/fileadmin/user_upload/umweltfoerderung/private/Fahrzeuge__Mobilitaet__Verkehr/Leitfaden_E-Mobilitaet_Private_2025.pdf",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-eride-zweiraeder",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "sonstiges",
+  "name": "E-Zweiräder Private 2025 \"eRide\"",
+  "foerderstelle": "BMIMI, abgewickelt über KPC/eMove Austria",
+  "status": "geschlossen",
+  "status_seit": null,
+  "status_detail": "'Neue Registrierungen nicht mehr möglich' — kein konkretes Schließungsdatum im Dokument genannt",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [],
+   "text": "Keine Beträge im Dokument genannt"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Private Halter:innen von E-Zweirädern",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.umweltfoerderung.at/privatpersonen/e-zweiraeder-private-2025-eride/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bund-pv-nullsteuersatz",
+  "ebene": "bund",
+  "bundesland": null,
+  "kategorie": "pv",
+  "name": "Nullsteuersatz (0 % USt) auf Photovoltaikanlagen",
+  "foerderstelle": "Bund (Steuerrecht, § 28 Abs. 62 UStG 1994)",
+  "status": "geschlossen",
+  "status_seit": "2025-04-01",
+  "status_detail": "Ausgelaufen zum 01.04.2025, seither regulärer Steuersatz 20 %. Übergangs-/Vertrauensschutzregelung: Verträge bis 06.03.2025 abgeschlossen und Lieferung/Installation bis 31.12.2025 abgeschlossen → weiterhin 0 % USt; bei Lieferung/Installation nach 31.12.2025 → 20 %. Verträge ab 07.03.2025 → 0 % nur bei Lieferung/Installation bis 31.03.2025, danach 20 %. Für jede PV-Anschaffung 2026 gilt: keine USt-Befreiung mehr, volle 20 % USt fällig (Alt-Vertrags-Randfälle 2026 kaum noch relevant). An der geltenden Rechtsquelle selbst bestätigt (RIS).",
+  "foerderhoehe": {
+   "typ": "prozent",
+   "werte": [
+    {
+     "bezeichnung": "USt-Satz auf PV-Module (historisch, ausgelaufen)",
+     "wert": "0 % statt regulär 20 %"
+    }
+   ],
+   "text": "0 % USt-Satz auf PV-Module ist seit 01.04.2025 ausgelaufen, seither gilt der reguläre Satz von 20 %"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Käufer von PV-Anlagen (historisch)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.wko.at/oe/gewerbe-handwerk/elektro-gebaeude-alarm-kommunikation/streichung-der-ust-befreiung-auf-pv-anlagen",
+    "abrufdatum": "2026-07-31",
+    "typ": "sekundaer"
+   },
+   {
+    "url": "https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=10004873",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "wien-pv-foerderpaket-2026",
+  "ebene": "land",
+  "bundesland": "Wien",
+  "kategorie": "pv",
+  "name": "PV-Förderpaket ab Mai 2026 (Fassade/Verschattung/Gründach/Flugdach/mehrgeschossiger Wohnbau)",
+  "foerderstelle": "Stadt Wien",
+  "status": "offen",
+  "status_seit": "2026-05-01",
+  "status_detail": "Standard-Dachanlagen werden seit 1. Mai 2026 nicht mehr gefördert (das deckt bereits der Bund/EAG ab). Gefördert: PV-Fassadenanlagen, PV-Verschattungsanlagen auf begehbaren Dächern, Flugdach- und Gründach-PV, PV auf mehrgeschossigen Wohnbauten. Laut Transparenzdatenbank sind die vier neuen Programme jeweils ab 2026-05-04 beantragbar (3 Tage nach dem auf der Webseite genannten Stichtag). Budget 7 Mio. €.",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [],
+   "text": "Konkrete €/kWp-Sätze bzw. Fördermaxima waren auf der Übersichtsseite nicht angegeben; Gesamtbudget 7 Mio. €"
+  },
+  "bedingungen": [
+   "Standard-Dachanlagen fallen aus der Förderung, weil der Bund (EAG) diese bereits abdeckt"
+  ],
+  "zielgruppe": "Privatpersonen, Betriebe, öffentliche Einrichtungen",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.wien.gv.at/umwelt/photovoltaik-foerderpaket-ab-mai-2026",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "wien-pv-standard-dach-alt",
+  "ebene": "land",
+  "bundesland": "Wien",
+  "kategorie": "pv",
+  "name": "PV-Förderung Private (Standard-Dachanlagen, historisch)",
+  "foerderstelle": "Stadt Wien",
+  "status": "geschlossen",
+  "status_seit": "2026-05-01",
+  "status_detail": "'Standard-PV-Dachanlagen (außer auf mehrgeschoßigen Wohnbauten) und Speicheranlagen werden von der Stadt Wien nicht mehr gefördert.' Superseded durch das neue PV-Förderpaket ab Mai 2026 (Nischen-Fokus).",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [],
+   "text": "Historische Sätze im Dokument nicht mehr beziffert"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privatpersonen (historisch)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://sonnenstrom.wien.gv.at/foerderungen",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "wien-speicher",
+  "ebene": "land",
+  "bundesland": "Wien",
+  "kategorie": "speicher",
+  "name": "Förderung stationärer Stromspeicher (Wien, historisch)",
+  "foerderstelle": "Stadt Wien",
+  "status": "geschlossen",
+  "status_seit": "2025-12-31",
+  "status_detail": "Speicheranlagen werden von der Stadt Wien nicht mehr gefördert. Laut Transparenzdatenbank war die Maßnahme 'Förderung stationärer Stromspeicher' beantragbar von 2015-06-01 bis 2025-12-31.",
+  "foerderhoehe": {
+   "typ": "satz_pro_kwh",
+   "werte": [
+    {
+     "bezeichnung": "Fördersatz (historisch)",
+     "wert": "200 €/kWh"
+    },
+    {
+     "bezeichnung": "Deckelung (historisch)",
+     "wert": "max. 10 kWh / max. 2.000 €"
+    }
+   ],
+   "text": "Historisch (Stand 2026-03-05, VOR Einstellung 31.12.2025): 200 €/kWh, max. 10 kWh (max. 2.000 €). Historische Sätze aus dem Vorgänger-Katalog von energietools (energietools/data/foerderungen.json, Stand 2026-03-05, VOR der 2026-07-31-Recherche und nicht durch diese neu verifiziert). Nur ergänzt, weil das Programm ohnehin geschlossen ist — kein Aktualitäts-Risiko für Nutzer:innen. Primärquelle für den Fördersatz selbst: nicht erneut geprüft."
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privatpersonen (historisch)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://sonnenstrom.wien.gv.at/foerderungen",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "wien-heizungstausch-raus-aus-gas",
+  "ebene": "land",
+  "bundesland": "Wien",
+  "kategorie": "heizungstausch",
+  "name": "Raus aus Gas — Errichtung/Umstellung/Nachrüstung Heizanlagen",
+  "foerderstelle": "Stadt Wien",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Zusätzlich zur Bundesförderung. Alle Beträge 'nach Maßgabe der vorhandenen Budgetmittel', kein Rechtsanspruch.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Basisförderung",
+     "wert": "35 % der als förderbar anerkannten Kosten (einmaliger, nicht rückzahlbarer Beitrag)"
+    },
+    {
+     "bezeichnung": "Eigenheime/Kleingartenwohnhäuser, Höchstbetrag",
+     "wert": "8.000 € (zzgl. 4.000 € Zusatzbetrag bei Geothermie/Grundwasser/Abwärme)"
+    },
+    {
+     "bezeichnung": "Wohnungen, Höchstbetrag",
+     "wert": "5.250 € (bei max. anerkennbaren Kosten von 15.000 €)"
+    },
+    {
+     "bezeichnung": "Dekarbonisierungsprämie",
+     "wert": "bis zu 1.500 € bei vollständigem Verzicht auf Gas (Heizung, Warmwasser oder Kochen) am Hauptwohnsitz und Abmeldung des Gasanschlusses"
+    }
+   ],
+   "text": "35 % der Kosten, Eigenheime max. 8.000 € (+4.000 € Geothermie-Bonus), Wohnungen max. 5.250 €; zusätzlich Dekarbonisierungsprämie bis 1.500 € bei vollständigem Gasausstieg"
+  },
+  "bedingungen": [
+   "Alle Beträge nach Maßgabe der vorhandenen Budgetmittel, kein Rechtsanspruch"
+  ],
+  "zielgruppe": "Eigenheime, Kleingartenwohnhäuser, Wohnungen (Eigentümer und Mieter)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.wien.gv.at/amtswege/errichtung-umstellung-nachruestung-heizanlagen-foerderungsantrag",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.wien.gv.at/umwelt/foerderungen-raus-aus-gas",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "wien-sanierung-ma25",
+  "ebene": "land",
+  "bundesland": "Wien",
+  "kategorie": "sanierung",
+  "name": "Thermische Sanierung im Rahmen der Wohnbauförderung (MA 25)",
+  "foerderstelle": "Stadt Wien (MA 25)",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Kein allgemeiner Fördersatz im Dokument gefunden, nur ein Rechenbeispiel: bei 120 m² EFH, 110.000 € Gesamtkosten, 12.500 € Bundeszuschuss kommt Wien auf 36.500 € Gesamtförderung (Beispielrechnung, keine allgemeingültige Aussage).",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [],
+   "text": "Kein allgemeiner Satz bekannt, nur ein Rechenbeispiel (36.500 € Gesamtförderung bei 120 m² EFH)"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Eigenheimbesitzer, Wohnungseigentümer",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.global2000.at/publikationen/sanierungsfoerderung-nach-bundeslaendern",
+    "abrufdatum": "2026-07-31",
+    "typ": "sekundaer"
+   }
+  ],
+  "verlaesslichkeit": "unsicher",
+  "unsicher_grund": "Nur ein Rechenbeispiel eines Dritt-Reports (GLOBAL 2000, Stand Februar 2026) bekannt, kein primärquellenbelegter allgemeiner Fördersatz",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "noe-pv-punktesystem",
+  "ebene": "land",
+  "bundesland": "Niederösterreich",
+  "kategorie": "pv",
+  "name": "PV-Bonuspunkte in der NÖ-Wohnbauförderung",
+  "foerderstelle": "Land Niederösterreich",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Keine eigenständige Direktförderung, PV fließt als Bonuspunkte in die Eigenheim-/Reihenhaus-Wohnbauförderung ein und wirkt sich auf Kredit-/Zuschusskonditionen aus.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Anlage ab 2,0 kWp",
+     "wert": "10 Punkte"
+    },
+    {
+     "bezeichnung": "Anlage ab 4,0 kWp",
+     "wert": "15 Punkte"
+    },
+    {
+     "bezeichnung": "Geschoßwohnbau ab 0,5 kWp/Wohnung",
+     "wert": "10 Punkte"
+    },
+    {
+     "bezeichnung": "Geschoßwohnbau ab 0,75 kWp/Wohnung",
+     "wert": "15 Punkte"
+    }
+   ],
+   "text": "Punktesystem, kein direkter €-Betrag: 2,0 kWp = 10 Punkte, 4,0 kWp = 15 Punkte (Geschoßwohnbau: 0,5/0,75 kWp je Wohnung)"
+  },
+  "bedingungen": [
+   "Punkte wirken sich auf Kredit-/Zuschusskonditionen der Wohnbauförderung aus, kein Direktzuschuss"
+  ],
+  "zielgruppe": "Eigenheim-/Reihenhausbesitzer, Geschoßwohnbau",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.noe.gv.at/noe/Energieeffizienz_EH.html",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "noe-speicher-punktesystem",
+  "ebene": "land",
+  "bundesland": "Niederösterreich",
+  "kategorie": "speicher",
+  "name": "Batteriespeicher-Bonuspunkte in der NÖ-Wohnbauförderung (Eigenheimsanierung)",
+  "foerderstelle": "Land Niederösterreich",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Punkte stehen in der Broschüre 'NÖ Wohnbauförderung Eigenheimsanierung' (Stand Jänner 2026), nicht in der Neubau-Ergänzung.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Batteriespeicher",
+     "wert": "3 Punkte"
+    }
+   ],
+   "text": "3 Punkte für Batteriespeicher im Sanierungs-Punktesystem, kein direkter €-Betrag"
+  },
+  "bedingungen": [
+   "Punkte wirken sich auf Kredit-/Zuschusskonditionen aus, kein Direktzuschuss"
+  ],
+  "zielgruppe": "Eigenheimbesitzer (Sanierung)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.noe.gv.at/noe/Sanieren-Renovieren/WEB_WBF_25_013_EHS-Broschuere_20260311.pdf",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "noe-eigenheimsanierung-annuitaetenzuschuss",
+  "ebene": "land",
+  "bundesland": "Niederösterreich",
+  "kategorie": "heizungstausch",
+  "name": "Eigenheimsanierung — Annuitätenzuschuss (inkl. Heizungstausch)",
+  "foerderstelle": "Land Niederösterreich",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Kombinierbar mit Bundesförderung. Für einkommensschwache Haushalte zusätzlich 'Sauber Heizen für Alle' (bundesseitig seit 10.07.2026 für Neuregistrierungen geschlossen). Bereits erfolgte Registrierungen bleiben 9 Monate gültig.",
+  "foerderhoehe": {
+   "typ": "prozent",
+   "werte": [
+    {
+     "bezeichnung": "Annuitätenzuschuss",
+     "wert": "4 %/Jahr über 10 Jahre auf anrechenbare Sanierungskosten bei Bankkredit-Finanzierung"
+    }
+   ],
+   "text": "4 % pro Jahr über 10 Jahre Zuschuss zur Rückzahlung eines Bankdarlehens"
+  },
+  "bedingungen": [
+   "Bankkredit-Finanzierung vorausgesetzt"
+  ],
+  "zielgruppe": "Eigenheimbesitzer",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.noe.gv.at/noe/Sanieren-Renovieren/WBF-Eigenheim_10-19.html",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "ooe-speicher-nachruestung",
+  "ebene": "land",
+  "bundesland": "Oberösterreich",
+  "kategorie": "speicher",
+  "name": "Nachrüstung systemdienlicher Solarstromspeicher",
+  "foerderstelle": "Land Oberösterreich",
+  "status": "geschlossen",
+  "status_seit": "2026-07-01",
+  "status_detail": "'Wie angekündigt wurde das Förderprogramm mit 1. Juli 2026 eingestellt. Alle bis einschließlich 30.06.2026 eingereichten Anträge mit Rechnungen werden geprüft.' Nicht kombinierbar mit EAG-Speicherförderung oder anderen Bundesförderungen. PV-Anlage musste vor dem 1.1.2026 in Betrieb genommen worden sein (Netzzugangsvertrag).",
+  "foerderhoehe": {
+   "typ": "satz_pro_kwh",
+   "werte": [
+    {
+     "bezeichnung": "Fördersatz",
+     "wert": "150 €/kWh Nennkapazität"
+    },
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "max. 40 % der förderungsfähigen Bruttoinvestitionskosten"
+    },
+    {
+     "bezeichnung": "max. Nennkapazität",
+     "wert": "15 kWh (rechnerisches Maximum 2.250 €)"
+    }
+   ],
+   "text": "150 €/kWh Nennkapazität, max. 40 % der Bruttoinvestitionskosten, max. 15 kWh (= max. 2.250 €)"
+  },
+  "bedingungen": [
+   "PV-Anlage muss vor dem 1.1.2026 in Betrieb genommen worden sein",
+   "Nicht kombinierbar mit EAG-Speicherförderung oder anderen Bundesförderungen"
+  ],
+  "zielgruppe": "Bestehende PV-Anlagenbesitzer (reine Nachrüstung)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.land-oberoesterreich.gv.at/554598.htm",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://web.archive.org/web/20260513034401/https://www.land-oberoesterreich.gv.at/554598.htm",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "ooe-kesseltausch",
+  "ebene": "land",
+  "bundesland": "Oberösterreich",
+  "kategorie": "heizungstausch",
+  "name": "Kesseltausch (Umstieg auf Wärmepumpe, Fernwärme oder therm. Solaranlage)",
+  "foerderstelle": "Land Oberösterreich",
+  "status": "offen",
+  "status_seit": "2026-01-01",
+  "status_detail": "Läuft 1.1.–31.12.2026 (budgetabhängig), für Hauptwohnsitz in Wohnhäusern mit bis zu 2 Wohnungen. 'Sauber Heizen für Alle' ist auf dieser Seite verlinkt, aber keine eigenständige OÖ-Landesschiene, sondern dieselbe (seit 10.07.2026 geschlossene) Bundesschiene.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Luft-Wasser-Wärmepumpe",
+     "wert": "100 €/kW Nennwärmeleistung, max. 1.700 €"
+    },
+    {
+     "bezeichnung": "Erdwärme-/Wasser-Wasser-Wärmepumpe",
+     "wert": "170 €/kW (max. 2.800 €) bzw. 100 €/kW (max. 1.700 €) je nach Effizienzklasse"
+    },
+    {
+     "bezeichnung": "Fernwärmeanschluss",
+     "wert": "140 €/kW Anschlussleistung, max. 2.800 €"
+    },
+    {
+     "bezeichnung": "Thermische Solaranlage 6–10 m²",
+     "wert": "pauschal 1.750 €"
+    },
+    {
+     "bezeichnung": "Thermische Solaranlage 11–19 m²",
+     "wert": "175 €/m²"
+    },
+    {
+     "bezeichnung": "Thermische Solaranlage ab 20 m²",
+     "wert": "pauschal 3.500 €"
+    },
+    {
+     "bezeichnung": "Kollektortausch",
+     "wert": "pauschal 700 €"
+    },
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "max. 50 % der förderfähigen Nettokosten"
+    }
+   ],
+   "text": "Gestaffelt nach Anlagentyp (100–170 €/kW bzw. Solaranlagen-Pauschalen), in jedem Fall max. 50 % der förderfähigen Nettokosten"
+  },
+  "bedingungen": [
+   "Hauptwohnsitz in Wohnhaus mit bis zu 2 Wohnungen"
+  ],
+  "zielgruppe": "Hauptwohnsitz-Haushalte in Ein-/Zweifamilienhäusern",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.land-oberoesterreich.gv.at/kesseltausch.htm",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "stmk-heizungstausch",
+  "ebene": "land",
+  "bundesland": "Steiermark",
+  "kategorie": "heizungstausch",
+  "name": "Förderung des Tausches erneuerbar betriebener Heizungssysteme",
+  "foerderstelle": "Land Steiermark",
+  "status": "offen",
+  "status_seit": "2026-03-01",
+  "status_detail": "Förderzeitraum 1.3.–31.12.2026. Budget 2026: 700.000 € (korrigiert gegenüber einer überholten PDF-Version mit 300.000 €), Stand 20.07.2026 bereits 45 % ausgeschöpft. Bestehende Heizanlage muss ab Antragstellung mindestens 15 Jahre alt sein.",
+  "foerderhoehe": {
+   "typ": "prozent",
+   "werte": [
+    {
+     "bezeichnung": "Fördersatz",
+     "wert": "max. 30 % der förderbaren Investitionskosten"
+    }
+   ],
+   "text": "Max. 30 % der Investitionskosten beim Umstieg von mind. 15 Jahre alten Biomassekesseln/Wärmepumpen auf effizientere erneuerbare Systeme"
+  },
+  "bedingungen": [
+   "Bestehende Heizanlage muss ab Antragstellung mindestens 15 Jahre alt sein"
+  ],
+  "zielgruppe": "Haushalte mit alten Biomassekesseln/Wärmepumpen",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.wohnbau.steiermark.at/cms/beitrag/13000784/183599709",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "stmk-sanierungsbonus-pv",
+  "ebene": "land",
+  "bundesland": "Steiermark",
+  "kategorie": "pv",
+  "name": "Sanierungsbonus für PV (kolportiert)",
+  "foerderstelle": "Land Steiermark (kolportiert)",
+  "status": "unsicher",
+  "status_seit": null,
+  "status_detail": "Trotz systematischer Suche über drei Verifikationsrunden (inkl. Wayback-CDX über alle *.steiermark.at-Domains) keine Primärquelle gefunden. Endgültig offen.",
+  "foerderhoehe": {
+   "typ": "prozent",
+   "werte": [
+    {
+     "bezeichnung": "kolportierter Satz",
+     "wert": "max. 15 % der Kosten"
+    }
+   ],
+   "text": "Kolportiert: max. 15 % der Kosten, Call 1.4.–15.5.2026 — NICHT primärquellenverifiziert"
+  },
+  "bedingungen": [],
+  "zielgruppe": "unklar",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.wohnbau.steiermark.at",
+    "abrufdatum": "2026-08-01",
+    "typ": "sekundaer"
+   }
+  ],
+  "verlaesslichkeit": "unsicher",
+  "unsicher_grund": "Keine Primärquelle gefunden trotz drei Verifikationsrunden inkl. Wayback-Machine-CDX-Abfrage; nicht für Nutzer-Kommunikation verwenden",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "stmk-balkonkraftwerk",
+  "ebene": "land",
+  "bundesland": "Steiermark",
+  "kategorie": "balkonkraftwerk",
+  "name": "Balkonkraftwerk-Förderung (kolportiert)",
+  "foerderstelle": "Land Steiermark (kolportiert)",
+  "status": "unsicher",
+  "status_seit": null,
+  "status_detail": "Keine offizielle Quelle gefunden, auch nicht in der data.gv.at-Transparenzdatenbank. Wayback-Machine-CDX-Abfrage ergab null archivierte Snapshots für Balkonkraftwerk-URLs auf *.steiermark.at.",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [
+    {
+     "bezeichnung": "kolportierter Betrag",
+     "wert": "200 €"
+    }
+   ],
+   "text": "Kolportiert: 200 € — NICHT primärquellenverifiziert, Vermutung eher widerlegt als bestätigt"
+  },
+  "bedingungen": [],
+  "zielgruppe": "unklar",
+  "antrags_url": null,
+  "quellen": [],
+  "verlaesslichkeit": "unsicher",
+  "unsicher_grund": "Keine Primärquelle über drei Runden gefunden, gilt als nicht existent/nicht kommunizierbar",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "tirol-pv-wohnhaussanierung",
+  "ebene": "land",
+  "bundesland": "Tirol",
+  "kategorie": "pv",
+  "name": "PV-Förderung im Rahmen der Wohnhaussanierung (zwei parallele Schienen)",
+  "foerderstelle": "Land Tirol",
+  "status": "offen",
+  "status_seit": "2026-01-01",
+  "status_detail": "WS-Richtlinie, Ausgabe 1.1.2026. Zwei parallele Förderschienen, KEINE simple Halbierung von 250 auf 125 €/kWp wie fälschlich kolportiert. Von der Gesamtleistung werden max. 20 kWp gefördert.",
+  "foerderhoehe": {
+   "typ": "satz_pro_kwp",
+   "werte": [
+    {
+     "bezeichnung": "Annuitätenzuschuss (Bankkredit-Finanzierung), Kostenbasis",
+     "wert": "max. 250 €/kWp, erhöhter Zuschusssatz 55 %"
+    },
+    {
+     "bezeichnung": "Einmalzuschuss (Eigenmittel-Finanzierung)",
+     "wert": "max. 125 €/kWp, erhöhter Zuschusssatz 50 %"
+    },
+    {
+     "bezeichnung": "Deckelung Anlagengröße",
+     "wert": "max. 20 kWp"
+    }
+   ],
+   "text": "Zwei parallele Schienen: Annuitätenzuschuss (250 €/kWp Kostenbasis, 55 % Satz) oder Einmalzuschuss (125 €/kWp max. Förderung, 50 % Satz); Anlage max. 20 kWp"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Eigenheimbesitzer",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.tirol.gv.at/fileadmin/themen/bauen-wohnen/wohnbaufoerderung/downloads_2019/ws-richtlinie_01-01-2026.pdf",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "tirol-speicher-nachruestung",
+  "ebene": "land",
+  "bundesland": "Tirol",
+  "kategorie": "speicher",
+  "name": "Netzdienliche Stromspeichersysteme 2026 (reine Nachrüstung)",
+  "foerderstelle": "Land Tirol",
+  "status": "offen",
+  "status_seit": "2026-01-01",
+  "status_detail": "Online-Antrag seit 1.1.2026, Budget ca. 1 Mio. € für 2026. Gefördert wird ausschließlich die Nachrüstung bestehender PV-Anlagen mit Speicher bzw. Erweiterung vorhandener Speicher — neue PV-Anlagen mit Speicher laufen über die Bundesförderung (EAG).",
+  "foerderhoehe": {
+   "typ": "satz_pro_kwh",
+   "werte": [
+    {
+     "bezeichnung": "Fördersatz",
+     "wert": "100 €/kWh"
+    },
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "10 kWh bzw. 1.000 €"
+    }
+   ],
+   "text": "100 €/kWh, gedeckelt bei 10 kWh bzw. 1.000 €"
+  },
+  "bedingungen": [
+   "Nur Nachrüstung bestehender PV-Anlagen, keine Kombination mit Neuerrichtung"
+  ],
+  "zielgruppe": "Natürliche und juristische Personen mit Hauptwohnsitz/Firmensitz in Tirol",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.tirol.gv.at/presse/meldungen/meldung/land-tirol-foerdert-2026-nachruestung-von-pv-anlagen-mit-stromspeichern/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "tirol-heizungstausch",
+  "ebene": "land",
+  "bundesland": "Tirol",
+  "kategorie": "heizungstausch",
+  "name": "Wärmepumpenheizung/Biomasseheizung im Rahmen der Wohnhaussanierung",
+  "foerderstelle": "Land Tirol",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Zweispurigkeit wie bei PV: 25 % gilt nur für den Einmalzuschuss, beim Annuitätenzuschuss sind es 35 %. 'Bund+Land zusammen max. 50 %' ist NICHT belegt (in keiner der geprüften Quellen gefunden, endgültig UNSICHER/unbelegt). 'Sauber Heizen für Alle' übernimmt bei niedrigem Einkommen volle Kosten, aber bundesseitig seit 10.07.2026 geschlossen.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Einmalzuschuss (Eigenmittel)",
+     "wert": "25 % der förderbaren Kosten"
+    },
+    {
+     "bezeichnung": "Annuitätenzuschuss (Kreditfinanzierung)",
+     "wert": "35 % der Anfangsbelastung des Bankkredites"
+    },
+    {
+     "bezeichnung": "Bonus klimafreundliches Heizsystem",
+     "wert": "max. 3.000 €"
+    }
+   ],
+   "text": "25 % (Einmalzuschuss) bzw. 35 % (Annuitätenzuschuss), zusätzlich Bonus 'klimafreundliches Heizsystem' bis 3.000 €"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Eigenheimbesitzer",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.tirol.gv.at/bauen-wohnen/wohnbaufoerderung/sanierung/waermepumpenheizung/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.tirol.gv.at/bauen-wohnen/wohnbaufoerderung/sanierung/bonus-klimafreundliches-heizsystem/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "salzburg-pv-speicher-land",
+  "ebene": "land",
+  "bundesland": "Salzburg",
+  "kategorie": "pv",
+  "name": "Photovoltaikanlagen und Stromspeicher (Land Salzburg, historisch)",
+  "foerderstelle": "Land Salzburg",
+  "status": "geschlossen",
+  "status_seit": "2025-12-31",
+  "status_detail": "'Die Energieförderungen für Photovoltaikanlagen und Stromspeicher sind mit 31.12.2025 ausgelaufen. Eine neue Antragstellung ist daher nicht möglich.' Die zuvor kolportierte Ausnahme für Betriebe/Landwirte/gemeinnützige Bauträger (max. 40 %) ist widerlegt — keine 2026 gültige Richtlinie für diese Zielgruppe. Salzburger Privathaushalte sind 2026 auf die Bundesförderung (EAG) angewiesen.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [],
+   "text": "Historische Sätze im Dokument nicht beziffert"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privathaushalte (historisch)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.salzburg.gv.at/energiefoerderung/photovoltaikanlagen-und-stromspeicher",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "salzburg-pv-stadt",
+  "ebene": "land",
+  "bundesland": "Salzburg",
+  "kategorie": "pv",
+  "name": "Photovoltaikanlagenförderung Stadt Salzburg (historisch)",
+  "foerderstelle": "Stadt Salzburg",
+  "status": "geschlossen",
+  "status_seit": "2026-01-01",
+  "status_detail": "'Die Stadt Salzburg fördert den Einbau von effizienten Photovoltaikanlagen im Stadtgebiet von Salzburg mit einer Pauschale von 750 Euro je Anlage.' — 'Ab 1.1.2026 wird die Photovoltaikanlagenförderung eingestellt.'",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [
+    {
+     "bezeichnung": "Pauschale (historisch)",
+     "wert": "750 € je Anlage"
+    }
+   ],
+   "text": "750 € Pauschale je Anlage (historisch, seit 1.1.2026 eingestellt)"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privathaushalte im Stadtgebiet Salzburg (historisch)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.stadt-salzburg.at/photovoltaikfoerderung",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "salzburg-heizungstausch",
+  "ebene": "land",
+  "bundesland": "Salzburg",
+  "kategorie": "heizungstausch",
+  "name": "Erneuerbare Zentralheizungen",
+  "foerderstelle": "Land Salzburg",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Bevorzugt wird Nah-/Fernwärme-Anschluss; ist dieser nicht möglich, greift derselbe Satz (3.000 €) für ein alternatives erneuerbares System. Der 75-%-Kombinationsdeckel setzt eine tatsächlich in Anspruch nehmbare Bundesförderung voraus — 'Sauber Heizen für Alle'/Kesseltausch sind seit 10.07.2026 bundesseitig für Neuregistrierungen geschlossen, sodass aktuell nur die reinen Landes-Konditionen (3.000 €/40 %) ohne Bundes-Draufsatz erreichbar sind.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Direktzuschuss",
+     "wert": "3.000 € (nicht rückzahlbar)"
+    },
+    {
+     "bezeichnung": "Deckelung je Fördergegenstand",
+     "wert": "max. 40 % der förderungsrelevanten Investitionskosten"
+    },
+    {
+     "bezeichnung": "Kombinationsdeckel mit Bund",
+     "wert": "max. 75 % der gesamten förderungsrelevanten Investitionskosten"
+    }
+   ],
+   "text": "3.000 € Direktzuschuss, max. 40 % der Kosten je Fördergegenstand, max. 75 % Gesamtdeckel bei Kombination mit Bund (einheitlich für alle Systeme, kein 8.000-€-Sonderbetrag auffindbar)"
+  },
+  "bedingungen": [
+   "75-%-Kombinationsdeckel setzt eine tatsächlich verfügbare Bundesförderung voraus"
+  ],
+  "zielgruppe": "Eigenheimbesitzer",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.salzburg.gv.at/energiefoerderung/erneuerbare-zentralheizungen",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "ktn-pv-speicher-neuinstallation",
+  "ebene": "land",
+  "bundesland": "Kärnten",
+  "kategorie": "pv",
+  "name": "PV-Förderung Wohnbau — nur mit gleichzeitigem Speicher (WT-L46)",
+  "foerderstelle": "Land Kärnten",
+  "status": "offen",
+  "status_seit": "2026-01-01",
+  "status_detail": "Ab 2026 grundlegend umgebaut: PV-Anlagen werden nur noch gefördert, wenn gleichzeitig ein Batteriespeicher installiert wird. Gefördert werden nur Anlagen mit Rechnungsdatum (Schlussrechnung) nach dem 1.1.2026. Call 1: 15.04.–30.06.2026. Ein weiterer Call ist für Oktober 2026 geplant, genauer Termin noch nicht bekanntgegeben (Stand Seiten-Zeitstempel 02.07.2026). Da der Bund seit 10.07.2026 keine Neuregistrierungen für Heizungsförderungen mehr annimmt, ist dies für die Heizungsförderung relevant — für PV/Speicher selbst nicht direkt betroffen.",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [
+    {
+     "bezeichnung": "Neuinstallation PV (≥5 kWp) + gleichzeitige Speicher-Neuerrichtung (≥5 kWh)",
+     "wert": "3.000 € Direktzuschuss"
+    },
+    {
+     "bezeichnung": "Erweiterung PV um ≥5 kWp + gleichzeitige Speicher-Neuerrichtung (≥5 kWh)",
+     "wert": "3.000 €"
+    },
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "max. 50 % der Errichtungskosten, unter Einbeziehung der Landesförderungen der letzten 10 Jahre"
+    }
+   ],
+   "text": "3.000 € Pauschale bei gleichzeitiger Neuinstallation/Erweiterung von PV (≥5 kWp) und Speicher (≥5 kWh); max. 50 % der Errichtungskosten"
+  },
+  "bedingungen": [
+   "PV nur förderfähig mit gleichzeitiger Speicher-Neuerrichtung",
+   "Ausgenommen sind nicht ständig genutzte Wohnobjekte (Zweitwohnsitze, Ferienhäuser, Almhütten)",
+   "Kein Rechtsanspruch, abhängig von Budgetmitteln"
+  ],
+  "zielgruppe": "Privathaushalte mit Hauptwohnsitz in Kärnten",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.ktn.gv.at/Service/Formulare-und-Leistungen/WT-L46",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://portal.ktn.gv.at/Forms/Download/BW518",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "ktn-speicher-nachruestung",
+  "ebene": "land",
+  "bundesland": "Kärnten",
+  "kategorie": "speicher",
+  "name": "Reine Speicher-Nachrüstung zu bestehender PV-Anlage",
+  "foerderstelle": "Land Kärnten",
+  "status": "offen",
+  "status_seit": "2026-01-01",
+  "status_detail": "Call 1: 15.04.–30.06.2026, weiterer Call für Oktober 2026 geplant, kein fixer Termin bekannt.",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [
+    {
+     "bezeichnung": "Speicher-Nachrüstung ≥5 kWh",
+     "wert": "1.000 €"
+    }
+   ],
+   "text": "1.000 € bei reiner Speicher-Nachrüstung (≥5 kWh) zu bestehender PV-Anlage"
+  },
+  "bedingungen": [
+   "max. 50 % der Errichtungskosten unter Einbeziehung der Landesförderungen der letzten 10 Jahre"
+  ],
+  "zielgruppe": "Bestehende PV-Anlagenbesitzer",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.ktn.gv.at/Service/Formulare-und-Leistungen/WT-L46",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "ktn-heizungstausch",
+  "ebene": "land",
+  "bundesland": "Kärnten",
+  "kategorie": "heizungstausch",
+  "name": "Austausch fossiler Heizanlagen inkl. Zusatzförderung des Bundes (BW-L129)",
+  "foerderstelle": "Land Kärnten",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Erforderliche Unterlage ist explizit das 'Schreiben Auszahlung der Förderung von der KPC' (nicht nur eine Registrierungsbestätigung) — d.h. die Bundesförderung muss bereits AUSBEZAHLT sein. Da der Bund seit 10.07.2026 keine Neuregistrierungen für 'Sauber Heizen für Alle'/Kesseltausch mehr annimmt, ist die Kärntner Landesförderung für ab diesem Datum neu startende Fälle faktisch mitblockiert, auch wenn die Landesrichtlinie selbst weiterläuft.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Einmalzuschuss",
+     "wert": "max. 3.000 € je Wohnung"
+    },
+    {
+     "bezeichnung": "Solarbonus (bei gleichzeitiger thermischer Solaranlage ≥6 m² Bruttokollektorfläche)",
+     "wert": "zusätzlich 1.500 €"
+    },
+    {
+     "bezeichnung": "Maximum kombiniert",
+     "wert": "4.500 €"
+    }
+   ],
+   "text": "Max. 3.000 € je Wohnung, + 1.500 € Solarbonus bei gleichzeitiger thermischer Solaranlage (NICHT PV) = max. 4.500 €"
+  },
+  "bedingungen": [
+   "Solarbonus ist an eine thermische Solaranlage (Warmwasser) gekoppelt, nicht an PV",
+   "Voraussetzung: 'Schreiben Auszahlung der Förderung' von der KPC (nicht nur Registrierung)"
+  ],
+  "zielgruppe": "Eigentümer, Wohnungsbesitzer",
+  "antrags_url": "mailto:sanierung@ktn.gv.at",
+  "quellen": [
+   {
+    "url": "https://www.ktn.gv.at/Service/Formulare-und-Leistungen/BW-L129",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://portal.ktn.gv.at/Forms/Download/BW505",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "ktn-sanierung-gebaeudehuelle",
+  "ebene": "land",
+  "bundesland": "Kärnten",
+  "kategorie": "sanierung",
+  "name": "Gebäudehülle-Sanierung (Richtlinie BW505, Abschnitt A)",
+  "foerderstelle": "Land Kärnten",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Kein einzelner Satz wie bei PV/Heizung, sondern eine flächen- und einsparungsabhängige Formel.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Basisformel",
+     "wert": "1 €/m² × Bezugsfläche × HWB-Einsparung (%)"
+    },
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "30.000 € bzw. 50 % der Rechnungskosten"
+    },
+    {
+     "bezeichnung": "Ziel-HWB-Bonus",
+     "wert": "5.000 €"
+    },
+    {
+     "bezeichnung": "Denkmalschutz-Zuschlag",
+     "wert": "10 %"
+    },
+    {
+     "bezeichnung": "Energieausweis-Bonus",
+     "wert": "500 €"
+    }
+   ],
+   "text": "Basisförderung = 1 €/m² × Bezugsfläche × HWB-Einsparung (%), gedeckelt bei 30.000 € bzw. 50 % der Rechnungskosten, zzgl. Boni"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Eigenheimbesitzer",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://portal.ktn.gv.at/Forms/Download/BW505",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "vbg-pv-versiegelte-flaechen",
+  "ebene": "land",
+  "bundesland": "Vorarlberg",
+  "kategorie": "pv",
+  "name": "PV auf versiegelten Flächen (Carports, Parkplatzüberdachungen)",
+  "foerderstelle": "Land Vorarlberg",
+  "status": "offen",
+  "status_seit": "2026-01-27",
+  "status_detail": "Richtlinie 'Energieautonomie+ 2026' (Beschluss Landesregierung 27.01.2026). Standard-Dachanlagen für Private werden landesseitig NICHT gefördert — explizit ausgeschlossen: 'Photovoltaikanlagen auf bestehenden Gebäuden', 'Aufdachanlagen, dachparallel bzw. aufgeständert', 'Freiflächenanlagen'. Für ein typisches Einfamilienhausdach damit i.d.R. nicht relevant.",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "50.000 € je Anlage"
+    }
+   ],
+   "text": "Nur PV mit mindestens 20 kWp auf versiegelten/teilversiegelten Flächen, max. 50.000 € je Anlage"
+  },
+  "bedingungen": [
+   "Mindestens 20 kWp Modulspitzenleistung",
+   "Standard-Dachanlagen ausdrücklich ausgeschlossen"
+  ],
+  "zielgruppe": "Betreiber größerer Anlagen auf versiegelten Flächen (nicht typisches Einfamilienhaus)",
+  "antrags_url": null,
+  "quellen": [],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "vbg-speicher-vkw",
+  "ebene": "land",
+  "bundesland": "Vorarlberg",
+  "kategorie": "speicher",
+  "name": "Speicherförderung des Netzbetreibers VKW (kein Landesprogramm)",
+  "foerderstelle": "VKW Vorarlberger Kraftwerke AG (Netzbetreiber, kein Landesprogramm)",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Landesseitig gibt es keine Speicherförderung (die vollständige 34-seitige Basisrichtlinie inkl. aller 6 Anhänge enthält 'Speicher'/'Batterie' kein einziges Mal). Dies ist ein Netzbetreiber-, kein Landesprogramm.",
+  "foerderhoehe": {
+   "typ": "satz_pro_kwh",
+   "werte": [
+    {
+     "bezeichnung": "Fördersatz",
+     "wert": "50 € pro kWh Speicherkapazität"
+    },
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "max. 500 € pro Förderantrag"
+    }
+   ],
+   "text": "50 €/kWh Speicherkapazität, max. 500 € pro Förderantrag"
+  },
+  "bedingungen": [
+   "Voraussetzung: aufrechter VKW-PV-Einspeisetarif"
+  ],
+  "zielgruppe": "VKW-Netzkunden mit Einspeisevertrag",
+  "antrags_url": null,
+  "quellen": [],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "vbg-heizungstausch",
+  "ebene": "land",
+  "bundesland": "Vorarlberg",
+  "kategorie": "heizungstausch",
+  "name": "Richtlinie Heizungstausch 2026",
+  "foerderstelle": "Land Vorarlberg",
+  "status": "offen",
+  "status_seit": "2026-01-01",
+  "status_detail": "Gültig 1.1.–31.12.2026. Fördert Holzheizungen, Nahwärmeanschluss und Wärmepumpen in Bestandswohnbauten. Ab 1.9.2026 läuft die Antragstellung über ein neues Upload-Portal (bis dahin per E-Mail an energie@vorarlberg.at). Wichtig: Die Landesseite wirbt weiterhin (auch am 01.08.2026, mehr als 3 Wochen nach der Bund-Schließung) mit Kombinierbarkeit zur Bundesförderung 'Kesseltausch 2026', OHNE auf deren Schließung seit 10.07.2026 hinzuweisen — Kommunikationslücke der offiziellen Landesseite.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Grundförderung Eigenheim",
+     "wert": "2.000 €"
+    },
+    {
+     "bezeichnung": "Grundförderung Mehrfamilienhaus",
+     "wert": "1.000 € pro Gebäude"
+    },
+    {
+     "bezeichnung": "Ölbonus für den Ersatz fossiler Heizsysteme (EFH)",
+     "wert": "zusätzlich 1.000 €"
+    },
+    {
+     "bezeichnung": "Ölbonus (MFH)",
+     "wert": "zusätzlich 2.000 €"
+    },
+    {
+     "bezeichnung": "Maximum EFH/ZFH",
+     "wert": "3.000 €"
+    }
+   ],
+   "text": "Grundförderung 2.000 € (EFH)/1.000 € (MFH je Gebäude), plus Ölbonus 1.000 €/2.000 €; max. 3.000 € für EFH/ZFH"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Bestandswohnbauten",
+  "antrags_url": "mailto:energie@vorarlberg.at",
+  "quellen": [
+   {
+    "url": "https://presse.vorarlberg.at/land/public/Neue-Richtlinie-f-r-Heizungstausch-in-Wohnbauten",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://vorarlberg.at/-/foerderung-heizungstausch",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bgld-speicher",
+  "ebene": "land",
+  "bundesland": "Burgenland",
+  "kategorie": "speicher",
+  "name": "Richtlinie 2026 zur Förderung von Stromspeichersystemen",
+  "foerderstelle": "Amt der Burgenländischen Landesregierung",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Gesamtbudget 2026: 1.750.000 € (deckt auch noch offene Fälle der Richtlinie 2025 ab). Förderaktion endet mit Verbrauch der Mittel, spätestens 31.12.2026. Strikt 'Bund vor Land': 'Die Förderung durch den Bund ist vorrangig in Anspruch zu nehmen!'",
+  "foerderhoehe": {
+   "typ": "prozent",
+   "werte": [
+    {
+     "bezeichnung": "Fördersatz",
+     "wert": "30 % der förderfähigen Kosten"
+    },
+    {
+     "bezeichnung": "Deckelung",
+     "wert": "max. 100 €/kWh nutzbarer Speicherkapazität"
+    },
+    {
+     "bezeichnung": "Höchstanrechenbare Speicherkapazität",
+     "wert": "20 kWh (rechnerisches Maximum 2.000 €)"
+    }
+   ],
+   "text": "30 % der Kosten, gedeckelt bei max. 100 €/kWh, Höchstkapazität 20 kWh → rechnerisches Maximum 2.000 €"
+  },
+  "bedingungen": [
+   "Bund vor Land: Bundesförderung ist vorrangig in Anspruch zu nehmen",
+   "Antrag bis 6 Monate nach Rechnungsdatum über das Landes-Förderportal"
+  ],
+  "zielgruppe": "Privathaushalte",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://apps.bgld.gv.at/web/formulare.nsf/xsp/.ibmmodres/domino/OpenAttachment/web/formulare.nsf/FFD918E23E7C4F88C125810E002EA445/fldPdf/Richtlinie_2026_Stromspeicher_final.pdf",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.burgenland.at/themen/bauen/wohnen/energie-/-alternative-energieanlagen/photovoltaik-und-speicheranlagen/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bgld-heizungstausch",
+  "ebene": "land",
+  "bundesland": "Burgenland",
+  "kategorie": "heizungstausch",
+  "name": "Sonderförderaktion Heizungstausch 2026",
+  "foerderstelle": "Land Burgenland",
+  "status": "offen",
+  "status_seit": "2026-01-01",
+  "status_detail": "Aktionszeitraum 1.1.–31.12.2026. Antragsfrist bis 12 Monate nach Rechnungsdatum, spätestens 31.01.2027. Alternative 'bis 3.500 € unter Sauber Heizen für Alle' ist bundesseitig seit 10.07.2026 geschlossen.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "Grundförderung",
+     "wert": "30 % der anrechenbaren Kosten, max. Basisbetrag 2.000 €"
+    },
+    {
+     "bezeichnung": "WW-Wärmepumpen-Bonus",
+     "wert": "bis 300 € (in Kombination mit Biomasse-Zentralheizung)"
+    },
+    {
+     "bezeichnung": "Sozialzuschlag",
+     "wert": "500 € bei Netto-Jahreshaushaltseinkommen ≤43.000 €"
+    },
+    {
+     "bezeichnung": "Alternative (Bund)",
+     "wert": "bis 3.500 € unter 'Sauber Heizen für Alle' (bundesseitig seit 10.07.2026 geschlossen)"
+    }
+   ],
+   "text": "30 % der Kosten, max. Basisbetrag 2.000 €; Bonus bis 300 € (WW-Wärmepumpe+Biomasse), Sozialzuschlag 500 € bei Einkommen ≤43.000 €/Jahr"
+  },
+  "bedingungen": [
+   "Zielgruppe: Eigentümer:innen von Ein-/Zweifamilien- oder Reihenhäusern beim Umstieg von fossiler auf hocheffiziente alternative Heizung"
+  ],
+  "zielgruppe": "Eigentümer:innen von Ein-/Zweifamilien- oder Reihenhäusern",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.burgenland.at/themen/bauen/wohnen/energie-/-alternative-energieanlagen/sonderfoerderaktion-heizungstausch-2026/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "bgld-balkonkraftwerk",
+  "ebene": "land",
+  "bundesland": "Burgenland",
+  "kategorie": "balkonkraftwerk",
+  "name": "Sozial gestaffelte Balkonkraftwerk-Förderung (geplant, noch nicht umgesetzt)",
+  "foerderstelle": "Land Burgenland (geplant)",
+  "status": "unsicher",
+  "status_seit": null,
+  "status_detail": "Aktuelle Landesregierungs-Strategie 'Zukunftsplan Burgenland 2030' bestätigt die Absicht: 'Sozial gestaffelte Förderungen, insbesondere für Balkonkraftwerke, machen Photovoltaik auch für einkommensschwache Haushalte leistbar.' Steht aber weiterhin im Futur ('soll ... eingeführt werden'), keine konkrete Richtlinie mit Beträgen. Eine ältere Journalisten-Meldung (Feb. 2025, energynewsmagazine.at) berichtete unbestätigt von kolportierten 400 €/30 %.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [
+    {
+     "bezeichnung": "kolportiert (unbestätigt)",
+     "wert": "400 € bzw. 30 %"
+    }
+   ],
+   "text": "Keine geltende Richtlinie; kolportierte, unbestätigte Zahlen aus 2025er-Presseartikel: 400 € bzw. 30 %"
+  },
+  "bedingungen": [],
+  "zielgruppe": "einkommensschwache Haushalte (geplant)",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.burgenland.at/politik/landesregierung/zukunftsplan-2030/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "unsicher",
+  "unsicher_grund": "Absicht laut offiziellem Regierungsprogramm bestätigt, aber keine geltende Förderrichtlinie mit Beträgen — Absichtserklärung, kein implementiertes Programm",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "graz-pv-gemeinschaftsanlagen",
+  "ebene": "land",
+  "bundesland": "Steiermark",
+  "kategorie": "pv",
+  "name": "Umweltförderung PV-Gemeinschaftsanlagen (Graz)",
+  "foerderstelle": "Stadt Graz",
+  "status": "offen",
+  "status_seit": "2021-01-01",
+  "status_detail": "Laut Transparenzdatenbank beantragbar ab 2021-01-01, ohne Enddatum — für 2026 aktiv.",
+  "foerderhoehe": {
+   "typ": "satz_pro_kwp",
+   "werte": [
+    {
+     "bezeichnung": "Bei Eigennutzung",
+     "wert": "300 €/kWp, gedeckelt bei max. 2 kWp und Haushalt"
+    },
+    {
+     "bezeichnung": "Ohne Eigennutzung",
+     "wert": "190 €/kWp, gedeckelt bei max. 2 kWp"
+    },
+    {
+     "bezeichnung": "Maximaler Förderbetrag",
+     "wert": "bis zu 20.000 €"
+    }
+   ],
+   "text": "300 €/kWp (Eigennutzung) bzw. 190 €/kWp (keine Eigennutzung), je gedeckelt auf max. 2 kWp, Gesamtmaximum 20.000 €"
+  },
+  "bedingungen": [
+   "Gilt für PV-Gemeinschaftsanlagen, nicht für Standard-Einzelanlagen"
+  ],
+  "zielgruppe": "Haushalte, die an PV-Gemeinschaftsanlagen teilnehmen",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.graz.at/cms/beitrag/10439271/7882683/Umweltfoerderung_PV_Gemeinschaftsanlagen.html",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "graz-pv-standard-solarenergiedach",
+  "ebene": "land",
+  "bundesland": "Steiermark",
+  "kategorie": "pv",
+  "name": "Photovoltaik-Anlagen (SolarEnergieDach) — historisch, Graz",
+  "foerderstelle": "Stadt Graz",
+  "status": "geschlossen",
+  "status_seit": "2022-04-29",
+  "status_detail": "Laut Transparenzdatenbank lief das Programm nur 2021-04-30 bis 2022-04-29 und ist abgelaufen. Die aktuelle offizielle Graz-Förderliste enthält keine eigenständige Standard-PV-Förderung mehr — nur PV-Gemeinschaftsanlagen und thermische Solaranlagen.",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [],
+   "text": "Historische Sätze im Dokument nicht beziffert"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privathaushalte in Graz (historisch)",
+  "antrags_url": null,
+  "quellen": [],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "graz-balkonkraftwerk-kleinstanlagen",
+  "ebene": "land",
+  "bundesland": "Steiermark",
+  "kategorie": "balkonkraftwerk",
+  "name": "Umweltförderung — Photovoltaik-Kleinstanlagen für Balkone (Graz, historisch)",
+  "foerderstelle": "Stadt Graz",
+  "status": "geschlossen",
+  "status_seit": "2024-12-31",
+  "status_detail": "Laut Transparenzdatenbank beantragbar 2021-04-30 bis 2024-12-31. Rechtsgrundlage Gemeinderats-Richtlinie vom 18.01.2024. Für 2026 keine Registrierung mehr möglich, Programm taucht nicht mehr in der aktuellen offiziellen Graz-Förderliste auf.",
+  "foerderhoehe": {
+   "typ": "prozent",
+   "werte": [
+    {
+     "bezeichnung": "Fördersatz (historisch)",
+     "wert": "60 % der förderfähigen Kosten, max. 600 €"
+    },
+    {
+     "bezeichnung": "Elektro-Fachkraft-Inbetriebnahme",
+     "wert": "zusätzlich max. 150 €"
+    }
+   ],
+   "text": "60 % der förderfähigen Kosten, max. 600 €, zzgl. max. 150 € für Elektro-Fachkraft-Inbetriebnahme (historisch, seit 2025 nicht mehr beantragbar)"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privathaushalte in Graz (historisch)",
+  "antrags_url": null,
+  "quellen": [],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "linz-pv",
+  "ebene": "land",
+  "bundesland": "Oberösterreich",
+  "kategorie": "pv",
+  "name": "PV-Förderung Linz (Standardsatz + Gründach-Bonus)",
+  "foerderstelle": "Stadt Linz",
+  "status": "offen",
+  "status_seit": null,
+  "status_detail": "Aktualität für 2026 auf der Primärquelle nicht mit explizitem Jahres-Stempel versehen, aber die Seite verlinkt aktiv auf den 'Photovoltaikanlagen Leitfaden 2026 für OÖ'. Die Seite stellt zusätzlich explizit klar: 'Photovoltaik-Kleinstanlagen (Balkonkraftwerke) werden nicht gefördert!'",
+  "foerderhoehe": {
+   "typ": "satz_pro_kwp",
+   "werte": [
+    {
+     "bezeichnung": "Standardsatz",
+     "wert": "125 €/kW, max. 625 € pro Anlage"
+    },
+    {
+     "bezeichnung": "Gründach-Bonus (PV kombiniert mit Dachbegrünung)",
+     "wert": "225 €/kW, max. 1.125 €"
+    }
+   ],
+   "text": "Standard 125 €/kW (max. 625 €); bei Kombination mit Dachbegrünung (Gründach-Bonus) 225 €/kW (max. 1.125 €)"
+  },
+  "bedingungen": [
+   "Balkonkraftwerke sind laut derselben Seite explizit NICHT förderfähig"
+  ],
+  "zielgruppe": "Privathaushalte in Linz",
+  "antrags_url": null,
+  "quellen": [
+   {
+    "url": "https://www.linz.at/serviceguide/viewchapter.php?chapter_id=123299",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "innsbruck-pv-topup",
+  "ebene": "land",
+  "bundesland": "Tirol",
+  "kategorie": "pv",
+  "name": "Städtischer PV-Zuschuss Innsbruck (kolportiert, oberste kWp-Stufen)",
+  "foerderstelle": "Stadt Innsbruck (kolportiert)",
+  "status": "unsicher",
+  "status_seit": null,
+  "status_detail": "Nicht primärquellen-verifiziert (nur über meinbezirk.at/tt.com). Keine offizielle innsbruck.gv.at-Quelle gefunden trotz systematischer Suche. Die tagesaktuelle offizielle Liste 'Wegweiser zu Förderungen' (Stand 15.07.2026) enthält keinen PV-Eintrag; 'Förderungen rund ums Wohnen' verweist ohne Erwähnung eines städtischen Top-ups direkt auf die Wohnhaussanierung des Landes Tirol. Vermutlich inzwischen ausgelaufen.",
+  "foerderhoehe": {
+   "typ": "pauschale",
+   "werte": [
+    {
+     "bezeichnung": "kolportiert",
+     "wert": "bis zu 3.000 € für die 8., 9. und 10. kWp einer PV-Anlage"
+    }
+   ],
+   "text": "Kolportiert: bis zu 3.000 € für die 8.–10. kWp, kombinierbar mit Landes- und Bundesförderung — NICHT primärquellenverifiziert, wahrscheinlich ausgelaufen"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privathaushalte in Innsbruck",
+  "antrags_url": null,
+  "quellen": [],
+  "verlaesslichkeit": "unsicher",
+  "unsicher_grund": "Keine offizielle innsbruck.gv.at-Quelle gefunden; aktuelle offizielle Förderliste (Stand 15.07.2026) enthält keinen PV-Eintrag — vor Nutzer-Kommunikation nicht verwenden",
+  "naechstes_fenster": null
+ },
+ {
+  "id": "villach-solarthermie-pv",
+  "ebene": "land",
+  "bundesland": "Kärnten",
+  "kategorie": "pv",
+  "name": "Solarthermie und Photovoltaik (Villach, historisch)",
+  "foerderstelle": "Stadt Villach",
+  "status": "geschlossen",
+  "status_seit": "2024-12-31",
+  "status_detail": "Laut Transparenzdatenbank beantragbar bis 2024-12-31, inzwischen ausgelaufen — konsistent mit der aktuellen Villach-Seite ('Energieberatung und Förderungen', verweist auf Land/Bund).",
+  "foerderhoehe": {
+   "typ": "gemischt",
+   "werte": [],
+   "text": "Historische Sätze im Dokument nicht beziffert"
+  },
+  "bedingungen": [],
+  "zielgruppe": "Privathaushalte in Villach (historisch)",
+  "antrags_url": null,
+  "quellen": [],
+  "verlaesslichkeit": "verifiziert",
+  "naechstes_fenster": null
+ }
+]

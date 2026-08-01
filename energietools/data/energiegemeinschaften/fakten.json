@@ -1,0 +1,429 @@
+{
+ "rechtsformen": {
+  "gea": {
+   "name": "Gemeinschaftliche Erzeugungsanlage (GEA)",
+   "raeumliche_grenze": "Ein Gebäude / gemeinsamer Netzanschluss (i.d.R. Netzebene 7)",
+   "energiequelle": "beliebig",
+   "energieform": "i.d.R. Strom",
+   "rechtsform_noetig": false,
+   "rechtsform_hinweis": "keine nötig, Vertrag genügt",
+   "wer_darf_mitmachen": "Teilnehmer am selben Anschluss",
+   "netzentgelt_reduktion": {
+    "prozent": 100,
+    "beschreibung": "100 % Entfall Netzentgelte und Abgaben für die intern verteilte Energie (NE7, hinter gemeinsamem Anschluss)",
+    "rechtsquelle": "energiegemeinschaften.gv.at/formen-von-energiegemeinschaften",
+    "gueltigkeit": "aktuell gültig"
+   },
+   "abgabenbefreiung": "100 % Entfall aller Netzentgelte und Abgaben für die intern verteilte Energie",
+   "quellen": [
+    {
+     "url": "https://energiegemeinschaften.gv.at/formen-von-energiegemeinschaften/",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    }
+   ]
+  },
+  "eeg_lokal": {
+   "name": "Erneuerbare-Energie-Gemeinschaft (EEG), lokal",
+   "raeumliche_grenze": "Netzebene 6+7 (Trafostation)",
+   "energiequelle": "nur erneuerbar (PV, Wasser, Wind, Biomasse)",
+   "energieform": "Strom, Wärme, erneuerbares Gas",
+   "rechtsform_noetig": true,
+   "rechtsform_hinweis": "Verein oder Genossenschaft",
+   "wer_darf_mitmachen": "Privatpersonen, KMU, Gemeinden, Körperschaften öffentlichen Rechts",
+   "netzentgelt_reduktion": {
+    "prozent": 57,
+    "beschreibung": "57 % Reduktion des Arbeitspreises für das Netznutzungsentgelt, Netzebenen 6 und 7, für den Verbrauch, der durch zugeordnete eingespeiste Energie abgedeckt ist",
+    "rechtsquelle": "§ 5 Abs. 1a Systemnutzungsentgelte-Verordnung 2018 (SNE-V 2018), i.V.m. § 16c ElWOG 2010 (bleibt über Übergangsbestimmung § 189 Abs. 1 ElWG in Kraft)",
+    "gueltigkeit": "aktuell gültig, laut RIS-Konsolidierung bis mindestens 31.12.2026 durchgängig abgesichert"
+   },
+   "abgabenbefreiung": "Entfall des Erneuerbaren-Förderbeitrags (Ökostromförderbeitrag) und Befreiung von der Elektrizitätsabgabe für die innerhalb der Gemeinschaft ausgetauschte Energie",
+   "automatische_verrechnung": "Netzbetreiber berücksichtigt reduzierte Arbeitspreise und Abgabenentfall bereits bei Rechnungserstellung automatisch — kein separater Antrag nötig (bestätigt laut 'Handlungsanweisung EAG', Oesterreichs Energie/ebutilities, Mai 2022)",
+   "quellen": [
+    {
+     "url": "https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20010107",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://energiegemeinschaften.gv.at/erneuerbare-energie-gemeinschaften-eeg/",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    }
+   ]
+  },
+  "eeg_regional": {
+   "name": "Erneuerbare-Energie-Gemeinschaft (EEG), regional",
+   "raeumliche_grenze": "Netzebene 6+7 zusätzlich Netzebene 4+5, im Konzessionsgebiet eines Netzbetreibers",
+   "energiequelle": "nur erneuerbar (PV, Wasser, Wind, Biomasse)",
+   "energieform": "Strom, Wärme, erneuerbares Gas",
+   "rechtsform_noetig": true,
+   "rechtsform_hinweis": "Verein oder Genossenschaft",
+   "wer_darf_mitmachen": "Privatpersonen, KMU, Gemeinden, Körperschaften öffentlichen Rechts",
+   "netzentgelt_reduktion": {
+    "prozent_ne_6_7": 28,
+    "prozent_ne_4_5": 64,
+    "beschreibung": "28 % Reduktion für Netzebenen 6 und 7, 64 % Reduktion für Netzebenen 4 und 5",
+    "rechtsquelle": "§ 5 Abs. 1a Systemnutzungsentgelte-Verordnung 2018 (SNE-V 2018), i.V.m. § 16c ElWOG 2010",
+    "gueltigkeit": "aktuell gültig, laut RIS-Konsolidierung bis mindestens 31.12.2026 durchgängig abgesichert"
+   },
+   "abgabenbefreiung": "Entfall des Erneuerbaren-Förderbeitrags und Befreiung von der Elektrizitätsabgabe für die innerhalb der Gemeinschaft ausgetauschte Energie",
+   "automatische_verrechnung": "wie EEG lokal — automatisch, kein separater Antrag nötig",
+   "quellen": [
+    {
+     "url": "https://www.ris.bka.gv.at/GeltendeFassung.wxe?Abfrage=Bundesnormen&Gesetzesnummer=20010107",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ]
+  },
+  "beg": {
+   "name": "Bürgerenergiegemeinschaft (BEG)",
+   "raeumliche_grenze": "Österreichweit, alle Netzebenen 1–7, netzbetreiberübergreifend",
+   "energiequelle": "nicht auf erneuerbar beschränkt",
+   "energieform": "nur Strom",
+   "rechtsform_noetig": true,
+   "rechtsform_hinweis": "Verein, Genossenschaft o.ä.",
+   "wer_darf_mitmachen": "wie EEG, zusätzlich dürfen Energieunternehmen teilnehmen (bei EEG verboten)",
+   "netzentgelt_reduktion": {
+    "prozent": null,
+    "beschreibung": "Nach AKTUELL geltendem Recht (Stand vor ElWG-Vollinkrafttreten): KEINE Netzentgelt-Reduktion. Ab 31.12.2026 (nicht schon ab 1.10.2026): reduzierte Netzentgelte für BEG-Mitglieder, wenn sie im 'Nahebereich' (§ 70 Abs. 6 ElWG: Standortbereich/Lokalbereich/Regionalbereich) gemeinsam Energie nutzen. Konkrete Prozentsatz-Höhe steht NOCH NICHT fest — wird per künftiger E-Control-Verordnung festgelegt (§ 135 Abs. 1/2 ElWG). Eine BEG mit nicht-erneuerbarer Erzeugung fällt laut Gesetzeswortlaut-Auslegung vermutlich NICHT unter die Reduktion (Legaldefinition 'gemeinsame Energienutzung' verlangt erneuerbare Quelle) — keine amtliche Klarstellung dazu gefunden.",
+    "rechtsquelle": "§ 128 Abs. 5 i.V.m. § 70 Abs. 6 ElWG (BGBl. I Nr. 91/2025); Inkrafttreten der §§ 127–133 ElWG laut § 188 Abs. 5 ElWG erst am 31.12.2026",
+    "gueltigkeit": "aktuell KEINE Reduktion; Rechtsanspruch auf Reduktion entsteht frühestens 31.12.2026, Höhe noch offen"
+   },
+   "abgabenbefreiung": "Keine vergleichbaren Abgabenbefreiungen. Bleibt auch nach ElWG unverändert: 'Der Entfall der E-Abgabe sowie des Erneuerbaren-Förderbeitrags betrifft weiterhin ausschließlich Erneuerbare-Energie-Gemeinschaften.'",
+   "quellen": [
+    {
+     "url": "https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2025_I_91/BGBLA_2025_I_91.html",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://energiegemeinschaften.gv.at/buergerenergiegemeinschaften-beg/",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://energiegemeinschaften.gv.at/faqs-zum-elwg/",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "unsicher",
+   "unsicher_grund": "Konkrete Prozentsatz-Höhe der künftigen Netzentgelt-Reduktion steht noch nicht fest (Verordnung ausständig); ob eine BEG mit nicht-erneuerbarer Erzeugung überhaupt unter die Reduktion fällt, ist eine ungeklärte Auslegungsfrage aus dem Gesetzeswortlaut"
+  }
+ },
+ "elwg_aenderung": {
+  "titel": "Elektrizitätswirtschaftsgesetz (ElWG) — 'Günstiger-Strom-Gesetz'",
+  "beschluss": "Nationalrat, Dezember 2025, Zweidrittelmehrheit (ElWG + Energiearmuts-Definitions-Gesetz + Novelle E-Control-Gesetz), BGBl. I Nr. 91/2025",
+  "teil_inkrafttreten_1": {
+   "datum": "2026-10-01",
+   "was": "§ 65 Abs. 1 Z 6 und Abs. 2 sowie §§ 66 bis 72 ElWG treten in Kraft — DEFINITIONEN: EEG, BEG, gemeinsame Energienutzung/Peer-to-Peer (P2P), 'Nahebereich' (§ 70 Abs. 6). Neue Peer-to-Peer-Verträge (§ 68 ElWG): gemeinsame Energienutzung zwischen Nachbarn/Teilnehmern OHNE eigene Rechtsform möglich.",
+   "rechtsquelle": "§ 188 Abs. 3 ElWG"
+  },
+  "teil_inkrafttreten_2": {
+   "datum": "2026-12-31",
+   "was": "§ 127 Abs. 1 und Abs. 2 sowie §§ 128 bis 133 ElWG treten in Kraft — NETZNUTZUNGSENTGELT-Bestimmung, insbesondere § 128 Abs. 5 (reduzierte Netzentgelte für BEG/P2P im Nahebereich). Erst ab diesem Datum hat der Rechtsanspruch auf reduzierte Netzentgelte für BEG-Mitglieder im Nahebereich überhaupt eine Rechtsgrundlage — DREI MONATE SPÄTER als die Definitionen.",
+   "rechtsquelle": "§ 188 Abs. 5 ElWG",
+   "wichtiger_hinweis": "Die amtliche Koordinierungsstelle-Seite behauptet pauschal 'Ab 1. Oktober 2026 gelten die neuen Bestimmungen zur Gänze' — das ist für den Systemnutzungsentgelte-Teil (§§ 127–133) laut Gesetzestext NICHT korrekt bzw. irreführend vereinfacht. Für Gridbert-Kommunikation ist der Gesetzestext (31.12.2026 für § 128) maßgeblich."
+  },
+  "eeg_reduktion_uebergangsfrage": "Die bestehende EEG-Netzentgelt-Reduktion (57/28/64 %) bleibt bis mindestens 31.12.2026 unverändert gültig — die zugrundeliegende ElWOG-2010-Rechtsgrundlage tritt laut RIS-Anmerkung exakt am 31.12.2026 außer Kraft, mit lückenlosem Übergang zu den neuen §§ 127–133 ElWG (die am selben Tag beginnen). Eine legistische Feinheit: § 16c ElWOG 2010 (definiert EEG-Anlage) tritt schon am 30.09.2026 außer Kraft, drei Monate vor der übrigen Netzentgelt-Grundlage — eine Lücke, die vermutlich durch § 189 Abs. 17 ElWG (automatische Überführung bestehender Energiegemeinschaften) überbrückt wird, aber keine explizite amtliche Klarstellung dazu gefunden.",
+  "weitere_neuerungen": [
+   "Neue Lieferantenverpflichtungen für 'aktive Kund:innen'",
+   "Neue Regeln zu Gebietskörperschaften",
+   "Teilnahme großer Unternehmen bis 6 MW erlaubt"
+  ],
+  "unsicher_punkte": [
+   "Vereinfachte Registrierungsverfahren / neue Bagatellgrenzen ab 01.10.2026: laut amtlicher FAQ-Seite selbst sind die netzbetreiberseitigen Marktprozesse für 1.10.2026 'aus heutiger Sicht noch offen' — nicht bestätigt, nicht widerlegt"
+  ],
+  "quellen": [
+   {
+    "url": "https://www.ris.bka.gv.at/Dokumente/BgblAuth/BGBLA_2025_I_91/BGBLA_2025_I_91.html",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://energiegemeinschaften.gv.at/aenderungen-fuer-bestehende-energiegemeinschaften/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://energiegemeinschaften.gv.at/gemeinsame-energienutzung/",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.energie-noe.at/elektrizitaetswirtschaftsgesetz",
+    "abrufdatum": "2026-07-31",
+    "typ": "sekundaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ "marktstand": {
+  "stichtag": "2025-06-30",
+  "eeg": 3868,
+  "beg": 737,
+  "gea": 5043,
+  "zaehlpunkte_gesamt": 202365,
+  "zaehlpunkte_detail": {
+   "bezugszaehlpunkte": 144758,
+   "einspeisezaehlpunkte": 57607
+  },
+  "wachstum_eeg_zeitreihe": [
+   {
+    "stichtag": "2023-06-30",
+    "anzahl": 364
+   },
+   {
+    "stichtag": "2023-12-31",
+    "anzahl": 867
+   },
+   {
+    "stichtag": "2024-06-30",
+    "anzahl": 1616
+   },
+   {
+    "stichtag": "2024-12-31",
+    "anzahl": 2618
+   },
+   {
+    "stichtag": "2025-06-30",
+    "anzahl": 3868
+   }
+  ],
+  "wachstum_gea_zeitreihe": [
+   {
+    "stichtag": "2024-06-30",
+    "anzahl": 2906
+   },
+   {
+    "stichtag": "2024-12-31",
+    "anzahl": 3930
+   },
+   {
+    "stichtag": "2025-06-30",
+    "anzahl": 5043
+   }
+  ],
+  "groesste_bundeslaender_eeg": {
+   "niederoesterreich": 958,
+   "oberoesterreich": 790
+  },
+  "quelle_primaer": {
+   "name": "E-Control EAG-Monitoringbericht 2025",
+   "url": "https://positionen.wienenergie.at/wp-content/uploads/2025/10/EAG-Monitoringbericht-2025.pdf",
+   "abrufdatum": "2026-07-31",
+   "typ": "primaer",
+   "hinweis": "Kapitel 9 'Energiegemeinschaften', Tabelle 40 (EEG), Tabelle 41 (GEA), Tabelle 42/43 (Zählpunkte); PDF direkt heruntergeladen und per pdftotext durchsucht"
+  },
+  "unbestaetigte_zahlen": [
+   {
+    "stichtag": "~2025-04 (April 2025)",
+    "eeg": 758,
+    "beg": 80,
+    "gea": "über 3.000",
+    "bewertung": "WIDERLEGT/unplausibel — liegt weit unter der amtlichen Zahl für Ende 2024 (2.618 EEG) und würde einen Rückgang implizieren, den keine andere Quelle stützt. Nicht verwenden."
+   },
+   {
+    "stichtag": "Ende 2025",
+    "eeg_plus_beg": "rund 6.500 (grobe Rundung)",
+    "bewertung": "UNSICHER, kein offizieller Bericht für einen Stichtag nach 30.06.2025 gefunden. Größenordnung plausibel angesichts des Halbjahreswachstums (+48 % EEG im 1. HJ 2025), aber nicht bestätigt."
+   },
+   {
+    "stichtag": "Ende 2025 (abweichend)",
+    "eeg": 5590,
+    "beg": "~1.000",
+    "gea": "~5.000",
+    "bewertung": "UNSICHER, nicht verifizierte Sekundärquelle ohne eindeutig zitierbare Primär-URL"
+   }
+  ],
+  "regionale_abweichung_noe": {
+   "quelle": "Netz Niederösterreich (regionaler Verteilnetzbetreiber, NICHT bundesweit)",
+   "eeg": 1360,
+   "beg": 400,
+   "gea": 292,
+   "hinweis": "Diese Zahl ist deutlich höher als die amtliche E-Control-Zahl für ganz NÖ (958 EEG zum 30.06.2025) — als Diskrepanz dokumentiert, nicht aufgelöst (evtl. neueren Datums oder andere Zählweise inkl. Anträgen)",
+   "url": "https://www.netz-noe.at/Netz-Niederosterreich/Service/Erneuerbare-Energiegemeinschaften/Aktuelle-Zahlen-zu-Energiegemeinschaften.aspx"
+  },
+  "typische_strompreise_community": {
+   "richtwert": "10–20 ct/kWh zzgl. reduzierter Netzentgelte",
+   "verlaesslichkeit": "unsicher",
+   "unsicher_grund": "Community-Preis ist NICHT reguliert, sondern von jeder Energiegemeinschaft selbst festgelegt (keine amtliche Regulierungsquelle für einen bundesweiten Richtwert) — reine Marktbeobachtung von Drittportalen",
+   "einzelbeispiele": [
+    {
+     "anbieter": "e-Gemeinschaft (regionale EEG, Raum Deutsch-Wagram/NÖ)",
+     "preis": "15,9 ct/kWh Community-Preis vs. 39,8 ct/kWh konventionell im Rechenbeispiel, Jahresersparnis 286,44 € bei 30 % Community-Bezugsanteil",
+     "datengrundlage": "Anbieter-Tarife Stand 28.05.2024, nicht repräsentativ für ganz Österreich"
+    },
+    {
+     "anbieter": "EG Austria",
+     "preis": "8,95 ct/kWh Fixpreis für 2026"
+    },
+    {
+     "anbieter": "Energiepartnerschaft Österreich",
+     "preis": "9 ct/kWh netto für 10–18 Uhr"
+    }
+   ]
+  },
+  "verlaesslichkeit": "verifiziert",
+  "unsicher_grund": null
+ },
+ "beitrittsschritte": [
+  {
+   "schritt": 1,
+   "titel": "Smart Meter vorhanden/beantragen",
+   "beschreibung": "Netzbetreiber muss Viertelstundenwerte erfassen können. Ohne Smart Meter kann ein Netzbetreiber einen anfordern; Einbau 'ehestmöglich, spätestens binnen zwei Monaten'."
+  },
+  {
+   "schritt": 2,
+   "titel": "Opt-in aktivieren",
+   "beschreibung": "Im Smart-Meter-Webportal des jeweiligen Netzbetreibers unter 'Einstellungen'/'Zustimmungen' → 'Energiegemeinschaften' die Viertelstunden-Auslesung und die Teilnahme an der konkreten Gemeinschaft bestätigen."
+  },
+  {
+   "schritt": 3,
+   "titel": "Vertrag/Vereinbarung mit der Energiegemeinschaft abschließen",
+   "beschreibung": "Beitrittserklärung als Mitglied des Vereins/der Genossenschaft. Der bestehende Stromliefervertrag mit dem regulären Lieferanten muss NICHT gekündigt werden — Community-Bezug läuft parallel zur Reststrommenge."
+  },
+  {
+   "schritt": 4,
+   "titel": "Anmeldung durch die Gemeinschaft beim Netzbetreiber",
+   "beschreibung": "Nicht der Haushalt, sondern die Energiegemeinschaft meldet Zu- und Abgänge von Mitgliedern dem Netzbetreiber 'unmittelbar'."
+  },
+  {
+   "schritt": 5,
+   "titel": "EDA-Registrierung — Sache der Gemeinschaft, nicht des Haushalts",
+   "beschreibung": "Die Energiegemeinschaft (nicht das einzelne Mitglied) muss sich für den Datenaustausch bei ebUtilities/EDA registrieren und die Zählpunkte ihrer Teilnehmer dort erfassen."
+  },
+  {
+   "schritt": 6,
+   "titel": "Aktivierung",
+   "beschreibung": "Keine pauschale 24h-Frist (frühere Annahme widerlegt). Der Netzbetreiber führt Folgeschritte durch (bei Bedarf Einbau Smart Meter/Lastprofilzähler, Herstellung stabiler Kommunikation — kann laut § 16e Abs. 1 EAG bis zu 2 Monate dauern), ordnet die Anlage der Gemeinschaft zu und bestätigt ein Aktivierungsdatum, ab dem Energiezuweisung und EDA-Datenversand laufen. Variable Frist: sofortig bis zu zwei Monate, abhängig vom Vorhandensein eines aktiven Smart Meters."
+  }
+ ],
+ "beitrittsschritte_quellen": [
+  {
+   "url": "https://energiegemeinschaften.gv.at/faqs/",
+   "abrufdatum": "2026-07-31",
+   "typ": "primaer"
+  },
+  {
+   "url": "https://energiegemeinschaften.gv.at/6-registrierung-in-der-eda-infrastruktur/",
+   "abrufdatum": "2026-07-31",
+   "typ": "primaer"
+  },
+  {
+   "url": "https://www.ebutilities.at/documents/20220718131542_20220718_Handlungsanweisung_EAG_final.pdf",
+   "abrufdatum": "2026-07-31",
+   "typ": "primaer"
+  }
+ ],
+ "fazit_haushalt": "Der eigene Aufwand des Haushalts beschränkt sich auf Smart Meter + Opt-in + Mitgliedsvertrag. Die technisch-administrative Anbindung ans EDA-System übernimmt die Energiegemeinschaft bzw. der Netzbetreiber.",
+ "offene_punkte": [
+  "Konkrete Prozentsatz-Höhe der künftigen Netzentgelt-Reduktion für BEG/P2P im Nahebereich (§ 128 Abs. 5 ElWG) — per Verordnung erst noch festzulegen, unklar ob zum 01.10.2026 oder erst 01.01.2027 (laut FAQ, wobei der frühere Termin mit dem Inkrafttretens-Datum von § 128 selbst schwer vereinbar ist)",
+  "Ob eine BEG mit nicht-erneuerbarer Erzeugung im Nahebereich überhaupt unter 'gemeinsame Energienutzung' fällt — reine Auslegungsfrage, keine amtliche Klarstellung gefunden",
+  "Datentiefe hinter der authentifizierungspflichtigen api/v1/eegs-API von 'Strom verbindet'",
+  "Verlässliche bundesweite Zahl EEG/BEG/GEA für einen Stichtag nach dem 30.06.2025",
+  "Ob es 'vereinfachte Registrierungsverfahren' und neue Bagatellgrenzen ab 01.10.2026 tatsächlich gibt — laut FAQ selbst noch offen",
+  "Rechtliche Prüfung, ob Scraping der amtlichen Landkarte mit den Nutzungsbedingungen der Koordinierungsstelle vereinbar ist (explizites Werbeverbot für Kontaktdaten)"
+ ],
+ "verzeichnis_quellen_info": {
+  "landkarte": {
+   "name": "Landkarte für Bürgerenergiegemeinschaften (Koordinierungsstelle)",
+   "url": "https://energiegemeinschaften.gv.at/landkarte/",
+   "betreiber": "Österreichische Koordinierungsstelle für Energiegemeinschaften (Klima- und Energiefonds im Auftrag des Bundes)",
+   "wichtiger_hinweis": "Trotz allgemeinem Namen ist dies laut HTML-<title>/og:title explizit eine BEG-ONLY-Karte, keine allgemeine EEG+BEG-Karte — für EEG (die zahlenmäßig größte Kategorie mit 3.868 Gemeinschaften) liefert diese Karte GAR KEINE Daten.",
+   "technische_details": "Kartendaten liegen als reines JavaScript-Array 'communities_map' direkt im HTML der Seite (kein Headless-Browser/JS-Rendering nötig, ein einfacher HTTP-GET genügt).",
+   "datenstand": {
+    "anzahl_eintraege": 136,
+    "abrufdatum": "2026-08-01",
+    "felder": [
+     "title",
+     "address",
+     "tel",
+     "mail",
+     "website",
+     "region",
+     "lat",
+     "lng",
+     "type",
+     "gentech",
+     "typeTitel (bei allen 136 Einträgen leer)"
+    ],
+    "plz_verfuegbarkeit": "kein eigenes PLZ-Feld; 126 von 136 Adressfeldern (93 %) enthalten eine erkennbare 4-stellige PLZ als Teil des Freitexts, per Regex extrahierbar",
+    "regionsverteilung": {
+     "NOE": 42,
+     "OOE": 23,
+     "Kaernten": 18,
+     "Steiermark": 17,
+     "Tirol": 10,
+     "Wien": 8,
+     "Salzburg": 7,
+     "Burgenland": 6,
+     "Vorarlberg": 4,
+     "ohne_Region": 1
+    },
+    "abdeckungsgrad": "rund 18 % der amtlich gezählten 737 BEG (Stand 30.06.2025) — freiwillig befüllt und ausdrücklich als unvollständig gekennzeichnet"
+   },
+   "nutzungseinschraenkung": "Kontaktdaten nur für Erfahrungsaustausch gedacht, Werbenutzung ausdrücklich untersagt — rechtliche Prüfung vor Scraping-Einsatz nötig",
+   "kein_export": "Kein dokumentiertes Export-Format/keine offizielle API"
+  },
+  "strom_verbindet": {
+   "name": "Strom verbindet",
+   "url": "https://stromverbindet.gv.at/",
+   "technische_url": "https://stromverbindet.energiegemeinschaften.gv.at",
+   "betreiber": "Arbeitsplattform Energiegemeinschaften, unterstützt vom BMWET und Klima- und Energiefonds",
+   "seit": "Februar 2026",
+   "funktion": "Vermittlungsplattform: bringt aktiv Mitglieder suchende Energiegemeinschaften mit Interessent:innen zusammen, standortbasierte Suche, laut Anbieter 'anonym', Daten nur im Browser gespeichert",
+   "api": {
+    "existiert": true,
+    "typ": "Laravel/Inertia.js-Anwendung mit dokumentierter REST-API-Struktur",
+    "endpoint": "api/v1/eegs (GET/HEAD)",
+    "doku_endpoint": "docs/api/eegs sowie docs/api/eegs/openapi.yaml (OpenAPI-Spezifikation)",
+    "zugriff": "authentifizierungspflichtig — Direktabruf liefert HTTP 401 ({\"message\":\"Unauthenticated.\"}) sowohl für api/v1/eegs als auch für die Doku-Endpunkte",
+    "empfehlung": "Direkte Anfrage bei der Koordinierungsstelle (info@energiegemeinschaften.gv.at) nach API-Zugang, statt zu scrapen"
+   },
+   "unsicher_datentiefe": "Ob ein 'nimmt Mitglieder auf'-Flag Teil der Datenstruktur ist, ließ sich hinter der Auth-Schranke nicht feststellen"
+  },
+  "eda": {
+   "name": "EDA / ebUtilities",
+   "url": "https://www.ebutilities.at/",
+   "hinweis": "Geschlossene B2B-Infrastruktur für Netzbetreiber/Energiegemeinschaften-Betreiber, keine öffentliche/consumer-seitige Abfrage — NICHT als Verzeichnis-Quelle nutzbar"
+  },
+  "private_plattformen": [
+   {
+    "name": "OurPower",
+    "url": "https://www.ourpower.coop/",
+    "beschreibung": "Energie-Genossenschaft, aktiver Online-Marktplatz mit über 400 Verkäufer:innen, Beitrittsseite ourpower.coop/page/mitglied-werden"
+   },
+   {
+    "name": "eFriends",
+    "url": "https://www.efriends.at/",
+    "beschreibung": "2026 primär eigene Energy-Sharing-Plattform (P2P-Marktplatz, KEINE 'Energiegemeinschaft' im EAG-Sinn, Lieferantenwechsel zu eFriends Energy GmbH nötig); historisch (2021) auch Dienstleister/Abrechnungsanbieter für fremde EEGs — ob 2026 noch aktiv, unbestätigt"
+   },
+   {
+    "name": "7Energy",
+    "url": "https://7energy.at/",
+    "beschreibung": "Bürgerenergiegemeinschaft, Beitritt über Zählpunktnummer + Verrechnungskonto + Datenfreigabe"
+   }
+  ],
+  "fazit_beschaffbarkeit": "Es existiert KEIN strukturiert abrufbares, vollständiges, offiziell zugängliches Verzeichnis aller österreichischen Energiegemeinschaften mit PLZ-Genauigkeit und Beitrittsstatus. Für EEG (größte Kategorie) gibt es keine amtliche Scraping-Quelle mit Einzel-Einträgen, nur die aggregierte E-Control-Statistik.",
+  "quellen": [
+   {
+    "url": "https://energiegemeinschaften.gv.at/landkarte/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://stromverbindet.energiegemeinschaften.gv.at",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.e-control.at/eag-monitoringbericht",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ]
+ }
+}

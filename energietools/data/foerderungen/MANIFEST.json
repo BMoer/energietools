@@ -1,0 +1,22 @@
+{
+ "data_version": "1",
+ "generated_at": "2026-08-01T11:13:04.487778+00:00",
+ "market": "AT",
+ "domain": "foerderungen",
+ "stand_recherche": "2026-07-31",
+ "coverage": {
+  "gesamt": 45,
+  "bund": 10,
+  "land": 35,
+  "offen": 27,
+  "geschlossen": 14,
+  "unsicher_status": 4,
+  "verifiziert": 40,
+  "unsicher": 5
+ },
+ "provenance": "Manuelle Recherche gegen First-Party-/statutarische Quellen (Bund-/Landes-Förderstellen, RIS, Gemeinde-Transparenzdatenbank), 3x verifiziert, Stand 2026-07-31. Ersetzt den alten kuratierten Katalog (Stand 2026-03-05, 17 Einträge) vollständig; 3 Einträge tragen zusätzlich historische Sätze aus dem alten Katalog (siehe deren foerderhoehe.text).",
+ "source_repo": "https://github.com/BMoer/gridbert (Erhebung, proprietär)",
+ "methodik": "siehe METHODIK.md",
+ "license": "MIT",
+ "disclaimer": "Kuratierte Förderdaten, ohne Gewähr. Vor Antragstellung immer die offizielle Quelle prüfen — Budgets/Fristen ändern sich kurzfristig. verlaesslichkeit='unsicher' markierte Einträge sind NICHT primärquellen-verifiziert und werden von den Capabilities standardmäßig ausgeblendet."
+}

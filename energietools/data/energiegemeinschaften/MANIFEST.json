@@ -1,0 +1,18 @@
+{
+ "data_version": "1",
+ "generated_at": "2026-08-01T11:13:04.487778+00:00",
+ "market": "AT",
+ "domain": "energiegemeinschaften",
+ "stand_recherche": "2026-07-31",
+ "coverage": {
+  "rechtsformen": 4,
+  "marktstand_stichtag": "2025-06-30",
+  "verzeichnis_eintraege": 0,
+  "beg_providers": 3
+ },
+ "provenance": "Rechtsquellen (RIS: ElWG BGBl. I Nr. 91/2025, ElWOG 2010, SNE-V 2018), amtliche Koordinierungsstelle energiegemeinschaften.gv.at, E-Control EAG-Monitoringbericht 2025 (Marktstand). Stand 2026-07-31, 3x verifiziert. verzeichnis.json ist ein Schema-Platzhalter (leer) — wird vom Quellen-Wächter-Scraper (B2, gridbert/scrapers/eeg_verzeichnis.py) aus der amtlichen Landkarte befüllt. beg_providers.json migriert 1:1 aus dem alten energietools/data/beg_providers.json.",
+ "source_repo": "https://github.com/BMoer/gridbert (Erhebung, proprietär)",
+ "methodik": "siehe METHODIK.md",
+ "license": "MIT",
+ "disclaimer": "Rechtsstand ohne Gewähr, keine Rechtsberatung. Insbesondere die BEG-Netzentgelt-Reduktion (§ 128 Abs. 5 ElWG) ist erst ab 31.12.2026 rechtswirksam UND der Prozentsatz steht noch nicht fest (Verordnung ausständig) — siehe rechtsformen.beg.verlaesslichkeit."
+}

@@ -11,14 +11,14 @@ Three pillars:
 
 from __future__ import annotations
 
-import json
 import logging
 import defusedxml.ElementTree as ET
 from datetime import date, datetime, timezone
-from pathlib import Path
 
 import httpx
 
+from energietools.capabilities.foerderungen.data import load_foerderungen, load_manifest
+from energietools.capabilities.foerderungen.models import FoerderungEntry
 from energietools.models.energy_news import (
     EnergyMonitorResult,
     EnergyNewsItem,
@@ -64,24 +64,22 @@ _PLZ_BUNDESLAND: dict[str, str] = {
     "9": "Kärnten",
 }
 
-# Förderungskatalog-Pfad
-_FOERDERUNGEN_PATH = Path(__file__).parent.parent / "data" / "foerderungen.json"
-
 # Warnung wenn Katalog älter als 60 Tage
 _KATALOG_MAX_AGE_DAYS = 60
 
 
-def load_foerderungen_catalog() -> tuple[list[dict], str]:
-    """Lade Förderungskatalog aus JSON-Datei.
+def load_foerderungen_catalog() -> tuple[list[FoerderungEntry], str]:
+    """Lade Förderungskatalog aus dem gebündelten Förderungen-Package.
+
+    Migriert vom losen ``data/foerderungen.json`` (17 Einträge, Stand 2026-03-05)
+    auf ``energietools.capabilities.foerderungen`` (45 Einträge, Stand 2026-07-31,
+    Bund + 9 Länder, mit Rechtsquellen/Status/Fenstern).
 
     Returns:
-        Tuple von (Liste der Förderungen, Stand-Datum des Katalogs).
+        Tuple von (Förderungs-Einträge, Stand-Datum des Katalogs).
     """
     try:
-        raw = _FOERDERUNGEN_PATH.read_text(encoding="utf-8")
-        catalog = json.loads(raw)
-        stand = catalog.get("_meta", {}).get("stand", "unbekannt")
-        return catalog.get("foerderungen", []), stand
+        return list(load_foerderungen()), load_manifest().stand_recherche or "unbekannt"
     except Exception as exc:
         log.error("Förderungskatalog konnte nicht geladen werden: %s", exc)
         return [], "unbekannt"
@@ -206,53 +204,53 @@ def _clean_html(text: str) -> str:
 
 
 def _filter_foerderungen(
-    catalog: list[dict],
+    catalog: list[FoerderungEntry],
     plz: str,
     user_interests: list[str] | None = None,
 ) -> list[Foerderung]:
     """Förderungen nach PLZ/Bundesland und Status filtern.
 
-    Only returns active Förderungen matching the user's region.
-    Expired ones are excluded unless they were recently active (for reference).
+    Nur offene, primärquellenverifizierte Förderungen für die Region des Users
+    (bundesweite + passende Landesförderungen). ``verlaesslichkeit='unsicher'``
+    Einträge werden nie ausgespielt (Rohdaten-Grundsatz: nie als Fakt zeigen).
     """
     bundesland = ""
     if plz:
         bundesland = _PLZ_BUNDESLAND.get(plz[0], "")
 
-    today_str = date.today().isoformat()
+    stand = load_manifest().stand_recherche
     result: list[Foerderung] = []
 
     for f in catalog:
-        # Skip expired Förderungen
-        if f.get("status") == "ausgelaufen":
+        # Nur primärquellenverifizierte Einträge ausspielen.
+        if f.verlaesslichkeit != "verifiziert":
             continue
 
-        # Regional filter: include nationwide + matching Bundesland
-        f_bl = f.get("bundesland", "")
+        # Nur offene Förderungen (geschlossen/unsicherer Status wird nicht beworben).
+        if f.status != "offen":
+            continue
+
+        # Regional filter: bundesweite Förderungen (bundesland=None) + passendes Bundesland
+        f_bl = f.bundesland or ""
         if f_bl and f_bl != bundesland:
             continue
 
-        # Check validity dates if present
-        gueltig_bis = f.get("gueltig_bis", "")
-        if gueltig_bis and gueltig_bis < today_str:
-            continue
-
         result.append(Foerderung(
-            name=f["name"],
-            beschreibung=f.get("beschreibung", ""),
-            betrag_eur=f.get("betrag_eur", 0.0),
-            betrag_text=f.get("betrag_text", ""),
+            name=f.name,
+            beschreibung=f.status_detail,
+            betrag_eur=0.0,  # neues Schema hat keinen einzelnen €-Betrag mehr, siehe betrag_text
+            betrag_text=f.foerderhoehe.text,
             bundesland=f_bl,
-            zielgruppe=f.get("zielgruppe", ""),
-            kategorie=f.get("kategorie", ""),
-            url=f.get("url", ""),
-            quelle=f.get("quelle", ""),
-            status=f.get("status", "aktiv"),
-            gueltig_ab=f.get("gueltig_ab", ""),
-            gueltig_bis=gueltig_bis,
-            stand=f.get("stand", ""),
-            voraussetzungen=f.get("voraussetzungen", ""),
-            hinweis=f.get("hinweis", ""),
+            zielgruppe=f.zielgruppe,
+            kategorie=f.kategorie,
+            url=f.antrags_url or "",
+            quelle=f.foerderstelle,
+            status=f.status,
+            gueltig_ab=f.status_seit or "",
+            gueltig_bis="",
+            stand=stand,
+            voraussetzungen="; ".join(f.bedingungen),
+            hinweis=f"Nächstes Fenster: {f.naechstes_fenster}" if f.naechstes_fenster else "",
         ))
 
     return result

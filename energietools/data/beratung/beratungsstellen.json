@@ -1,0 +1,172 @@
+[
+ {
+  "id": "beratung-wien",
+  "bundesland": "Wien",
+  "name": "Energieberatung Wien (mehrere Angebote)",
+  "traeger": "Stadt Wien — Klima- und Innovationsagentur Wien (u.a. erneuerbare-energie@urbaninnovation.at, +43 1 4000 84 287); zusätzlich DIE UMWELTBERATUNG Wien und 'Hauskunft' (Bauen/Sanieren); kostenlose Vor-Ort-Energieberatung über das Sozialamt für einkommensschwache Haushalte",
+  "kosten": "kostenlos",
+  "url": "https://www.wien.gv.at/umwelt/energie-beratungsstellen",
+  "quellen": [
+   {
+    "url": "https://www.wien.gv.at/umwelt/energie-beratungsstellen",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.wien.gv.at/zusammenleben/sozialhilfe-mindestsicherung-foerderung-bei-energiekosten",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.klimaaktiv.at/private/zukunftsfittes-haus/energieberatungsstellen",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ {
+  "id": "beratung-noe",
+  "bundesland": "Niederösterreich",
+  "name": "Energieberatung NÖ",
+  "traeger": "Energie- und Umweltagentur NÖ (eNu)",
+  "kosten": "kostenlos",
+  "url": "https://www.energie-noe.at",
+  "quellen": [
+   {
+    "url": "https://www.noe.gv.at/noe/Umwelt-Wasser/Energie/Energieberatung.html",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.energie-noe.at/kontakt",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ {
+  "id": "beratung-ooe",
+  "bundesland": "Oberösterreich",
+  "name": "OÖ Energiesparverband",
+  "traeger": "OÖ Energiesparverband (produktunabhängig)",
+  "kosten": "kostenlos",
+  "url": "https://www.energiesparverband.at/energieberatung/privathaushalte",
+  "quellen": [
+   {
+    "url": "https://www.energiesparverband.at/energieberatung/privathaushalte",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.land-oberoesterreich.gv.at/245077.htm",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ {
+  "id": "beratung-steiermark",
+  "bundesland": "Steiermark",
+  "name": "Energieberatungsstelle Land Steiermark",
+  "traeger": "Steiermärkische Landesregierung",
+  "kosten": "kostenlos",
+  "url": "https://www.technik.steiermark.at/cms/ziel/82233481/DE/",
+  "quellen": [
+   {
+    "url": "https://www.technik.steiermark.at/cms/ziel/82233481/DE/",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ {
+  "id": "beratung-tirol",
+  "bundesland": "Tirol",
+  "name": "Energieagentur Tirol",
+  "traeger": "Energieagentur Tirol (unabhängige Landes-Beratungsstelle)",
+  "kosten": "kostenlos",
+  "url": null,
+  "quellen": [
+   {
+    "url": "https://www.tirol.gv.at",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ {
+  "id": "beratung-salzburg",
+  "bundesland": "Salzburg",
+  "name": "Energieberatung Salzburg",
+  "traeger": "Land Salzburg (unabhängig, produktneutral)",
+  "kosten": "kostenlos",
+  "url": "https://www.salzburg.gv.at/themen/energie/energieberatung/fragen-antworten-photovoltaik",
+  "quellen": [
+   {
+    "url": "https://www.salzburg.gv.at/themen/energie/energieberatung/fragen-antworten-photovoltaik",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ {
+  "id": "beratung-kaernten",
+  "bundesland": "Kärnten",
+  "name": "Netzwerk Energieberatung Kärnten (netEB)",
+  "traeger": "Land Kärnten / netEB",
+  "kosten": "kostenlos",
+  "url": "https://www.ktn.gv.at/Themen-AZ/Details?thema=119&detail=865",
+  "quellen": [
+   {
+    "url": "https://www.ktn.gv.at/Themen-AZ/Details?thema=119&detail=865",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ },
+ {
+  "id": "beratung-vorarlberg",
+  "bundesland": "Vorarlberg",
+  "name": "Energieinstitut Vorarlberg (Energietelefon + Energiesprechstunde in der Gemeinde)",
+  "traeger": "Energieinstitut Vorarlberg",
+  "kosten": "kostenlos",
+  "url": "https://www.energieinstitut.at/privatpersonen/foerderkompass/gemeindefoerderungen/energiesprechstunde-in-der-gemeinde",
+  "quellen": [
+   {
+    "url": "https://www.energieinstitut.at/privatpersonen/foerderkompass/gemeindefoerderungen/energiesprechstunde-in-der-gemeinde",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "unsicher",
+  "unsicher_grund": "Energietelefon (Ersttelefonberatung, 05572 31 202-112) ist eindeutig kostenlos; die Vor-Ort-'Energiesprechstunde in der Gemeinde' wird von der jeweiligen Wohnsitzgemeinde finanziert — die Quelle bestätigt das Prinzip, quantifiziert aber nicht, in wie vielen/welchen Gemeinden das gilt ('in den meisten Gemeinden' ist nicht belegt)"
+ },
+ {
+  "id": "beratung-burgenland",
+  "bundesland": "Burgenland",
+  "name": "Energieberatung Burgenland (EEB)",
+  "traeger": "Land Burgenland (EEB Energieberatung Burgenland)",
+  "kosten": "kostenlos",
+  "url": null,
+  "quellen": [
+   {
+    "url": "https://www.burgenland.at",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.klimaaktiv.at/private/zukunftsfittes-haus/energieberatungsstellen",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   }
+  ],
+  "verlaesslichkeit": "verifiziert"
+ }
+]

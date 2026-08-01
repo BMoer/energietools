@@ -222,6 +222,10 @@ Die Methodik ist nicht nur beschrieben, sondern **ausführbar prüfbar**:
   - `data/netz/netzkosten.json` (14 Tarif-Netzbereiche, mit `gemeinden`),
     `data/netz/vnb_attribution.json` (Attributions-VNB), `data/netz/abgaben.json`,
     `data/netz/plz_netzbereich.json` + `data/netz/MANIFEST.json`
+  - `data/foerderungen/foerderungen.json` + `MANIFEST.json` (§7),
+    `data/beratung/beratungsstellen.json` + `MANIFEST.json` (§8),
+    `data/energiegemeinschaften/{fakten,verzeichnis,beg_providers}.json` + `MANIFEST.json` (§9),
+    `data/marktdaten/solar_speicher.json` + `MANIFEST.json` (§10)
 - **Inhaltliche Erklärung.** Wie sich der Strompreis aus Netzkosten + Abgaben + Energie +
   USt zusammensetzt (Hintergrund, Formel, Rechenbeispiel) steht in
   [`NETZKOSTEN_UND_GEBUEHREN.md`](NETZKOSTEN_UND_GEBUEHREN.md).
@@ -254,10 +258,189 @@ Die Methodik ist nicht nur beschrieben, sondern **ausführbar prüfbar**:
    bestätigen, gegen die Verordnung (BGBl. II Nr. 305/2025) gegenprüfen.
 5. Eine nicht in `plz_netzbereich.json` gelistete PLZ probieren → bestätigen, dass **keine**
    Netzkosten erfunden werden (fail-open).
+6. `data/foerderungen/MANIFEST.json` öffnen → `coverage.gesamt == 45` und
+   `len(foerderungen.json) == 45` bestätigen (Manifest-Konsistenz); einen Eintrag mit
+   `verlaesslichkeit: "unsicher"` wählen und bestätigen, dass ihn
+   `FoerderungenCheckCapability().run(bundesland=...)` **ohne** `inkl_unsicher=True`
+   nicht zurückgibt.
+7. `FoerderungenCheckCapability().run(bundesland="Nirgendwo")` aufrufen → bestätigen,
+   dass eine strukturierte `CapabilityRejection` (kein Absturz, kein stilles
+   Leer-Ergebnis) mit einer Bundesland-Rückfrage kommt.
+8. `data/energiegemeinschaften/fakten.json → rechtsformen.beg.netzentgelt_reduktion.prozent`
+   öffnen → bestätigen, dass er `null` ist (nicht geschätzt) und
+   `elwg_aenderung.teil_inkrafttreten_2.datum == "2026-12-31"` (nicht der pauschale,
+   in der Praxis irreführende 1.10.2026-Termin) trägt.
 
 ---
 
-## 6. Fakt vor Heuristik (Lastgang-Signale)
+## 6. Förderungen
+
+### 6.1 Erhebung
+
+- **Quellen (First-Party/statutarisch):** Bundes- und Landes-Förderstellen-Websites
+  (`umweltfoerderung.at`, `eag-abwicklungsstelle.at`, Landes-Wohnbauförderungs-Seiten,
+  Gemeinde-Förderseiten), ergänzt um RIS-Gesetzestexte (z. B. UStG § 28 Abs. 62) und
+  amtliche Transparenzdatenbank-Einträge (`data.gv.at`) für Programm-Laufzeiten.
+- **Erhebungsdatum:** manuelle Recherche, Stand `2026-07-31`, **dreifach verifiziert**
+  (jede Aussage gegen die Primärquelle gegengelesen, bei Diskrepanz die vom Dokument
+  selbst als korrekt bestätigte Fassung übernommen — z. B. Kärnten-Speicherbudget
+  "40 Mio. € 2026" vs. der im Dokument präzisierten Erkenntnis, dass das der
+  2025er-Auszahlungsbetrag war).
+- **Snapshot:** `data/foerderungen/foerderungen.json` (45 Einträge: 10 Bund, 35 Land/
+  Gemeinde) + `data/foerderungen/MANIFEST.json` (`coverage` zählt offen/geschlossen/
+  verifiziert/unsicher). Ersetzt den alten kuratierten Katalog (Stand 2026-03-05,
+  17 Einträge) vollständig — 3 Einträge (`bund-kesseltausch`, `bund-sanierungsbonus`,
+  `wien-speicher`) tragen zusätzlich historische Sätze aus dem alten Katalog, klar
+  als solche markiert (`foerderhoehe.text` nennt Stand + Grund), weil die neue
+  Recherche selbst "nicht beziffert" vermerkt UND das jeweilige Programm ohnehin
+  geschlossen ist (kein Aktualitäts-Risiko für Nutzer:innen).
+
+### 6.2 Validierung
+
+- **"Bund vor Land"-Kopplung explizit geprüft.** Mehrere Landesförderungen (Kärnten,
+  Salzburg, Burgenland, NÖ, Vorarlberg) setzen eine laufende/bewilligte
+  Bundesförderung voraus. Da der Bund seit 10.07.2026 keine Neuregistrierungen mehr
+  annimmt (Kesseltausch, Sauber Heizen für Alle), ist das im `status_detail` jedes
+  betroffenen Eintrags **explizit** vermerkt — die Landesrichtlinie selbst gilt
+  formal weiter, ist aber für neue Fälle faktisch blockiert.
+- **Kolportierte Beträge nie stillschweigend als Fakt.** Balkonkraftwerk-Förderungen
+  ohne Primärquelle (Steiermark, Burgenland, Innsbruck) wurden trotzdem als Eintrag
+  angelegt (nicht verworfen) — aber mit `verlaesslichkeit: "unsicher"` +
+  `unsicher_grund`, damit ein im Umlauf befindlicher, potenziell falscher Betrag
+  aktiv richtiggestellt statt stillschweigend bestätigt wird.
+- **Widerlegte Behauptungen werden verworfen, nicht als unsicher geführt.** Ein
+  "unsicher" markierter Wert ist offen, nicht bestätigt/widerlegt; ein im Rechercheprozess
+  selbst **widerlegter** Wert (z. B. Steiermark Ökofonds-PV, NÖ Balkonkraftwerk "300 €"
+  als Watt/Euro-Verwechslung) wird gar nicht erst als Eintrag angelegt.
+
+### 6.3 Nachvollziehbarkeit (Quelle + Rechenweg)
+
+Jeder Eintrag trägt `quellen[]` (URL + Abrufdatum + Typ primär/sekundär),
+`status`/`status_detail` (inkl. Budget-Ausschöpfungsgrad, wo bekannt) und
+`naechstes_fenster` (ISO-Datumsspanne, z. B. der EAG-Call `2026-10-08/2026-10-22`).
+`foerderhoehe.werte[]` hält jeden Fördersatz einzeln mit Bezeichnung — kein
+zusammengefasster Durchschnittswert. Die Capability `foerderungen_check` liefert
+diese Struktur unverändert weiter (kein Rechenweg nötig, da keine Rechnung
+stattfindet — reine Faktenauslieferung mit Quelle).
+
+---
+
+## 7. Energieberatung
+
+### 7.1 Erhebung
+
+- **Quellen:** die 9 Landes-/Träger-Websites selbst, gegengelesen an zwei
+  bundesweiten Übersichten (`klimaaktiv.at/private/zukunftsfittes-haus/
+  energieberatungsstellen`, `oesterreich.gv.at`), die beide unabhängig alle
+  9 Bundesländer bestätigen.
+- **Snapshot:** `data/beratung/beratungsstellen.json` (9 Einträge, eine je
+  Bundesland) + `MANIFEST.json`. Stand `2026-07-31`.
+
+### 7.2 Validierung
+
+- **Kosten-Aussage ("kostenlos") nur bei belastbarer Quelle.** Alle 9 Einträge sind
+  `kosten: "kostenlos"`; wo die Quelle das Prinzip zwar bestätigt, aber den
+  Umfang nicht quantifiziert (Vorarlberg: "Energiesprechstunde in den meisten
+  Gemeinden"), ist der Eintrag `verlaesslichkeit: "unsicher"` mit Begründung —
+  das Energietelefon selbst ist gesichert kostenlos, die Reichweite der
+  gemeindeseitig finanzierten Vor-Ort-Sprechstunde nicht.
+
+### 7.3 Nachvollziehbarkeit
+
+Jeder Eintrag trägt `traeger` (Trägerorganisation), `url` und `quellen[]`. Die
+Capability `beratungsstellen` löst `bundesland` optional aus `plz` über die
+bestehende netz-PLZ-Logik auf (`capabilities/netz/resolve.py::plz_info`) — keine
+eigene, zweite PLZ-Zuordnung.
+
+---
+
+## 8. Energiegemeinschaften
+
+### 8.1 Erhebung
+
+- **Quellen (statutarisch):** RIS (ElWG BGBl. I Nr. 91/2025, ElWOG 2010 § 16c,
+  SNE-V 2018 § 5 Abs. 1a), die amtliche Koordinierungsstelle
+  `energiegemeinschaften.gv.at` und der E-Control EAG-Monitoringbericht 2025
+  (Marktstand-Tabellen 40–43, per `pdftotext` direkt aus dem PDF geprüft).
+- **Snapshot:** `data/energiegemeinschaften/fakten.json` (4 Rechtsformen: GEA,
+  EEG lokal, EEG regional, BEG — je mit Netzentgelt-Reduktion + Rechtsquelle;
+  ElWG-Änderung; Marktstand zum Stichtag 30.06.2025; 6 Beitrittsschritte),
+  `verzeichnis.json` (Schema-Platzhalter, initial **leer** — siehe 9.2) und
+  `beg_providers.json` (3 bundesweit beitretbare BEG-Anbieter, 1:1 migriert aus
+  dem alten `energietools/data/beg_providers.json`).
+
+### 8.2 Validierung
+
+- **Der ElWG-Zweistufigkeits-Fallstrick ist explizit im Datensatz abgebildet.**
+  Die Koordinierungsstelle behauptet pauschal "ab 1.10.2026 gelten die neuen
+  Bestimmungen zur Gänze" — das gilt laut Gesetzestext **nicht** für die
+  Netzentgelt-Bestimmung § 128 ElWG selbst, die laut § 188 Abs. 5 ElWG erst am
+  **31.12.2026** in Kraft tritt (3 Monate später als die Definitionen). Das steht
+  in `fakten.json → elwg_aenderung.teil_inkrafttreten_2.wichtiger_hinweis` **wörtlich**,
+  damit ein künftiges Feature nicht 3 Monate zu früh einen noch nicht bestehenden
+  BEG-Netzentgelt-Vorteil kommuniziert.
+- **BEG-Netzentgelt-Reduktion ist `unsicher`, nicht erfunden.** Der künftige
+  Prozentsatz steht noch nicht fest (Verordnung nach § 135 Abs. 1/2 ElWG
+  ausständig) — `rechtsformen.beg.netzentgelt_reduktion.prozent = null`,
+  `verlaesslichkeit: "unsicher"` mit Begründung. Kein geschätzter Platzhalterwert.
+- **Widersprüchliche Marktzahlen dokumentiert, nicht aufgelöst.**
+  `marktstand.unbestaetigte_zahlen[]` hält drei einander widersprechende
+  Sekundärquellen-Zahlenreihen (inkl. einer als "WIDERLEGT/unplausibel"
+  bewerteten) neben der amtlichen E-Control-Zahl — sichtbar, nicht stillschweigend
+  verworfen oder gemittelt.
+- **Verzeichnis bewusst leer statt erfunden.** Es existiert kein vollständiges,
+  offiziell abrufbares Verzeichnis aller österreichischen Energiegemeinschaften
+  (die amtliche Landkarte ist BEG-only, deckt EEG — die zahlenmäßig größte
+  Kategorie — gar nicht ab, und erreicht nur ~18 % Abdeckungsgrad der 737 BEG).
+  B1 legt daher nur das Schema an (`verzeichnis.json = []`); B2
+  (`gridbert/scrapers/eeg_verzeichnis.py`) befüllt es aus der amtlichen Landkarte.
+
+### 8.3 Nachvollziehbarkeit
+
+Jede Rechtsform trägt `netzentgelt_reduktion` (Prozentsatz + Rechtsquelle +
+Gültigkeit) und `quellen[]`. Die Capability `energiegemeinschaften_info` liefert
+Rechtsformen bundesweit (kein `bundesland`-Filter nötig) und grenzt nur die
+(aktuell leeren) Verzeichnis-Einträge auf ein Bundesland ein.
+
+---
+
+## 9. Solar/Speicher-Marktdaten
+
+### 9.1 Erhebung
+
+- **Quellen:** Anbieter-Websites, Handelsplattformen mit AT-Angebot
+  (`geizhals.at`, `voltaik.shop`, `tink.at`), Branchenverband PV Austria
+  (Speicherpreis-Referenz) und das amtliche Regelwerk TOR Stromerzeugungsanlagen
+  Typ A (E-Control) für die 800-W-Balkonkraftwerk-Regel.
+- **Snapshot:** `data/marktdaten/solar_speicher.json` (Vermittler, Energieversorger-
+  PV-Pakete, Hersteller/Händler mit Preisbeispielen, Speicherpreis-Referenz,
+  Balkonkraftwerk-Regeln, Ausschluss-Liste) + `MANIFEST.json`. Stand `2026-07-31`.
+
+### 9.2 Validierung
+
+- **Rein informativ — bewusst keine Empfehlungs-/Ranking-/Provisionslogik.** Der
+  Datensatz enthält keine Bewertung "bester Anbieter"; jeder Eintrag trägt seine
+  Rolle (Vermittler/Hersteller/ausgeschlossen) und Belege, keine Reihung.
+  Konsequenterweise gibt es (anders als bei Förderungen/Beratung/
+  Energiegemeinschaften) **keine eigene Capability** für dieses Package — nur den
+  Loader (`capabilities/marktdaten/data.py`).
+- **Risiken transparent statt verschwiegen.** Bekannte Partner-Risiken sind explizit
+  vermerkt (z. B. Otovo-Finanzkrise 2024 als eigenes Feld `risiko_hinweis_2024`,
+  EET-Insolvenz mit Geschäftszahl + fünf unabhängigen Quellen belegt).
+- **Ausschluss-Liste statt Verschweigen.** Anbieter ohne belastbaren AT-Marktbezug
+  (1KOMMA5°, Enpal) oder mit erloschener Präsenz (EET, daheim.solar) sind explizit
+  mit Begründung als `ausgeschlossen[]` geführt — nicht einfach weggelassen.
+
+### 9.3 Nachvollziehbarkeit
+
+Jeder Eintrag trägt `quellen[]`; Preisbeispiele sind als Stichtags-Snapshots
+einzelner Händler markiert, nicht als Marktdurchschnitt (`speicherpreis_referenz`
+unterscheidet explizit reine Speicherhardware vs. Komplettpaket-Preise, die nicht
+direkt vergleichbar sind).
+
+---
+
+## 10. Fakt vor Heuristik (Lastgang-Signale)
 
 Dasselbe Nachvollziehbarkeits-Prinzip gilt außerhalb der Tarif-/Netzkosten-Schicht auch
 für die Lastgang-Signale (`lastgang_signals`): elektrische Heizung, PV-Eigenverbrauch und

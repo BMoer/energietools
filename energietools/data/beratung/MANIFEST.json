@@ -1,0 +1,15 @@
+{
+ "data_version": "1",
+ "generated_at": "2026-08-01T11:13:04.487778+00:00",
+ "market": "AT",
+ "domain": "beratung",
+ "stand_recherche": "2026-07-31",
+ "coverage": {
+  "bundeslaender": 9
+ },
+ "provenance": "Manuelle Recherche gegen die offiziellen Landes-/Trägerseiten sowie die zwei zentralen Übersichten klimaaktiv.at und oesterreich.gv.at (beide bestätigen alle 9 Bundesländer), Stand 2026-07-31. Übersichtsquellen: https://www.klimaaktiv.at/private/zukunftsfittes-haus/energieberatungsstellen; https://www.oesterreich.gv.at/de/themen/umwelt_und_klima/energie_und_ressourcen_sparen/1/energieberatung",
+ "source_repo": "https://github.com/BMoer/gridbert (Erhebung, proprietär)",
+ "methodik": "siehe METHODIK.md",
+ "license": "MIT",
+ "disclaimer": "Kuratierte Beratungsstellen-Liste, ohne Gewähr. verlaesslichkeit='unsicher' markierte Einträge werden von den Capabilities standardmäßig ausgeblendet."
+}

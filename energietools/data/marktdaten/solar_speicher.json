@@ -1,0 +1,445 @@
+{
+ "vermittler": [
+  {
+   "id": "otovo",
+   "name": "Otovo",
+   "typ": "Vermittlungsplattform (kein eigener Installateur)",
+   "at_rechtseinheit": "Otovo GmbH (Austria), Sitz Wien, 100 % im Konzernbesitz von Otovo ASA (Osloer Börse)",
+   "geschaeftsmodell": "Vergleicht Angebote regionaler Partnerbetriebe; dreistufiges Partnersystem: (1) Installationspartner werden (installer.otovo.com), (2) Vertriebspartner werden, (3) Empfehlungsprogramm für Endkunden. Präzedenzfall: durchblicker.at (Österreichs größtes Vergleichsportal) kooperiert bereits mit Otovo — Klick führt zu einem kostenlosen, unverbindlichen Otovo-Angebot, mit eigenem UTM-Tracking (otovo.at/partner/durchblicker/?utm_source=durchblicker).",
+   "kennzahlen": "über 35.000 Installationen in 13 europäischen Ländern (keine AT-spezifische Zahl gefunden); im Jahresbericht 2025 bezeichnet sich Otovo als 'marketplace company' mit über 500 Installateur-Partnerbetrieben",
+   "strategie_2025": "'Otovo Evolution' (Oktober 2025): Abkehr vom 'predominantly installation-led business' hin zu einer 'capital-light global platform for distributed energy services'. Im März 2025 verkaufte Otovo sein kontinentaleuropäisches Subscription-Portfolio (~6.000 PV+Speicher-Leasingverträge in 8 Ländern inkl. Österreich, darunter Otovo GmbH Austria) an Forte PV S.à r.l. (Swiss Life Asset Managers, operiert seither als 'EDEA group'), behielt aber 11 % Beteiligung nach der Equity-Methode.",
+   "risiko_hinweis_2024": "Otovo durchlief 2024 eine ernste Finanzkrise: ~170 Entlassungen (rund 44 % der damals 384 Mitarbeitenden) europaweit inkl. Österreich, nach Umsatzeinbruch von 49,6 Mio. € auf 27 Mio. € (H1 2024 vs. H1 2023) und einem auf 16,5 Mio. € gestiegenen Halbjahresverlust; Ziel der Einsparungen 17–19 Mio. €/Jahr. KEINE Insolvenz (unbestätigter Forumshinweis darauf nicht übernommen). Der Jahresbericht 2025 zeigt ein wieder aktives, umstrukturiertes Unternehmen — reales Partnerrisiko, das vor einer Kontaktaufnahme mitgedacht werden sollte (keine exklusive Abhängigkeit von einem einzigen Vermittlungspartner aufbauen).",
+   "offene_punkte": "Konkrete Provisionshöhe für Vertriebspartner und ob eine API bereits self-service nutzbar ist (vs. individuell verhandelte Kooperation wie bei durchblicker) — trotz drei Klärungsversuchen nicht öffentlich einsehbar, nur durch direkte Anfrage bei Otovo klärbar. developer.otovo.com existiert nicht, otovo.de/api liefert 404.",
+   "status": "aktiv",
+   "quellen": [
+    {
+     "url": "https://www.otovo.at/about/",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://durchblicker.at/b/anschaffung-photovoltaikanlage",
+     "abrufdatum": "2026-08-01",
+     "typ": "sekundaer"
+    },
+    {
+     "url": "https://storage.mfn.se/c/aHR0cHM6Ly9hcGkzLm9zbG8ub3Nsb2JvcnMubm8vdjEvbmV3c3JlYWRlci9hdHRhY2htZW50P21lc3NhZ2VJZD02NzA4MzMmYXR0YWNobWVudElkPTMyMzUyNQ/otovo-2025-annual-report-final.pdf",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://www.pv-magazine.de/2024/09/11/otovo-entlaesst-fast-die-haelfte-seiner-mitarbeiter/",
+     "abrufdatum": "2026-08-01",
+     "typ": "sekundaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "durchblicker-pv",
+   "name": "durchblicker.at (PV-Vermittlung über Otovo)",
+   "typ": "Vergleichsportal, PV-Vermittlung ausgelagert an Otovo",
+   "geschaeftsmodell": "Österreichs größtes Vergleichsportal für Strom/Gas/Versicherung/Telekom vermittelt PV-Angebote nicht selbst, sondern kooperiert mit Otovo (kostenloses, unverbindliches Otovo-Angebot per Klick). Legt sein Provisionsmodell offen: 'Deswegen erhalten wir von jenem Anbieter, bei dem Sie über unsere Plattform abschließen, ein Entgelt.'",
+   "status": "aktiv",
+   "quellen": [
+    {
+     "url": "https://durchblicker.at/b/anschaffung-photovoltaikanlage",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://durchblicker.at/was-wir-tun",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "sonstige-lead-plattformen",
+   "name": "Weitere PV-Lead-/Vergleichsportale (Übersicht, nicht als primäre Kandidaten geprüft)",
+   "typ": "Lead-Verkauf / Verzeichnis",
+   "geschaeftsmodell": "dezentralo.com (427 gelistete PV-Anbieter für AT von 2.371 gesamt, Premium-Placement-Monetarisierung); photovoltaikanlage.at (reines Lead-Verkaufsportal, Preis nur auf Anfrage); Selectra AT (selectra.at/photovoltaik, eigenes Lead-Formular mit Telefonnummer 0720 1166 39); Lead-Preise laut leadfy.ai AT-Landingpage 'ab 49 € bis 89 €' pro Lead (Selbstaussage des Verkäufers, keine unabhängige Bestätigung gefunden)",
+   "status": "aktiv",
+   "quellen": [
+    {
+     "url": "https://dezentralo.com/photovoltaik-anbieter/%C3%B6sterreich",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://leadfy.ai/solar-leads/oesterreich/",
+     "abrufdatum": "2026-07-31",
+     "typ": "sekundaer"
+    }
+   ],
+   "verlaesslichkeit": "unsicher",
+   "unsicher_grund": "Lead-Preise sind Selbstaussagen der Verkäufer, keine unabhängige Bestätigung (Trustpilot/G2/Kununu nicht erreichbar) gefunden"
+  }
+ ],
+ "energieversorger_pv_pakete": [
+  {
+   "id": "evn-pv",
+   "name": "EVN Photovoltaikanlagen",
+   "beschreibung": "Eigener PV-Konfigurator, 'Förderberatung und Förderabwicklung' inklusive (unter 'PV-Komplettpaket mit Speicher 5,6 kWp' und 'Batteriespeicher-Nachrüstung'), kein Preis auf der Übersichtsseite genannt, Beratung über Hotline 0800 800 333. Keine eigenen Montagetrupps, sondern Partnerbetriebe.",
+   "url": "https://www.evn.at/home/photovoltaik/photovoltaikanlagen",
+   "quellen": [
+    {
+     "url": "https://www.evn.at/home/photovoltaik/photovoltaikanlagen",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "wien-energie-pv",
+   "name": "Wien Energie PV Einfamilienhäuser",
+   "beschreibung": "Installation über Partnerbetrieb immOH!, keine Anzahlung nötig, Bezahlung erst nach Fertigstellung, Preis nur über individuellen PV-Rechner.",
+   "url": "https://www.wienenergie.at/privat/produkte/sonnenenergie/einfamilienhaeuser/",
+   "quellen": [
+    {
+     "url": "https://www.wienenergie.at/privat/produkte/sonnenenergie/einfamilienhaeuser/",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  }
+ ],
+ "hersteller_haendler_speicher": [
+  {
+   "id": "byd",
+   "name": "BYD (Battery-Box)",
+   "at_bezug": "Vertrieb über Fachhändler, gute Kompatibilität mit Fronius-Wechselrichtern seit Dezember 2018 (Partnerschaft Fronius/BYD besiegelt 11.12.2018, Kompatibilität Fronius Symo Hybrid ab Q1 2019)",
+   "kompatibilitaet": "Aktuelle Kompatibilitätsliste (Battery-Box Premium HVS/HVM, V2.21, Stand 2025-08-20) listet 19 Wechselrichter-Marken (u.a. Fronius, GoodWe, Viessmann, KOSTAL, SMA, Sungrow). Huawei ist NICHT auf dieser Liste (negativ geklärt).",
+   "preis": "Preis-Leistungs-Spitzenreiter laut mehreren Quellen (keine belastbare Einzelquelle für exakten €/kWh-Preis)",
+   "quellen": [
+    {
+     "url": "https://www.fronius.com/de-de/germany/solarenergie/ueber-uns/presse/fronius-und-byd-machen-gemeinsame-sache-181211",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://www.bydbatterybox.com/uploads/downloads/250820_BYD_Battery_Box_Premium_HVS%26HVM_Compatible_Inverter_List_V2.21-68a55d94a82f5.pdf",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "fronius",
+   "name": "Fronius",
+   "at_bezug": "Zentraler österreichischer Player, Firmensitz Pettenbach/Gmunden (OÖ). Eigene Wechselrichter (GEN24 Plus) UND seit 2025 eigener Speicher unter eigenem Namen 'Fronius Reserva' (6,3–15,8 kWh, DC-gekoppelt, Notstromoption).",
+   "preisbeispiel": "Komplettpaket 'Plus 15 kWh/10 kW' (Symo GEN24 + Fronius Reserva): 11.318,76 € inkl. MwSt. bei voltaik.shop (AT)",
+   "quellen": [
+    {
+     "url": "https://www.pv-magazine.de/2025/02/27/fronius-stellt-eigenen-batteriespeicher-vor/",
+     "abrufdatum": "2026-07-31",
+     "typ": "sekundaer"
+    },
+    {
+     "url": "https://voltaik.shop/products/fronius-komplettpaket",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "huawei",
+   "name": "Huawei (LUNA2000)",
+   "at_bezug": "Vertrieb über AT-Fachhändler (z.B. solartekk.at, solar-zentrale.com)",
+   "preisbeispiel": "LUNA2000-10KW: 7.130 € (Fachhändler-Listenpreis, ohne Installation) bei solartekk.at; Komplettpaket 'Plus 15 kWh/10 kW' (SUN2000-Wechselrichter + LUNA2000-Batterie): 11.998,80 € bei voltaik.shop (AT)",
+   "quellen": [
+    {
+     "url": "https://solartekk.at/HUAWEI-Luna2000-10KW-Batteriespeicher",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://voltaik.shop/products/huawei-komplettpaket",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "sigenergy",
+   "name": "Sigenergy (SigenStor)",
+   "at_bezug": "Zunehmend über AT/DE-Fachhändler vertrieben",
+   "preisbeispiel": "SigenStor Home 8 kW/10 kWh-Komplettpaket (Energy Controller + Batteriemodule + Gateway + Montageset, ohne Installation): 6.693,12 € inkl. MwSt. bei voltaik.shop (AT); Energy-Controller-Komponente allein ab 2.433,60 €",
+   "quellen": [
+    {
+     "url": "https://voltaik.shop/products/sigenergy-komplettpaket",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "goodwe",
+   "name": "GoodWe",
+   "at_bezug": "Vertrieb über AT-Fachhändler",
+   "preisbeispiel": "Komplettpaket 'Basic 5 kW/5 kWh' (Wechselrichter GW5000-ES-20 + Batteriemodul GoodWe Lynx D LX D5.0-10 V2): 3.210,00 € inkl. MwSt. bei voltaik.shop (AT)",
+   "quellen": [
+    {
+     "url": "https://voltaik.shop/products/goodwe-komplettpaket",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "sonnen",
+   "name": "sonnen (sonnenBatterie)",
+   "at_bezug": "Vertrieb über mehrere hundert regionale Partnerbetriebe. Aktuelle Bezeichnung: 'zertifizierter Fachpartner von sonnen' — der frühere Begriff 'sonnenBatterie Center' ist nachweislich veraltet (erschöpfend negativ geprüft: nicht auf aktueller Seite, nicht in 8 Wayback-Snapshot-Jahrgängen 2016–2024, 0 Treffer in domainweiter Wayback-CDX-Abfrage).",
+   "preis": "Kein öffentlicher Endkundenpreis (variiert je Händler); Einstieg ab 5.520 € laut Vergleichsportal",
+   "foerderung_historisch": "Eine früher beworbene eigene Speicherförderung (1.799 €) stammt aus einer Pressemeldung vom 26.02.2019 (über 7 Jahre alt), URL liefert heute 404. Ob 2026 eine vergleichbare Förderung existiert, konnte nicht bestätigt werden (sonnen.at/presse zeigt keine Meldungen nach März 2021) — endgültig UNSICHER.",
+   "quellen": [
+    {
+     "url": "https://www.sonnen.at/fachpartner-werden",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "unsicher",
+   "unsicher_grund": "Ob 2026 aktuell eine Speicherförderung existiert, ist nicht auffindbar (Pressebereich seit März 2021 faktisch eingefroren)"
+  },
+  {
+   "id": "zendure",
+   "name": "Zendure",
+   "at_bezug": "Balkonkraftwerk-/Kleinspeicher-Marke, AT-verifizierte Preise über geizhals.at-Händler",
+   "preisbeispiel": "SolarFlow 800 Plus (1,92 kWh Speicher, komplett mit Wechselrichter): 499,00 € bei AT-Händlern (e4mobility, 0815) auf geizhals.at; SolarFlow 800 (Wechselrichter ohne Speichermodul): ab 179,00 € (zuletzt gelisteter Richtwert, aktuell ohne aktive Angebote)",
+   "quellen": [
+    {
+     "url": "https://geizhals.at/zendure-solarflow-800-plus-zdsf800pls-a3704157.html",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://geizhals.at/zendure-solarflow-800-v191932.html",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "id": "ecoflow",
+   "name": "EcoFlow",
+   "at_bezug": "Balkonkraftwerk-/Kleinspeicher-Marke, teils AT-verifiziert",
+   "preisbeispiel": "STREAM Ultra + Smart Meter (1,92 kWh Speicher): 2.019,00 € inkl. MwSt. bei tink.at, aktiv verfügbar (≈1.050 €/kWh für dieses kompakte Balkon-Speicherprodukt)",
+   "unsicher_hinweis": "Das früher zitierte PowerStream+DELTA-Pro-Bundle (4.029 €) ist aktuell auf geizhals.at ohne AT-Angebote gelistet — Zahl gilt als veraltet, nicht mehr kommunizieren",
+   "quellen": [
+    {
+     "url": "https://www.tink.at/p/ecoflow-stream-ultra-smart-meter",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "unsicher",
+   "unsicher_grund": "EcoFlow PowerStream+DELTA-Pro-Bundle-Preis (4.029 €) nicht mehr auffindbar/verifizierbar, gilt als veraltet"
+  }
+ ],
+ "speicherpreis_referenz": {
+  "wert": "445 €/kWh",
+  "stichtag": "Ende 2025",
+  "beschreibung": "PV Austria (Branchenverband) nennt auf eigener Marktseite: 'Mit Ende 2025 lagen die durchschnittlichen Kosten für Batteriespeicher bei 445 €/kWh und erreichten damit einen historischen Tiefstand.' Keine eigene Quellen-/Methodik-Fußnote, aber eigene Marktaussage des Branchenverbands.",
+  "einordnung_fuer_gridbert": "445 €/kWh liegt in etwa in der Mitte der (unbelegten) SEO-Preisspannen (270–1.200 €/kWh je nach Quelle/Marke). Als Faustregel für Nutzerkommunikation eignet sich ~350–650 €/kWh als realistische Bandbreite um den 445-€/kWh-Mittelwert. WICHTIG: Der PV-Austria-Wert bezieht sich vermutlich auf reine Speicherhardware — reale AT-Komplettpaketpreise (Wechselrichter + Speicher) liegen rechnerisch bei 642–800 €/kWh (aus vier echten voltaik.shop-Ankern: GoodWe 5 kWh 642 €/kWh, Sigenergy 10 kWh 669 €/kWh, Fronius 15 kWh 754 €/kWh, Huawei 15 kWh 800 €/kWh) — beide Zahlen sind nicht direkt vergleichbar (Hardware allein vs. Komplettpaket inkl. Wechselrichter).",
+  "quelle": {
+   "url": "https://pvaustria.at/pv-speicher/",
+   "abrufdatum": "2026-07-31",
+   "typ": "primaer"
+  },
+  "nachruest_anteil": {
+   "wert_2024": "23 % der 2024 neu installierten Speicherkapazität wurde bei bestehenden PV-Anlagen nachgerüstet (Rest 77 % zusammen mit neuer PV-Anlage)",
+   "wert_2023": "22 % (nahezu identisch, stabiler Wert über zwei Jahre)",
+   "quelle": {
+    "url": "https://pvaustria.at/wp-content/uploads/BMWET_PV-Speichersysteme-Marktentwicklung-2024.pdf",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer",
+    "hinweis": "BMWET/FH Technikum Wien: 'PV-Batteriespeichersysteme: Marktentwicklung 2024', Stand 16.06.2025, Befragung von rund 200 Unternehmen"
+   }
+  },
+  "verlaesslichkeit": "verifiziert"
+ },
+ "balkonkraftwerk_regeln": {
+  "leistungsgrenze": {
+   "wert": "0,8 kW (800 VA / 800 W) Engpassleistung am Netzanschlusspunkt",
+   "bezeichnung": "Kleinsterzeugungsanlage",
+   "verfahren": "vereinfachtes Verfahren",
+   "quelle": {
+    "url": "https://www.linznetz.at/portal/de/home/strom/mein_stromanschluss/erzeugungsanlage_anschliessen/kleinsterzeugungsanlagen",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  },
+  "meldepflicht": {
+   "frist": "mindestens zwei Wochen vor Inbetriebnahme",
+   "form": "schriftliche Meldung an den Netzbetreiber (Formular F.1.2, teils online)",
+   "charakter": "Der Netzbetreiber 'nimmt den Anschluss lediglich zur Kenntnis und duldet den Betrieb' — es wird KEIN Netzzugangsvertrag abgeschlossen. Keine Genehmigungspflicht.",
+   "weitere_meldepflichten": "Auch Außerbetriebnahme, Standortwechsel, Leistungserhöhung oder Typenänderung sind meldepflichtig",
+   "kein_bundesregister": "Es gibt KEIN zentrales Bundesregister wie in Deutschland (Marktstammdatenregister) — Meldung erfolgt direkt beim jeweils zuständigen Netzbetreiber, Verfahren unterscheidet sich je Netzbetreiber (Online-Formular vs. Kundenportal vs. Papierform)",
+   "quellen": [
+    {
+     "url": "https://www.linznetz.at/portal/de/home/strom/mein_stromanschluss/erzeugungsanlage_anschliessen/kleinsterzeugungsanlagen",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://www.salzburgnetz.at/service/netzanschluss-stromerzeuger/anmeldung-aenderung-balkonkraftwerk.html",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://balkon-kraftwerk.at/balkonkraftwerk-anmelden-sterreich",
+     "abrufdatum": "2026-07-31",
+     "typ": "sekundaer"
+    }
+   ]
+  },
+  "sonderfall_speicher": {
+   "regel": "Ein Speicher am Balkonkraftwerk verliert NICHT automatisch den privilegierten Kleinsterzeugungsanlage-Status. Maßgeblich ist die kombinierte Leistung (PV + Speicher in Summe): Kapazität muss in Summe kleiner als 0,8 kW bleiben, dann bleibt es meldepflichtige, aber privilegierte Kleinsterzeugungsanlage. Erst wenn die addierte Leistung (PV-Module + Speicher-Wechselrichter) 800 W überschreitet, greift das volle reguläre Anschlussverfahren mit Netzzugangsvertrag.",
+   "rechtsquelle": "TOR Stromerzeugungsanlagen Typ A, Version 1.3 (E-Control), Kapitel 4.1 'Bestimmung der Maximalkapazität der Stromerzeugungsanlage' (Gesamtwirkungs-Grundsatz) und Kapitel 2.1 'Allgemeiner Anwendungsbereich und Ausnahmen' (0,8-kW-Definition + zweiwöchige Meldepflicht)",
+   "bestaetigung_netzbetreiber": "Salzburg Netz kundenseitig: 'Speicher bis 800 W Engpassleistung pro Zähler, mit oder ohne Erzeugungsanlage, gelten als Kleinsterzeugungsanlage' — erst größere/eigenständige Speicher (>800 W) benötigen das reguläre Datenblatt-Verfahren",
+   "quellen": [
+    {
+     "url": "https://www.e-control.at/documents/1785851/0/TOR+Stromerzeugungsanlagen+Typ+A+Version+1.3.pdf",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://www.salzburgnetz.at/service/netzanschluss-stromerzeuger/batteriespeicheranlagen.html",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    }
+   ]
+  },
+  "verlaesslichkeit": "verifiziert"
+ },
+ "balkonkraftwerk_anbieter": {
+  "marken": [
+   "Anker Solix",
+   "EcoFlow",
+   "Zendure"
+  ],
+  "haendler_beispiele": [
+   "solarvie.at",
+   "greensolar.at",
+   "balkonstrom.com",
+   "alpen-volt.at",
+   "solarpowersupply.at",
+   "0815.at"
+  ],
+  "preisbeispiele": [
+   {
+    "produkt": "Zendure SolarFlow 800 Plus (1,92 kWh Speicher, komplett mit Wechselrichter)",
+    "preis": "499,00 €",
+    "haendler": "geizhals.at (e4mobility, 0815, AT)",
+    "verlaesslichkeit": "verifiziert"
+   },
+   {
+    "produkt": "EcoFlow STREAM Ultra + Smart Meter (1,92 kWh Speicher)",
+    "preis": "2.019,00 € inkl. MwSt.",
+    "haendler": "tink.at",
+    "verlaesslichkeit": "verifiziert"
+   },
+   {
+    "produkt": "Reine Kompaktsysteme (400–800 W AC, ohne/mit kleinem Speicher)",
+    "preis": "ab ca. 399 €",
+    "haendler": "DE-Marktdaten (solarmars.de)",
+    "verlaesslichkeit": "unsicher",
+    "unsicher_grund": "AT-Preis nicht separat verifiziert"
+   },
+   {
+    "produkt": "Balkonkraftwerk mit Speicher komplett (allgemein)",
+    "preis": "ca. 999–2.000 € je nach Speichergröße",
+    "haendler": "unbelegte SEO-Spanne",
+    "verlaesslichkeit": "unsicher",
+    "unsicher_grund": "keine Primärquelle"
+   }
+  ],
+  "quellen": [
+   {
+    "url": "https://geizhals.at/zendure-solarflow-800-plus-zdsf800pls-a3704157.html",
+    "abrufdatum": "2026-08-01",
+    "typ": "primaer"
+   },
+   {
+    "url": "https://www.tink.at/p/ecoflow-stream-ultra-smart-meter",
+    "abrufdatum": "2026-07-31",
+    "typ": "primaer"
+   }
+  ]
+ },
+ "ausgeschlossen": [
+  {
+   "name": "EET (Efficient Energy Technology GmbH, Marke SolMate)",
+   "grund": "Insolvent, Geschäftsbetrieb zum 30.06.2026 eingestellt. Insolvenzverfahren beim Landesgericht für ZRS Graz, Geschäftszahl 27 S 115/26b. Cloud-Infrastruktur für AT-Kunden wird abgeschaltet, SolMate-App aus App Stores entfernt. Bestätigt durch fünf unabhängige Quellen: Firma selbst, KSV1870, Creditreform Österreich, AKV Europa, sowie die Wirtschaftsmedien brutkasten.com und 5min.at (Verbindlichkeiten 'über 6 Mio. Euro' bzw. 7,2 Mio. €). Forderungsanmeldefrist 01.09.2026, Prüfungstagsatzung 15.09.2026.",
+   "quellen": [
+    {
+     "url": "https://www.eet.energy/",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://www.ksv.at/presse/laufende-insolvenzfaelle/eet-efficient-energy-technology-gmbh-konkursverfahren-eroeffnet",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://brutkasten.com/artikel/eet-grazer-solar-startup-meldet-konkurs-an-ueber-6-mio-euro-verbindlichkeiten",
+     "abrufdatum": "2026-08-01",
+     "typ": "sekundaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "name": "1KOMMA5°",
+   "grund": "Keine verifizierbare Präsenz in Österreich. Offizielle Standortseite listet ausschließlich 45 deutsche Standorte in 15 Bundesländern, Österreich wird nicht erwähnt. Englische Konzernseite nennt nur Deutschland, Schweden, Dänemark, Finnland, Niederlande, Spanien, Australien. Domain 1komma5grad.com leitet per 301-Redirect auf dieselbe DE-only-Seite um; Impressum listet ausschließlich eine deutsche Rechtseinheit (Heartbeat AI GmbH, Hamburg). Eine Drittquelle, die AT-Standorte behauptete ('über 80 Standorte in 7 Ländern inkl. Österreich'), war nicht auf eine 1KOMMA5°-Eigenquelle zurückführbar und wurde verworfen.",
+   "quellen": [
+    {
+     "url": "https://1komma5.com/de/in-deiner-naehe/",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://1komma5.com/en/group/who-we-are/",
+     "abrufdatum": "2026-07-31",
+     "typ": "primaer"
+    },
+    {
+     "url": "https://os.1komma5grad.com/imprint",
+     "abrufdatum": "2026-08-01",
+     "typ": "primaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "name": "Enpal",
+   "grund": "Deutscher B2C-Mietmodell-Marktführer (Umsatz 2025: 1,1 Mrd. €, >115.000 Haushalte in Deutschland UND Italien gemeinsam), aber kein Hinweis auf Markteintritt in Österreich gefunden trotz gezielter Suche.",
+   "quellen": [
+    {
+     "url": "https://www.solarserver.de/2026/01/29/enpal-erzielt-2025-umsatz-von-11-milliarden-euro/",
+     "abrufdatum": "2026-08-01",
+     "typ": "sekundaer"
+    }
+   ],
+   "verlaesslichkeit": "verifiziert"
+  },
+  {
+   "name": "daheim.solar (Eness GmbH)",
+   "grund": "Domain nachweislich seit mindestens 2021 tot/geparkt (IONOS-Parkseite, reproduzierbarer TLS-Fehler, keine echten Wayback-Inhalte je indexiert). Ob die Betreiberfirma Eness GmbH (München) unter anderer Marke/Domain in Österreich aktiv ist, konnte mangels Registerzugriff (Bot-Schutz bei firmenabc.at/firmen.wko.at) nicht abschließend geklärt werden.",
+   "quellen": [],
+   "verlaesslichkeit": "unsicher",
+   "unsicher_grund": "Domain nachweislich tot, aber Firmenregister-Abgleich für die Betreiberfirma war nicht möglich (Bot-Schutz)"
+  }
+ ]
+}

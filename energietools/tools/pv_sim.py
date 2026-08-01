@@ -196,16 +196,34 @@ def _estimate_self_consumption(anlage_kwp: float, verbrauch_kwh: float) -> float
 
 
 def _estimate_foerderung(anlage_kwp: float) -> float:
-    """Förderungsschätzung basierend auf dem aktuellen Katalog."""
-    from energietools.tools.energy_monitor import load_foerderungen_catalog
+    """Förderungsschätzung anhand des EAG-Investitionszuschusses (Kategorie A, bis 10 kWp)."""
+    return anlage_kwp * _eag_pv_foerderung_pro_kwp()
 
-    catalog, _stand = load_foerderungen_catalog()
-    pv_foerderung_pro_kwp = 160.0  # Fallback
 
-    for f in catalog:
-        if f.get("name") == "EAG Investitionszuschuss Photovoltaik" and f.get("status") == "aktiv":
-            if f.get("betrag_eur", 0) > 0:
-                pv_foerderung_pro_kwp = f["betrag_eur"]
-            break
+def _eag_pv_foerderung_pro_kwp() -> float:
+    """Der aktuelle EAG-Fördersatz für PV bis 10 kWp (€/kWp), aus dem Förderungs-Package.
 
-    return anlage_kwp * pv_foerderung_pro_kwp
+    Fail-open: ist der EAG-Investitionszuschuss geschlossen/nicht auffindbar oder
+    lässt sich der Satz nicht parsen, greift ein grober Fallback (150 €/kWp,
+    letzter bekannter Kategorie-A-Satz) — die PV-Simulation bleibt nur eine grobe
+    Schätzung, keine geprüfte Förderzusage.
+    """
+    import re
+
+    from energietools.capabilities.foerderungen.data import load_foerderungen
+
+    fallback = 150.0
+    try:
+        entry = next(
+            (f for f in load_foerderungen() if f.id == "bund-eag-invest-pv-speicher"), None
+        )
+        if entry is None or entry.status != "offen":
+            return fallback
+        for wert in entry.foerderhoehe.werte:
+            if "bis 10 kwp" in wert.bezeichnung.lower():
+                treffer = re.search(r"([\d.,]+)\s*€/kWp", wert.wert)
+                if treffer:
+                    return float(treffer.group(1).replace(".", "").replace(",", "."))
+    except Exception:
+        log.debug("EAG-Fördersatz nicht auflösbar, nutze Fallback %.0f €/kWp", fallback)
+    return fallback

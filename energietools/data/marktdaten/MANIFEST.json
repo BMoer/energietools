@@ -1,0 +1,18 @@
+{
+ "data_version": "1",
+ "generated_at": "2026-08-01T11:13:04.487778+00:00",
+ "market": "AT",
+ "domain": "marktdaten_solar_speicher",
+ "stand_recherche": "2026-07-31",
+ "coverage": {
+  "vermittler": 3,
+  "energieversorger_pv_pakete": 2,
+  "hersteller_haendler_speicher": 8,
+  "ausgeschlossen": 4
+ },
+ "provenance": "Manuelle Recherche gegen Anbieter-Websites, Handelsplattformen (geizhals.at, voltaik.shop, tink.at), Branchenverband PV Austria und amtliche Regelwerke (TOR Stromerzeugungsanlagen Typ A). Stand 2026-07-31, 3x verifiziert. Rein informativ — KEINE Empfehlungs-, Ranking- oder Provisionslogik.",
+ "source_repo": "https://github.com/BMoer/gridbert (Erhebung, proprietär)",
+ "methodik": "siehe METHODIK.md",
+ "license": "MIT",
+ "disclaimer": "Marktbeobachtung ohne Gewähr, keine Kaufempfehlung. Preise sind Stichtags-Snapshots einzelner Händler, keine Marktdurchschnitte. verlaesslichkeit='unsicher' markierte Einträge (z.B. einzelne Preisbeispiele) sind nicht primärquellenverifiziert."
+}

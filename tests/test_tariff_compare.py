@@ -483,16 +483,20 @@ class TestErsparnisGesamtkostenDifferenz:
         1861 kWh, aktueller Tarif MAXENERGY-artig 19,68 ct brutto / 3 €/Monat
         brutto) gegen den gebündelten Open-Data-Katalog (offline, deterministisch).
 
-        Referenz (live nachgemessen): aktueller Tarif jahreskosten_eur 402,24
+        Referenz (aktueller Tarif, unverändert): jahreskosten_eur 402,24
         (GAB 42,18) → gesamtkosten_eur 719,63 (Netz 275,21). Alternative
-        "Flex Start" (EnergieDirect Austria GmbH): jahreskosten_eur 257,70
-        (GAB 32,56) → gesamtkosten_eur 565,47. Ersparnis (NEU, Gesamtkosten-
-        Differenz) = 719,63 − 565,47 = 154,16 (vorher, Energie-Differenz:
-        402,24 − 257,70 = 144,54 — die alte, jetzt korrigierte Zahl).
+        "Flex Start" (EnergieDirect Austria GmbH): jahreskosten_eur 314,09
+        (GAB 36,51) → gesamtkosten_eur 625,81. Ersparnis (Gesamtkosten-
+        Differenz) = 719,63 − 625,81 = 93,82 (Energie-Differenz wäre
+        402,24 − 314,09 = 88,15 — die FORMEL, nicht die genauen Werte, ist
+        der Testgegenstand).
 
         Hinweis: pinnt Werte aus dem gebündelten Tarifkatalog-Snapshot; ein
         künftiger Daten-Refresh kann diese Zahlen verschieben (dann hier neu
         verifizieren) — die FORMEL (Gesamtkosten-Differenz) ist der Testgegenstand.
+        Repinnt 2026-08-01 nach dem nightly Tarifkatalog-Refresh (Commit
+        be23e364), Zahlen direkt aus vergleiche_tarife()/TariffCompareCapability
+        gegen den aktuellen Katalog-Snapshot berechnet (kein neuer Live-Cross-Run).
         """
         cmp = vergleiche_tarife(
             plz="1020",
@@ -511,13 +515,16 @@ class TestErsparnisGesamtkostenDifferenz:
         assert aktuell.gesamtkosten_eur == pytest.approx(719.63, abs=0.01)
 
         flex = next(t for t in cmp.alternativen if t.tarif_name == "Flex Start")
-        assert flex.jahreskosten_eur == pytest.approx(257.70, abs=0.01)
-        assert flex.gebrauchsabgabe_eur == pytest.approx(32.56, abs=0.01)
-        assert flex.gesamtkosten_eur == pytest.approx(565.47, abs=0.01)
-        assert flex.ersparnis_eur == pytest.approx(154.16, abs=0.01)
+        assert flex.jahreskosten_eur == pytest.approx(314.09, abs=0.01)
+        assert flex.gebrauchsabgabe_eur == pytest.approx(36.51, abs=0.01)
+        assert flex.gesamtkosten_eur == pytest.approx(625.81, abs=0.01)
+        assert flex.ersparnis_eur == pytest.approx(93.82, abs=0.01)
 
         # Capability-Envelope: dasselbe Ergebnis, plus der auditierbare
-        # rechenweg_kurz trägt die neue Ersparnis-Zeile.
+        # rechenweg_kurz trägt die neue Ersparnis-Zeile. max_ersparnis_eur
+        # gehört zur besten Alternative im aktuellen Katalog, nicht mehr
+        # zwingend "Flex Start" — daher separat gegen den Capability-Output
+        # geprüft statt gegen alt["ersparnis_eur"] gleichgesetzt.
         cap = TariffCompareCapability()
         result = cap.run(
             plz="1020", jahresverbrauch_kwh=1861, aktueller_lieferant="Test-Lieferant",
@@ -528,11 +535,11 @@ class TestErsparnisGesamtkostenDifferenz:
         assert result.ok
         assert result.data["netzkosten_vollstaendig"] is True
         alt = next(a for a in result.data["alternativen"] if a["tarif_name"] == "Flex Start")
-        assert alt["ersparnis_eur"] == pytest.approx(154.16, abs=0.01)
-        assert result.data["max_ersparnis_eur"] == pytest.approx(154.16, abs=0.01)
+        assert alt["ersparnis_eur"] == pytest.approx(93.82, abs=0.01)
+        assert result.data["max_ersparnis_eur"] == pytest.approx(145.81, abs=0.01)
         assert (
             "Ersparnis = Gesamtkosten aktuell 719.63 € "
-            "− Gesamtkosten Alternative 565.47 € = 154.16 €"
+            "− Gesamtkosten Alternative 625.81 € = 93.82 €"
         ) in alt["rechenweg_kurz"]
 
     def test_ersparnis_bleibt_energie_anteil_wenn_netzkosten_unvollstaendig(self):

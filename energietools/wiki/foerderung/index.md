@@ -4,9 +4,10 @@ Förderungen sind öffentliche Zuschüsse, die die Wirtschaftlichkeit von Energi
 
 ## Worum es geht
 
-- **Aktive Programme:** Der kuratierte Katalog deckt unter anderem PV-Anlagen, Batteriespeicher, Wärmepumpen, thermische Sanierung und Entlastungsmaßnahmen ab - bundesweit und je Bundesland.
-- **Woher die Daten kommen:** Ein versionierter Snapshot unter `energietools/data/foerderungen.json`. Jeder Eintrag trägt Betrag, Zielgruppe, Bundesland, Gültigkeit (gueltig_ab / gueltig_bis), Status, Voraussetzungen und die offizielle Quelle samt URL.
-- **Aktualität:** Der Snapshot trägt ein `_meta`-Feld mit `stand` und `naechste_pruefung`. Förderlandschaften veralten schnell - Budgets sind oft ausgeschöpft, bevor das Jahr endet.
+- **Aktive Programme:** Der Datensatz deckt PV-Anlagen, Batteriespeicher, Heizungstausch, thermische Sanierung, Balkonkraftwerke und weitere Kategorien ab - 10 Bundesförderungen + 35 Landes-/Gemeinde-Förderungen (Bund + alle 9 Bundesländer, inkl. Graz, Linz, Innsbruck, Villach).
+- **Woher die Daten kommen:** Ein versionierter Snapshot unter `energietools/data/foerderungen/foerderungen.json` + `MANIFEST.json`. Jeder Eintrag trägt Ebene (Bund/Land), Status (offen/geschlossen/unsicher), Fördersatz mit Rechenweg-Werten, Bedingungen, Zielgruppe, nächstes Antragsfenster und die offizielle Quelle samt URL und Abrufdatum.
+- **Aktualität:** Das `MANIFEST.json` trägt `stand_recherche` und `coverage` (Zahl offen/geschlossen/verifiziert je Snapshot). Förderlandschaften veralten schnell - mehrere Bundesprogramme (Kesseltausch, Sauber Heizen für Alle, Sanierungsbonus) sind seit Mitte 2026 budgeterschöpft und für neue Fälle geschlossen, obwohl einzelne Landesrichtlinien formal weiterlaufen.
+- **Ehrlichkeit bei Unsicherheit:** Einträge mit `verlaesslichkeit: "unsicher"` (z.B. kolportierte, nicht primärquellenverifizierte Balkonkraftwerk-Beträge) bleiben im Datensatz sichtbar, werden aber von der Capability `foerderungen_check` standardmäßig ausgeblendet (`inkl_unsicher=False`) - nie ungefragt als Fakt ausgespielt.
 - **Ohne Gewähr:** Alle Angaben sind kuratiert, aber nicht rechtsverbindlich. **Vor jeder Antragstellung die offizielle Quelle prüfen** - Konditionen und Verfügbarkeit können sich kurzfristig ändern.
 
 ## Siehe auch
@@ -19,13 +20,14 @@ Förderungen sind öffentliche Zuschüsse, die die Wirtschaftlichkeit von Energi
 
 ## Berechnet von
 
-- Tool `energy_monitor` - Förderungen-Katalog, Energie-News und RSS-Feeds
+- Capability `foerderungen_check` - offene (optional auch geschlossene) Förderungen je Bundesland/PLZ, mit Rechenweg-Werten und Quellen
+- Tool `energy_monitor` - Förderungen gefiltert nach PLZ/Region, Energie-News und RSS-Feeds
 - Die Wirtschaftlichkeit einer geförderten Investition rechnet die Capability `finance` (ROI/NPV/LCOE)
 
 ## Quellen
 
-- Daten-Snapshot: `energietools/data/foerderungen.json` (kuratierter Katalog, `_meta.stand` und `_meta.naechste_pruefung`)
+- Daten-Snapshot: `energietools/data/foerderungen/foerderungen.json` + `MANIFEST.json` (`stand_recherche`, `coverage`, `provenance`)
 - Jeweils die in den Einträgen verlinkten offiziellen Förderstellen (Bund / Länder / Gemeinden)
-- Hinweis aus dem Snapshot: „Alle Angaben ohne Gewähr. Vor Antragstellung immer die offizielle Quelle prüfen."
+- Hinweis aus dem MANIFEST: „Kuratierte Förderdaten, ohne Gewähr. Vor Antragstellung immer die offizielle Quelle prüfen."
 
-Stand: 2026-06
+Stand: 2026-08

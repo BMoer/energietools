@@ -77,8 +77,10 @@ Seiteninhalt + Stand + Quellenverweis - reine Text-Auslieferung, kein Rechen-Res
 
 ### Daten - `energietools/data/`
 Versionierte First-Party-Snapshots: der Tarifkatalog (`data/tariffs/`), die
-Netzentgelt-/Abgaben-Parameter (`data/netz/`) und aktive Förderungen
-(`data/foerderungen.json`). Jeder Snapshot hat ein `MANIFEST.json` mit Provenance,
+Netzentgelt-/Abgaben-Parameter (`data/netz/`), Förderungen (`data/foerderungen/`),
+Energieberatungsstellen (`data/beratung/`), Energiegemeinschafts-Fakten
+(`data/energiegemeinschaften/`) und Solar/Speicher-Marktdaten (`data/marktdaten/`).
+Jeder Snapshot hat ein `MANIFEST.json` mit Provenance,
 `Stand`, Lizenz und Verweisen auf [METHODIK.md](METHODIK.md) (wie erhoben +
 validiert) und [NETZKOSTEN_UND_GEBUEHREN.md](NETZKOSTEN_UND_GEBUEHREN.md) (was die
 Zahlen bedeuten). Die Scraper, die diese Daten erzeugen, sind **nicht** Teil dieses

@@ -14,8 +14,13 @@ from __future__ import annotations
 from functools import lru_cache
 
 from energietools.capabilities.base import CapabilityRegistry
+from energietools.capabilities.beratung.capability import BeratungsstellenCapability
 from energietools.capabilities.community.capability import CommunityMetricsCapability
+from energietools.capabilities.energiegemeinschaften.capability import (
+    EnergiegemeinschaftenInfoCapability,
+)
 from energietools.capabilities.finance.capability import FinanceCapability
+from energietools.capabilities.foerderungen.capability import FoerderungenCheckCapability
 from energietools.capabilities.heatpump.capability import HeatPumpCapability
 from energietools.capabilities.invoice.capability import (
     FinalizeInvoiceCapability,
@@ -65,6 +70,11 @@ def default_registry() -> CapabilityRegistry:
     registry.register(GetKnowledgeCapability())
     # Energiegemeinschafts-Kennzahlen (EEG/BEG).
     registry.register(CommunityMetricsCapability())
+    # Förderungen/Beratung/Energiegemeinschaften-Fakten ("nächster Schritt" nach
+    # dem Tarifvergleich): Bund+Land-Förderungen, Beratungsstellen, EEG/BEG-Fakten.
+    registry.register(FoerderungenCheckCapability())
+    registry.register(BeratungsstellenCapability())
+    registry.register(EnergiegemeinschaftenInfoCapability())
     # Netz: regulierte Netzkosten, Gesamtkosten, Verfügbarkeit.
     registry.register(NetzkostenCapability())
     registry.register(GesamtkostenCapability())

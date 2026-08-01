@@ -5,25 +5,26 @@
 
 from __future__ import annotations
 
-import json
 import logging
-from pathlib import Path
 
+from energietools.capabilities.base import CapabilityError
+from energietools.capabilities.energiegemeinschaften.data import load_beg_providers
 from energietools.models import BEGCalculation, BEGComparison
 
 log = logging.getLogger(__name__)
 
-_DATA_DIR = Path(__file__).resolve().parent.parent / "data"
-_PROVIDERS_FILE = _DATA_DIR / "beg_providers.json"
-
 
 def _load_beg_providers() -> list[dict]:
-    """BEG-Anbieter-Katalog laden."""
-    if not _PROVIDERS_FILE.exists():
-        log.warning("BEG-Katalog nicht gefunden: %s", _PROVIDERS_FILE)
+    """BEG-Anbieter-Katalog laden (aus energietools.data.energiegemeinschaften).
+
+    Migriert vom losen ``data/beg_providers.json`` auf den gebündelten
+    Loader — inhaltlich unverändert (3 Einträge, 1:1 überführt).
+    """
+    try:
+        return [p.model_dump() for p in load_beg_providers()]
+    except CapabilityError:
+        log.warning("BEG-Katalog nicht gefunden (energietools.data.energiegemeinschaften)")
         return []
-    with open(_PROVIDERS_FILE) as f:
-        return json.load(f)
 
 
 def compare_beg_options(

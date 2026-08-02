@@ -2381,7 +2381,7 @@
     "tarif_name": "V-Strom-FLOAT-H-KW2725",
     "tariftyp": "Monatsfloater",
     "preismodell": "",
-    "energiepreis_ct_kwh": 12.63,
+    "energiepreis_ct_kwh": 15.31,
     "grundgebuehr_eur_monat": 3.99,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",

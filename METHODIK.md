@@ -365,7 +365,9 @@ eigene, zweite PLZ-Zuordnung.
 - **Snapshot:** `data/energiegemeinschaften/fakten.json` (4 Rechtsformen: GEA,
   EEG lokal, EEG regional, BEG — je mit Netzentgelt-Reduktion + Rechtsquelle;
   ElWG-Änderung; Marktstand zum Stichtag 30.06.2025; 6 Beitrittsschritte),
-  `verzeichnis.json` (Schema-Platzhalter, initial **leer** — siehe 9.2) und
+  `verzeichnis.json` (seit 03.08.2026 **befüllt**: 136 BEG-Einträge aus der
+  amtlichen Landkarte, nächtlich nachgezogen — siehe 8.2; Provenance, Coverage
+  und Disclaimer des Verzeichnisses stehen in `verzeichnis.MANIFEST.json`) und
   `beg_providers.json` (3 bundesweit beitretbare BEG-Anbieter, 1:1 migriert aus
   dem alten `energietools/data/beg_providers.json`).
 
@@ -388,12 +390,19 @@ eigene, zweite PLZ-Zuordnung.
   Sekundärquellen-Zahlenreihen (inkl. einer als "WIDERLEGT/unplausibel"
   bewerteten) neben der amtlichen E-Control-Zahl — sichtbar, nicht stillschweigend
   verworfen oder gemittelt.
-- **Verzeichnis bewusst leer statt erfunden.** Es existiert kein vollständiges,
-  offiziell abrufbares Verzeichnis aller österreichischen Energiegemeinschaften
-  (die amtliche Landkarte ist BEG-only, deckt EEG — die zahlenmäßig größte
-  Kategorie — gar nicht ab, und erreicht nur ~18 % Abdeckungsgrad der 737 BEG).
-  B1 legt daher nur das Schema an (`verzeichnis.json = []`); B2
-  (`gridbert/scrapers/eeg_verzeichnis.py`) befüllt es aus der amtlichen Landkarte.
+- **Verzeichnis unvollständig statt erfunden — und die Lücke steht dabei.** Es
+  existiert kein vollständiges, offiziell abrufbares Verzeichnis aller
+  österreichischen Energiegemeinschaften (die amtliche Landkarte ist BEG-only,
+  deckt EEG — die zahlenmäßig größte Kategorie — gar nicht ab, und erreicht nur
+  ~18 % Abdeckungsgrad der 737 BEG). `verzeichnis.json` enthält deshalb genau
+  das, was die Landkarte hergibt, mit dieser Einschränkung wörtlich im
+  `verzeichnis.MANIFEST.json` — nicht mehr. Kontaktdaten sind bewusst **nicht**
+  exportiert (die Nutzungsbedingung der Koordinierungsstelle untersagt
+  Werbenutzung). Befüllt wird nächtlich aus
+  `gridbert/scrapers/eeg_verzeichnis.py` über den `publish`-Job von
+  `tariff-refresh.yml`; schlägt der Abruf fehl oder liefert er null Einträge,
+  bleibt der letzte gute Stand stehen statt durch eine leere Liste ersetzt zu
+  werden.
 
 ### 8.3 Nachvollziehbarkeit
 

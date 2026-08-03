@@ -10,7 +10,7 @@
   "verzeichnis_eintraege": 136,
   "beg_providers": 3
  },
- "provenance": "Rechtsquellen (RIS: ElWG BGBl. I Nr. 91/2025, ElWOG 2010, SNE-V 2018), amtliche Koordinierungsstelle energiegemeinschaften.gv.at, E-Control EAG-Monitoringbericht 2025 (Marktstand). Stand 2026-07-31, 3x verifiziert. verzeichnis.json ist ein Schema-Platzhalter (leer) — wird vom Quellen-Wächter-Scraper (B2, gridbert/scrapers/eeg_verzeichnis.py) aus der amtlichen Landkarte befüllt. beg_providers.json migriert 1:1 aus dem alten energietools/data/beg_providers.json.",
+ "provenance": "Rechtsquellen (RIS: ElWG BGBl. I Nr. 91/2025, ElWOG 2010, SNE-V 2018), amtliche Koordinierungsstelle energiegemeinschaften.gv.at, E-Control EAG-Monitoringbericht 2025 (Marktstand). Stand 2026-07-31, 3x verifiziert. verzeichnis.json wird nächtlich aus der amtlichen Landkarte befüllt (gridbert/scrapers/eeg_verzeichnis.py, publish-Job von tariff-refresh.yml); Provenance, Coverage und Disclaimer des Verzeichnisses stehen daneben in verzeichnis.MANIFEST.json. beg_providers.json migriert 1:1 aus dem alten energietools/data/beg_providers.json.",
  "source_repo": "https://github.com/BMoer/gridbert (Erhebung, proprietär)",
  "methodik": "siehe METHODIK.md",
  "license": "MIT",

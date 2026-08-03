@@ -78,9 +78,13 @@ class EnergiegemeinschaftenFakten(BaseModel):
 class VerzeichnisEintrag(BaseModel):
     """Ein Eintrag im Energiegemeinschafts-Verzeichnis-Snapshot.
 
-    Initial leer (``verzeichnis.json = []``) — B1 legt nur das Schema an. Wird
-    vom Quellen-Wächter-Scraper (B2, ``gridbert/scrapers/eeg_verzeichnis.py``)
-    aus der amtlichen Landkarte (energiegemeinschaften.gv.at/landkarte/) befüllt.
+    ``verzeichnis.json`` wird nächtlich aus der amtlichen Landkarte
+    (energiegemeinschaften.gv.at/landkarte/) befüllt —
+    ``gridbert/scrapers/eeg_verzeichnis.py`` über den ``publish``-Job von
+    ``tariff-refresh.yml``. Die Landkarte ist BEG-only und freiwillig befüllt
+    (~18 % der amtlich gezählten BEG), deshalb trägt jede Ausspielung den
+    Unvollständigkeits-Hinweis mit. Kontaktdaten sind bewusst kein Feld: die
+    Nutzungsbedingung der Koordinierungsstelle untersagt Werbenutzung.
     """
 
     model_config = ConfigDict(frozen=True)

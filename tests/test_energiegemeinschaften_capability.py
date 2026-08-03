@@ -19,6 +19,7 @@ from energietools.capabilities.energiegemeinschaften.data import (
     load_manifest,
     load_verzeichnis,
 )
+from energietools.capabilities.energiegemeinschaften.models import VerzeichnisEintrag
 from energietools.capabilities.registry import default_registry
 
 
@@ -66,13 +67,41 @@ def test_marktstand_stichtag() -> None:
     assert result.data["marktstand"]["eeg"] == 3868
 
 
-def test_verzeichnis_initial_leer() -> None:
-    """B1 legt nur das Schema an — der initiale Snapshot ist bewusst leer."""
-    assert load_verzeichnis() == ()
+def test_verzeichnis_ist_befuellt() -> None:
+    """Seit 03.08.2026 befüllt — nächtlicher Refresh aus der amtlichen Landkarte.
+
+    Prüft bewusst Invarianten statt einer Anzahl: der Snapshot wächst und schrumpft
+    mit dem freiwillig befüllten amtlichen Verzeichnis, ein fixer Zählwert wäre ein
+    Test, der bei jedem Refresh bricht. Der Vorgänger ``test_verzeichnis_initial_leer``
+    hat den leeren Schema-Platzhalter aus B1 festgehalten und ist damit erledigt.
+    """
+    eintraege = load_verzeichnis()
+    assert eintraege, "Verzeichnis leer — Refresh-Job oder Landkarten-Parser kaputt"
+    # Die amtliche Landkarte ist BEG-only. Ein anderer Typ hieße, die Quelle hat sich
+    # geändert — dann gehört auch der Unvollständigkeits-Hinweis nachgezogen.
+    assert {e.typ for e in eintraege} == {"beg"}
+    # Kontaktdaten sind bewusst NICHT exportiert: die Nutzungsbedingung der
+    # Koordinierungsstelle untersagt Werbenutzung.
+    assert not {"email", "telefon", "kontakt", "adresse"} & set(VerzeichnisEintrag.model_fields)
+
+
+def test_verzeichnis_bundesland_filter() -> None:
     result = EnergiegemeinschaftenInfoCapability().run(bundesland="Wien")
-    assert result.data["verzeichnis"] == []
-    assert result.data["verzeichnis_anzahl"] == 0
+    assert result.data["verzeichnis_anzahl"] == len(result.data["verzeichnis"])
+    assert result.data["verzeichnis_anzahl"] > 0
+    assert {e["bundesland"] for e in result.data["verzeichnis"]} == {"Wien"}
+    # Der Unvollständigkeits-Hinweis bleibt Pflicht (~18 % Abdeckung, EEG fehlt ganz).
     assert result.data["verzeichnis_hinweis"]
+
+
+def test_manifest_zaehlt_dieselben_verzeichnis_eintraege() -> None:
+    """Domänen-MANIFEST und Datei dürfen nicht auseinanderlaufen.
+
+    Der Refresh-Job zieht ``coverage.verzeichnis_eintraege`` mit; ohne diesen Test
+    fällt es niemandem auf, wenn er es einmal nicht tut und das MANIFEST weiter
+    eine veraltete Zahl neben einer befüllten Datei behauptet.
+    """
+    assert load_manifest().coverage["verzeichnis_eintraege"] == len(load_verzeichnis())
 
 
 def test_unbekanntes_bundesland_ist_fail_open_nicht_rejection() -> None:

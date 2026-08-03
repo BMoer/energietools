@@ -1,0 +1,15 @@
+{
+ "data_version": "1",
+ "generated_at": "2026-08-03T09:30:57.508330+00:00",
+ "market": "AT",
+ "coverage": {
+  "eintraege": 136,
+  "typ": "beg_only",
+  "hinweis": "Amtliche Landkarte ist BEG-ONLY (keine EEG/GEA-Einträge) und freiwillig befüllt — rund 18 % der amtlich gezählten Bürgerenergiegemeinschaften (E-Control EAG-Monitoringbericht, Stand 30.06.2025: 737 BEG)."
+ },
+ "provenance": "https://energiegemeinschaften.gv.at/landkarte/ (JSON im HTML, Array 'communities_map').",
+ "methodik": "gridbert/scrapers/eeg_verzeichnis.py: fetch() (Netzwerk) + parse() (rein, fixture-testbar).",
+ "source_repo": "https://github.com/BMoer/gridbert (Erhebung, proprietär)",
+ "license": "MIT",
+ "disclaimer": "Freiwillig befülltes, unvollständiges Verzeichnis — keine Gewähr auf Vollständigkeit oder Aktualität einzelner Einträge. Kontaktdaten bewusst NICHT exportiert (Nutzungsbedingung der Koordinierungsstelle untersagt Werbenutzung; rechtliche Prüfung vor produktivem Kundeneinsatz noch offen)."
+}

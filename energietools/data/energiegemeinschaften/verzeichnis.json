@@ -1,1 +1,1090 @@
-[]
+[
+ {
+  "name": "1. Bürger Energie Gemeinschaft Lannach",
+  "bundesland": "Steiermark",
+  "plz": "8502",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "7Energy - Bürgerenergiegemeinschaft für erneuerbaren Strom",
+  "bundesland": "Steiermark",
+  "plz": "8020",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Allmenda Social Business eG",
+  "bundesland": "Vorarlberg",
+  "plz": "6850",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Allras GmbH",
+  "bundesland": "Kärnten",
+  "plz": "9300",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Alternative Energy Bürgerenergiegemeinschaft",
+  "bundesland": "Wien",
+  "plz": "1210",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "AURON Energy Community",
+  "bundesland": "Kärnten",
+  "plz": "9640",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG 4greenpower",
+  "bundesland": "Burgenland",
+  "plz": "7082",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Benedikt - Weitlaner",
+  "bundesland": "Tirol",
+  "plz": "9911",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Clean Power Bürgerenergie eGen",
+  "bundesland": "Niederösterreich",
+  "plz": "3400",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Elsbeere Wienerwald eGen",
+  "bundesland": "Niederösterreich",
+  "plz": "3040",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Energie Marie",
+  "bundesland": "Tirol",
+  "plz": "6322",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Energiedigital eG",
+  "bundesland": "Steiermark",
+  "plz": "8010",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Fugger St. Jakob",
+  "bundesland": "Kärnten",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Gemüseland",
+  "bundesland": "Niederösterreich",
+  "plz": "2301",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Gruenwald",
+  "bundesland": "Kärnten",
+  "plz": "9524",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG GRÜNWALD",
+  "bundesland": "Kärnten",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG heutemorgen PUS",
+  "bundesland": "Kärnten",
+  "plz": "9812",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Hollabrunn",
+  "bundesland": "Niederösterreich",
+  "plz": "2020",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Landlinger Taiskirchen",
+  "bundesland": "Oberösterreich",
+  "plz": "4753",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG nahstrom.at",
+  "bundesland": "Niederösterreich",
+  "plz": "3071",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG smart energy austria",
+  "bundesland": "Tirol",
+  "plz": "9900",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Sonnenstrom 860",
+  "bundesland": "Kärnten",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Stromher",
+  "bundesland": "Wien",
+  "plz": "1050",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Untersberger",
+  "bundesland": "Oberösterreich",
+  "plz": "5310",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG Wien (Bürgerenergiegemeinschaft Wien)",
+  "bundesland": "Wien",
+  "plz": "1010",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BEG-TIROL eGen",
+  "bundesland": "Tirol",
+  "plz": "6653",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BSCH Energiegemeinschaft",
+  "bundesland": "Salzburg",
+  "plz": "5411",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürger Energie Gemeinschaft - Austria",
+  "bundesland": "Oberösterreich",
+  "plz": "4974",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürger-Energie-Gemeinschaft Sonnenkraft",
+  "bundesland": "Steiermark",
+  "plz": "8144",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürger-Energie-Gemeinschaft Vogl",
+  "bundesland": "Steiermark",
+  "plz": "8582",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürger-Energie-Gemeinschaft-NOBIS",
+  "bundesland": "Burgenland",
+  "plz": "7453",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürger-Energiegmeinschaft-Liebe Sonne Baumkirchen",
+  "bundesland": "Tirol",
+  "plz": "6121",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergie Gemeinschaft Traun-Ager-Alm",
+  "bundesland": "Oberösterreich",
+  "plz": "4652",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft (BEG) Family and Friends",
+  "bundesland": "Oberösterreich",
+  "plz": "4101",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft AEEV",
+  "bundesland": "Vorarlberg",
+  "plz": "6861",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Baden bei Wien",
+  "bundesland": "Niederösterreich",
+  "plz": "2500",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft der Marktgemeinde Prellenkirchen",
+  "bundesland": "Niederösterreich",
+  "plz": "2472",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft dunstus sun sharing",
+  "bundesland": "Steiermark",
+  "plz": "8190",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Faistenau-Wien",
+  "bundesland": "Salzburg",
+  "plz": "5324",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Gemeinde Scharndorf",
+  "bundesland": "Niederösterreich",
+  "plz": "2403",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Gr. Radischen",
+  "bundesland": "Niederösterreich",
+  "plz": "3862",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft gsibergerstrom",
+  "bundesland": "Vorarlberg",
+  "plz": "6866",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Helios",
+  "bundesland": "Kärnten",
+  "plz": "9560",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft in Salzburg",
+  "bundesland": "Salzburg",
+  "plz": "5441",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Karnburg",
+  "bundesland": "Kärnten",
+  "plz": "9063",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Lickl",
+  "bundesland": "Steiermark",
+  "plz": "8561",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Mödling",
+  "bundesland": "Niederösterreich",
+  "plz": "2340",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Netzwerk Zukunft",
+  "bundesland": "Oberösterreich",
+  "plz": "4655",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft ÖSTERREICH",
+  "bundesland": "Niederösterreich",
+  "plz": "3430",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft PAN-PV",
+  "bundesland": "Niederösterreich",
+  "plz": "3511",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Region Amstetten eGen",
+  "bundesland": "Niederösterreich",
+  "plz": "3362",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Sieghartskirchen",
+  "bundesland": "Niederösterreich",
+  "plz": "3443",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft SiSi Strom",
+  "bundesland": "Wien",
+  "plz": "1040",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Sollenau",
+  "bundesland": "Niederösterreich",
+  "plz": "2601",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft St. Andrä - Blaiken",
+  "bundesland": "Kärnten",
+  "plz": "9433",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft St. Margarethen an der Sierning",
+  "bundesland": "Niederösterreich",
+  "plz": "3231",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Steiermark Business",
+  "bundesland": "Steiermark",
+  "plz": "8073",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Steiermark PLUS",
+  "bundesland": "Steiermark",
+  "plz": "8073",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft SusiStrom BEG",
+  "bundesland": "Oberösterreich",
+  "plz": "4844",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Tarifpirat",
+  "bundesland": "Steiermark",
+  "plz": "8504",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Waselmayr",
+  "bundesland": "Oberösterreich",
+  "plz": "4632",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Watt4tler",
+  "bundesland": "Niederösterreich",
+  "plz": "3862",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschaft Wilczacki",
+  "bundesland": "Niederösterreich",
+  "plz": "3353",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegemeinschat mitSpannung",
+  "bundesland": "Oberösterreich",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegenossenschaft Energieinitiative Steiermark eGen",
+  "bundesland": "Steiermark",
+  "plz": "8074",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergiegenossenschaft im Burgenland eGen",
+  "bundesland": "Burgenland",
+  "plz": "7000",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Bürgerenergienetzwerk - BEN",
+  "bundesland": "Steiermark",
+  "plz": "8010",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "BürgerInnen-Energie-Gemeinschaft OurPower",
+  "bundesland": "Wien",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "CampusEnergie",
+  "bundesland": "Niederösterreich",
+  "plz": "3300",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Conversium BEG",
+  "bundesland": "Kärnten",
+  "plz": "9800",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "dieBEG",
+  "bundesland": "Tirol",
+  "plz": "6433",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "E3C",
+  "bundesland": "Steiermark",
+  "plz": "8350",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "EEG-NEUBAUERHOF",
+  "bundesland": "Kärnten",
+  "plz": "9524",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "EiK Energie in Kärnten Kraftwerke GesmbH",
+  "bundesland": "Kärnten",
+  "plz": "9433",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "emmicom austria Bürgerenergiegemeinschaft",
+  "bundesland": "Niederösterreich",
+  "plz": "3340",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "emmicom dahoam",
+  "bundesland": "Niederösterreich",
+  "plz": "3340",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "emmicom dahoam - Bürgerenergiegemeinschaft",
+  "bundesland": "Niederösterreich",
+  "plz": "3340",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energie-Gemeinschaft SpaceLeon",
+  "bundesland": "Steiermark",
+  "plz": "8010",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft Alpenland",
+  "bundesland": "Kärnten",
+  "plz": "9065",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft Austria",
+  "bundesland": "Niederösterreich",
+  "plz": "3324",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft für OÖ eGen",
+  "bundesland": "Oberösterreich",
+  "plz": "4020",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft Leopoldsdorf",
+  "bundesland": "Niederösterreich",
+  "plz": "2333",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft Mostviertel",
+  "bundesland": "Niederösterreich",
+  "plz": "3300",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft Siebenhaus",
+  "bundesland": "Niederösterreich",
+  "plz": "2544",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft Sophiensiedlung",
+  "bundesland": "Salzburg",
+  "plz": "5121",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiegemeinschaft Südsteiermark",
+  "bundesland": "Steiermark",
+  "plz": "8451",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energienetz Pfaffstätten",
+  "bundesland": "Niederösterreich",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energieverein Kärnten",
+  "bundesland": "Kärnten",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energiewende Ansfelden",
+  "bundesland": "Oberösterreich",
+  "plz": "4052",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energy Farmers",
+  "bundesland": "Kärnten",
+  "plz": "9020",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Energy3000 Trading eGen",
+  "bundesland": "Burgenland",
+  "plz": "7052",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "EPE Bürgerenergiegemeinschaft für erneuerbaren Strom",
+  "bundesland": "Oberösterreich",
+  "plz": "4060",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Erneuerbare Energiegemeinschaft Stiefsohn-Energie",
+  "bundesland": "Oberösterreich",
+  "plz": "4113",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Erneuerbare Energiegemeinschaft Tattendorf eGen",
+  "bundesland": "Niederösterreich",
+  "plz": "2523",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Erneuerbare-Energie-Gemeinschaft Wienergy",
+  "bundesland": "Wien",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Erneuerbare-Energiegemeinschaften Wintersberg",
+  "bundesland": "Oberösterreich",
+  "plz": "4707",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Erste Energiegemeinschaft Völs",
+  "bundesland": "Tirol",
+  "plz": "6176",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "etaurus - gemeinsam weniger für Strom zahlen",
+  "bundesland": "Salzburg",
+  "plz": "5101",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Evangelische Energiegemeinschaft Bad Vöslau EEBV",
+  "bundesland": "Niederösterreich",
+  "plz": "2540",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Fronius Energiegemeinschaft",
+  "bundesland": "Oberösterreich",
+  "plz": "4643",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Gemeinschaftsstrom für Österreich",
+  "bundesland": "Niederösterreich",
+  "plz": "2522",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Gemeinwohlenergie Innsbruck",
+  "bundesland": "Tirol",
+  "plz": "6020",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Green Deal Bürgerenergie eG",
+  "bundesland": "Oberösterreich",
+  "plz": "4490",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Grüne Sonne Bürgerenergiegemeinschaft",
+  "bundesland": "Niederösterreich",
+  "plz": "3931",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "GuSt - Guter Strom Energienetzwerk Oberes Pramtal BEG",
+  "bundesland": "Oberösterreich",
+  "plz": "4753",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Hill - Strom Bürger EG",
+  "bundesland": "Niederösterreich",
+  "plz": "2410",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Hoamat Werk BEG",
+  "bundesland": "Kärnten",
+  "plz": "9560",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Impuls 2.0 eGen",
+  "bundesland": "Niederösterreich",
+  "plz": "3100",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Katzlberger-EnergieGemeinschaft",
+  "bundesland": "Oberösterreich",
+  "plz": "4931",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Landstrom",
+  "bundesland": "Oberösterreich",
+  "plz": "4560",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "LK Energie eGen",
+  "bundesland": "Niederösterreich",
+  "plz": "3100",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "LOTUS Energy BEG",
+  "bundesland": "Oberösterreich",
+  "plz": "4541",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "LPV Energiemanagement GmbH",
+  "bundesland": "Salzburg",
+  "plz": "5020",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Maxx Energiegemeinschaft",
+  "bundesland": "Niederösterreich",
+  "plz": "3123",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Mayer Strom BEG",
+  "bundesland": "Oberösterreich",
+  "plz": "4251",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "MeinStrom Österreich",
+  "bundesland": null,
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Neuner Gebäude- und Energietechnik e.U.",
+  "bundesland": "Tirol",
+  "plz": "6283",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "OeStrom e.Gen.",
+  "bundesland": "Wien",
+  "plz": "1120",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "peter.at Bürgerenergiegemeinschaft",
+  "bundesland": "Niederösterreich",
+  "plz": "2380",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Power4Business",
+  "bundesland": "Niederösterreich",
+  "plz": "3500",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Raiffeisen Montfort Bürgerenergiegemeinschaft eGen",
+  "bundesland": "Vorarlberg",
+  "plz": "6800",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Reicher &amp; Komarova Bürgerenergiegemeinschaft",
+  "bundesland": "Steiermark",
+  "plz": "8761",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Schonautark",
+  "bundesland": "Steiermark",
+  "plz": "8720",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Schwechater Energiegemeinschaft (SWEG)",
+  "bundesland": "Niederösterreich",
+  "plz": "2320",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Smart Energy Alliance",
+  "bundesland": "Niederösterreich",
+  "plz": "3131",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "SmartEnergyCooperation - kurz: SECOO BEG",
+  "bundesland": "Kärnten",
+  "plz": "9212",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Solarkraft Pichling",
+  "bundesland": "Oberösterreich",
+  "plz": "4030",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Steigengraben Bürger:Innen-Energiegemeinschaft",
+  "bundesland": "Niederösterreich",
+  "plz": "3161",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "sun.e-strom Bürgerenergiegemeinschaft",
+  "bundesland": "Tirol",
+  "plz": "9991",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "The Club of Strom",
+  "bundesland": "Niederösterreich",
+  "plz": "2721",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "THIEM ENERGY BEG",
+  "bundesland": "Burgenland",
+  "plz": "7210",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "unsersolarstrom",
+  "bundesland": "Burgenland",
+  "plz": "7000",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Verein - Energiegemeinschaft STROBL",
+  "bundesland": "Oberösterreich",
+  "plz": "4030",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Wattrix eGen.",
+  "bundesland": "Niederösterreich",
+  "plz": "2231",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "Wenger Buchner",
+  "bundesland": "Salzburg",
+  "plz": "5440",
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ },
+ {
+  "name": "WiEnergy Bürgerenergiegemeinschaft",
+  "bundesland": "Wien",
+  "plz": null,
+  "typ": "beg",
+  "quelle": "https://energiegemeinschaften.gv.at/landkarte/",
+  "stand": "2026-08-03"
+ }
+]

@@ -44,9 +44,9 @@ from energietools.capabilities.netz.per_kwh import (
 from energietools.capabilities.netz.per_kwh_capability import GridFeesCapability
 from energietools.capabilities.netz.resolve import (
     ist_verfuegbar,
-    netzkosten_brutto_eur,
     netzbetreiber_fuer_gemeinde,
     netzbetreiber_kandidaten,
+    netzkosten_brutto_eur,
     plz_info,
     resolve_netzbetreiber,
 )

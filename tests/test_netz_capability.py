@@ -232,3 +232,87 @@ def test_resolver_verhalten_unveraendert() -> None:
     assert resolve_netzbetreiber("6020") is None
     assert resolve_netzbetreiber("1010").key == "wiener_netze"
     assert resolve_netzbetreiber("4030").key == "linz_netz"
+
+
+# --- Geteilte PLZ: netzkosten aufloesbar machen (ergaenzt 2026-08-03) -------
+#
+# Bis hierher war netzbetreiber_kandidaten/-fuer_gemeinde gebaut, aber von keiner
+# Capability genutzt: `netzkosten` loeste ausschliesslich ueber die PLZ auf und
+# lieferte bei einer geteilten PLZ leere `komponenten`. Aufrufer, die daraus einen
+# arbeitsabhaengigen Anteil brauchen (pv_potenzial, speicher_dimensionierung im
+# Gateway), brachen deshalb an 75 der 2233 AT-PLZ komplett ab — darunter 1140,
+# 1190, 1210 und 1230. Die beiden Wege hier loesen das, ohne den PLZ-Pfad oder das
+# fail-open anzutasten.
+
+
+def _netzkosten(**kwargs: object) -> dict:
+    from energietools.capabilities.netz import NetzkostenCapability
+
+    res = NetzkostenCapability().run(**kwargs)
+    assert res.ok, res.error
+    return res.data
+
+
+def test_netzkosten_geteilte_plz_bleibt_fail_open() -> None:
+    """Ohne Zusatzangabe bleibt eine geteilte PLZ fail-open — unveraendert."""
+    data = _netzkosten(plz="1140", verbrauch_kwh=3500.0)
+    assert data["netzbetreiber"] is None
+    assert data["rechenweg"]["komponenten"] == {}
+
+
+def test_netzkosten_mit_nb_key_loest_geteilte_plz_auf() -> None:
+    """Der vorgeloeste VNB-Key (Gateway: aus der Zaehlpunkt-VKZ) gewinnt.
+
+    Das ist der deterministische Weg: wer den Zaehlpunkt hat, muss nicht raten
+    und nicht rueckfragen.
+    """
+    data = _netzkosten(plz="1140", verbrauch_kwh=3500.0, nb_key="wiener_netze")
+    assert data["netzbetreiber"] == "Wiener Netze GmbH"
+    komponenten = data["rechenweg"]["komponenten"]
+    assert komponenten["arbeitspreis_summe_ct_kwh"] > 0
+
+    # Gegenprobe: der ANDERE Betreiber derselben PLZ rechnet auch, mit anderem Wert.
+    noe = _netzkosten(plz="1140", verbrauch_kwh=3500.0, nb_key="netz_noe")
+    assert noe["netzbetreiber"] == "Netz Niederösterreich GmbH"
+    assert noe["netzkosten_eur_jahr_brutto"] != data["netzkosten_eur_jahr_brutto"]
+
+
+def test_netzkosten_mit_gemeinde_loest_geteilte_plz_auf() -> None:
+    """Der Rueckfrage-Weg: der Nutzer nennt seine Gemeinde."""
+    data = _netzkosten(plz="4020", verbrauch_kwh=3500.0, gemeinde="Linz")
+    assert data["netzbetreiber"] == "LINZ NETZ GmbH"
+    assert data["rechenweg"]["komponenten"]["arbeitspreis_summe_ct_kwh"] > 0
+
+    leonding = _netzkosten(plz="4020", verbrauch_kwh=3500.0, gemeinde="Leonding")
+    assert leonding["netzbetreiber"] == "Netz Oberösterreich GmbH"
+
+
+def test_netzkosten_unbekannter_nb_key_faellt_auf_die_plz_zurueck() -> None:
+    """Ein Key, den es nicht gibt, darf nichts erfinden und nichts kaputtmachen."""
+    data = _netzkosten(plz="1010", verbrauch_kwh=3500.0, nb_key="gibt_es_nicht")
+    assert data["netzbetreiber"] == "Wiener Netze GmbH"
+
+
+def test_netzkosten_falsche_gemeinde_bleibt_fail_open() -> None:
+    """Eine Gemeinde, die nicht zur PLZ gehoert, darf keine Rechnung erzeugen."""
+    data = _netzkosten(plz="1140", verbrauch_kwh=3500.0, gemeinde="Linz")
+    assert data["netzbetreiber"] is None
+    assert data["rechenweg"]["komponenten"] == {}
+
+
+def test_netzkosten_geteilte_plz_nennt_die_kandidaten() -> None:
+    """Fail-open ohne Hinweis ist eine Sackgasse: der Aufrufer muss fragen koennen."""
+    data = _netzkosten(plz="1140", verbrauch_kwh=3500.0)
+    kandidaten = data["kandidaten"]
+    assert {k["nb_key"] for k in kandidaten} == {"wiener_netze", "netz_noe"}
+    nach_key = {k["nb_key"]: k for k in kandidaten}
+    assert nach_key["wiener_netze"]["gemeinden"] == ["Wien"]
+    assert "Klosterneuburg" in nach_key["netz_noe"]["gemeinden"]
+
+
+def test_netzkosten_eindeutige_plz_unveraendert() -> None:
+    """Der bestehende PLZ-Pfad rechnet exakt wie vorher."""
+    data = _netzkosten(plz="1010", verbrauch_kwh=3500.0)
+    assert data["netzbetreiber"] == "Wiener Netze GmbH"
+    assert data["rechenweg"]["komponenten"]["arbeitspreis_summe_ct_kwh"] == 8.4
+    assert data["kandidaten"] == []

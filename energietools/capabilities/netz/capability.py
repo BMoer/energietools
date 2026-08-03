@@ -19,9 +19,13 @@ from typing import Any
 
 from energietools.capabilities.base import Capability, CapabilityError
 from energietools.capabilities.netz.data import load_abgaben
+from energietools.capabilities.netz.models import NetzkostenEntry
 from energietools.capabilities.netz.resolve import (
+    entry_fuer_key,
     ist_verfuegbar,
-    netzkosten_brutto_eur,
+    netzbetreiber_fuer_gemeinde,
+    netzbetreiber_kandidaten,
+    netzkosten_brutto_fuer,
     plz_info,
     resolve_netzbetreiber,
     tarif_fuer,
@@ -35,6 +39,29 @@ def _require_plz(kwargs: dict[str, Any]) -> str:
     if not plz:
         raise CapabilityError("plz ist erforderlich")
     return plz
+
+
+def _vnb_aufloesen(
+    plz: str, nb_key: str | None, gemeinde: str | None
+) -> NetzkostenEntry | None:
+    """Der VNB für eine PLZ, mit Vorrang für die eindeutigeren Angaben.
+
+    1. ``nb_key`` — vom Aufrufer schon aufgelöst (im Gateway: deterministisch aus
+       der Zählpunkt-VKZ). Ist der Key hier unbekannt, kennt der Aufrufer einen
+       VNB, den energietools noch nicht modelliert; dann wird auf die PLZ
+       zurückgefallen statt hart zu scheitern.
+    2. ``gemeinde`` — die Antwort auf eine Rückfrage bei geteilter PLZ. Passt sie
+       nicht zur PLZ, wird **nicht** auf die PLZ zurückgefallen: eine verworfene
+       Nutzerantwort würde eine andere Frage beantworten als die gestellte.
+    3. sonst die PLZ (fail-open bei geteilter PLZ → ``None``).
+    """
+    if nb_key:
+        nb = entry_fuer_key(nb_key)
+        if nb is not None:
+            return nb
+    if gemeinde:
+        return netzbetreiber_fuer_gemeinde(plz, gemeinde)
+    return resolve_netzbetreiber(plz)
 
 
 def _require_positive(kwargs: dict[str, Any], feld: str) -> float:
@@ -58,6 +85,20 @@ class NetzkostenCapability(Capability):
         "properties": {
             "plz": {"type": "string", "description": "Postleitzahl, z.B. '1010'"},
             "verbrauch_kwh": {"type": "number", "description": "Jahresverbrauch in kWh"},
+            "nb_key": {
+                "type": "string",
+                "description": (
+                    "Vorgelöster VNB-Key (z.B. deterministisch aus der Zählpunkt-VKZ). "
+                    "Hat Vorrang vor der PLZ und löst geteilte PLZ auf."
+                ),
+            },
+            "gemeinde": {
+                "type": "string",
+                "description": (
+                    "Gemeinde des Anschlusses. Löst eine geteilte PLZ auf, wenn kein "
+                    "nb_key vorliegt — siehe 'kandidaten' im Ergebnis."
+                ),
+            },
         },
         "required": ["plz", "verbrauch_kwh"],
     }
@@ -65,22 +106,30 @@ class NetzkostenCapability(Capability):
     def _run(self, **kwargs: Any) -> dict[str, Any]:
         plz = _require_plz(kwargs)
         verbrauch = _require_positive(kwargs, "verbrauch_kwh")
+        nb_key = str(kwargs.get("nb_key") or "").strip() or None
+        gemeinde = str(kwargs.get("gemeinde") or "").strip() or None
 
-        nb = resolve_netzbetreiber(plz)
+        nb = _vnb_aufloesen(plz, nb_key, gemeinde)
         tarif = tarif_fuer(nb) if nb is not None else None
         if nb is None or tarif is None:
             # Fail-open: kein eindeutiger VNB/Tarif → keine Netzkosten erfunden.
+            # ``kandidaten`` macht die Mehrdeutigkeit auflösbar, statt den Aufrufer
+            # in einer Sackgasse stehen zu lassen (eine Rückfrage genügt).
             return {
                 "netzbetreiber": None,
                 "netzkosten_eur_jahr_brutto": 0.0,
                 "rechenweg": {"komponenten": {}},
+                "kandidaten": [
+                    {"nb_key": k.key, "name": k.name, "gemeinden": list(gemeinden)}
+                    for k, gemeinden in netzbetreiber_kandidaten(plz)
+                ],
                 "gueltig_ab": "",
                 "quelle": "",
             }
 
         abgaben = load_abgaben()
         # Realer Name (nb.name), Tarif aus dem effektiven Netzbereich (tarif.*).
-        brutto, name = netzkosten_brutto_eur(plz, verbrauch)
+        brutto, name = netzkosten_brutto_fuer(nb, verbrauch)
         arbeitspreis_ct = (
             tarif.netznutzung_arbeitspreis_ct_kwh
             + tarif.netzverlust_ct_kwh
@@ -112,6 +161,7 @@ class NetzkostenCapability(Capability):
                     "brutto_eur_jahr": brutto,
                 },
             },
+            "kandidaten": [],
             "gueltig_ab": tarif.gueltig_ab,
             "quelle": tarif.quelle,
         }

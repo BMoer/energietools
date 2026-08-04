@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-07-30.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-04.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -14,34 +14,56 @@
   Library für Suche und KI-Antworten, verlinkt Gridbert. Steht vor dem bestehenden
   deutschen Text, der unverändert blieb.
 
-- **PyPI-Release 0.7.4** (2026-07-30, erster Release überhaupt):
-  `pip install energietools` funktioniert. Verifiziert durch Installation aus einem
-  frischen venv **von PyPI** (nicht aus `dist/`) plus Ausführen des
-  README-Beispiels daraus. Die Projektseite trägt README, Lizenz und alle vier
-  Links (Homepage, Repository, Issues, Methodology).
+- **PyPI-Release 0.8.2** (Stand 2026-08-04, verifiziert per `pypi.org/pypi/energietools/json`
+  gegen `pyproject.toml` — beide 0.8.2). Vier Releases seit dem 0.7.4-Ersteintrag
+  (30.07.), alle manuell hochgeladen: **0.7.5** (31.07., Anomalie-Schwelle Lastgang
+  + geteilte PLZ sichtbar), **0.8.0** (01.08., Förderungen/Beratung/
+  Energiegemeinschaften/Marktdaten), **0.8.1** (03.08., EEG-Verzeichnis 0 → 136
+  Einträge), **0.8.2** (03.08., `NetzkostenCapability` löst geteilte PLZ über
+  `nb_key`/Gemeinde auf). Kein PyPI-Eintrag ist eigenständig auf Aktualität geprüft
+  worden — nur der Versions-Gleichstand.
 
 ## prod ≠ live
 
-- (nichts offen)
+- (nichts offen — PyPI 0.8.2 ≡ `pyproject.toml` 0.8.2)
 - Randnotiz: Es gibt **keine CI** (`.github/` fehlt) — Release, Tests und
   Daten-Refresh laufen ausserhalb dieses Repos. Der nächste Release ist wieder
   manuell: `python3 -m build && python3 -m twine upload dist/*`.
+
+## Aus dem globalen Check-in (2026-08-04)
+
+- Am 10.08. führt Ben bei e7 (10:00, Energieberatung) und bei TE Consulting (14:00) die Berater-Funktionen von Gridbert vor. Jede dort gezeigte €-Zahl kommt aus dieser Library → bis zum 10.08. keine riskanten Änderungen an Rechenpfaden pushen; 0.8.2 ist der Stand, den Gridbert gepinnt hat. [Quelle: Kalender 10.08., gridbert/pyproject.toml Z.43]
+- Der goldgas-Tarifalarm (FEHLER 2 am 04.08.) ist energietools-seitig geprüft und unauffällig: Katalogeintrag valide, die `\bgas\b`-Wortgrenze in `capabilities/tariffs/catalog.py` schützt „goldgas" testabgesichert vor Fehlklassifikation → die Ursache liegt im Gridbert-Scrape, nicht hier. [Quelle: Check-in energietools 04.08.]
 
 ## Offene Punkte (nächste Session)
 
 - [ ] **Restliche SEO/GEO-Punkte umsetzen.** Erledigt ist nur Punkt 1 des Plans
       („GitHub energietools"). Die Punkte 2 ff. liegen bei Ben und wurden in dieser
       Session nicht genannt.
-- [ ] **PyPI-Release automatisieren?** 0.7.4 ging manuell raus. Solange es keine CI
-      gibt, muss jeder weitere Release von Hand gebaut und hochgeladen werden — und
-      `version` in `pyproject.toml` ist die einzige Stelle, die dabei zu pflegen ist
+- [ ] **PyPI-Release automatisieren?** Vier weitere Releases (0.7.5–0.8.2) sind
+      seit 0.7.4 ebenfalls von Hand raus. Solange es keine CI gibt, muss jeder
+      weitere Release von Hand gebaut und hochgeladen werden — und `version` in
+      `pyproject.toml` ist die einzige Stelle, die dabei zu pflegen ist
       (`__version__` liest sie seit 0.7.3 aus den Paket-Metadaten).
-- [ ] **Zwei Worktrees offen** — nicht angefasst, gehören anderen Arbeitssträngen:
-      `~/.claude/jobs/e7963402/tmp/et-v061` (`fix/v061-load-trend-meta`) und
-      `~/Projekte/energietools-sim-fixes` (`sim-fixes`).
+- [ ] **Zwei Worktrees offen** — Stand 04.08. weiterhin vorhanden (per
+      `git worktree list` geprüft), nicht angefasst, gehören anderen
+      Arbeitssträngen: `~/.claude/jobs/e7963402/tmp/et-v061`
+      (`fix/v061-load-trend-meta`) und `~/Projekte/energietools-sim-fixes`
+      (`sim-fixes`).
 
 ## Session-Log (letzte 3)
 
+- **2026-08-04** — Morgen-Check-in (kein Code, nur Messung + Doku-Korrektur):
+  PyPI ≡ Repo bei 0.8.2 bestätigt (`curl pypi.org/pypi/energietools/json`),
+  707 Tests grün (`pytest -q`), keine unveröffentlichten Commits. HANDOVER war
+  vier Releases veraltet (stand noch auf 0.7.4/30.07.) — auf 0.8.2 nachgezogen.
+  Tarif-Alarm „goldgas FEHLER 2" aus dem Gridbert-Check-in gegengeprüft: Katalog
+  hat einen validen goldgas-Eintrag (Stand 03.08.), die Gas/Strom-Abgrenzung
+  (`\bgas\b`-Wortgrenze) schützt „goldgas" explizit vor Fehlklassifikation —
+  kein energietools-seitiger Defekt erkennbar, sieht nach reinem
+  Gridbert-Scrape-Thema aus. Gridbert pinnt energietools bereits auf `@v0.8.2`
+  (`gridbert/pyproject.toml` Zeile 43) — die zwei GH-Actions-Fehlschläge vom
+  03.08. haben keinen Bezug zu einer veralteten Dependency-Version.
 - **2026-07-30** — **PyPI-Release 0.7.4**, der erste überhaupt. Vorher drei Defekte
   behoben, die den Release beschädigt hätten: nicht lauffähiges README-Beispiel
   (importierte die vor der Umbenennung gültige `compare_against_catalog`),

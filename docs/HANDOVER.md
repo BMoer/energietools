@@ -58,26 +58,34 @@
 
 ## Session-Log (letzte 3)
 
-- **2026-08-05** — Morgen-Check-in (kein Code-Push, nur Messung + Doku): PyPI ≡
-  Repo bei 0.8.2 bestätigt, 707 Tests grün (`pytest -q`), keine unveröffentlichten
-  Commits. Zwei Tarif-Alarme aus dem Gridbert-Kontext gegengeprüft:
-  **energie_graz FEHLER 1** (05.08.) — Katalog hat 2 valide energie_graz-Einträge
-  (Graz StromFlex, Graz StromKlassik), `data/tariffs/MANIFEST.json` (Stand 04.08.
-  05:57 UTC) zeigt `provider_coverage 60/60 ok`, keine Gas-Fehlklassifikation
-  möglich (Schutzregex prüft nur den Tarifnamen) → kein energietools-seitiger
-  Defekt erkennbar, sieht wie goldgas gestern nach reinem Gridbert-Scrape-Thema
-  aus, das nach dem letzten Katalog-Pull hier aufgetreten ist. **Quellen-Wächter**
-  (72/72 erreichbar, 72 geändert/neu, 04.08.) — `data/tariffs` und `data/netz`
-  MANIFEST beide auf Stand 04.08. 05:57 UTC; kein Fehlerzustand, aber der nächste
-  Gridbert-Datenpull ist hier noch nicht angekommen, reine Beobachtung, nichts zu
-  tun (Daten kommen von außen, "nicht hier raten"). **Regulatorik ElWG §139/142**
-  (Flexibilitätsbeschaffung MS+, Konsultation bis 31.08., Phase 1 ab 2028) geprüft:
-  aktuell keine inhaltliche Berührung — `grid_fees` deckt nur NE7 (Haushalt/
-  Niederspannung), NE3-NE6 (Mittelspannung) ist laut TODO.md bewusst nicht befüllt;
-  thematisch angrenzend an dieses bestehende TODO, aber keine Handlung nötig, Phase
-  1 erst 2028. **ruff-Lint** erstmals gemessen (164 Fehler, s. offene Punkte) —
-  neuer Fund, nicht behoben. Zwei Worktrees per `git worktree list` erneut
-  bestätigt, unverändert seit 04.08.
+- **2026-08-05** — Morgen-Check-in (nur Doku-Commit + `git pull --rebase`, kein
+  Rechenlogik-Push): PyPI ≡ Repo bei 0.8.2 bestätigt, 707 Tests grün (`pytest -q`,
+  auch nach dem Datenrefresh unten), keine unveröffentlichten Commits vor dem
+  Pull. Während der Session landete der externe `chore(data)`-Refresh vom 05.08.
+  (`1ab3227`, 05:54 UTC) auf `main` — damit direkt gegen den frischesten Stand
+  geprüft, nicht nur gegen den 04.08.-Snapshot:
+  **energie_graz FEHLER 1** — im 05.08.-Katalog weiterhin 2 valide Einträge
+  (Graz StromFlex, Graz StromKlassik, unverändert), `provider_coverage` 59/59 ok,
+  keine Gas-Fehlklassifikation möglich (Schutzregex prüft nur den Tarifnamen) →
+  kein energietools-seitiger Defekt, und die Alarm-Ursache hat die heutige
+  Katalog-Auslieferung hier nicht sichtbar beschädigt.
+  **goldgas FEHLER 2 (Folge-Check)** — der goldgas-Eintrag ist im 05.08.-Refresh
+  komplett aus dem Katalog verschwunden (Provider-Zahl 60→59, Tarifzahl 119→118,
+  `failed: []` bleibt leer statt den Ausfall zu listen) → der Scraper droppt einen
+  dauerhaft fehlschlagenden Anbieter offenbar still statt ihn zu melden; auch das
+  ist Gridbert-seitiges Verhalten, keine energietools-Logik.
+  **Quellen-Wächter** (72/72 erreichbar, 72 geändert/neu, 04.08.) — mit dem
+  05.08.-Refresh eingetroffen (s. oben, `energiegemeinschaften/verzeichnis.json`
+  ebenfalls aktualisiert); keine strukturellen Änderungen an Netzebenen/Tarif-Feldern,
+  nur Werte. Nichts zu tun.
+  **Regulatorik ElWG §139/142** (Flexibilitätsbeschaffung MS+, Konsultation bis
+  31.08., Phase 1 ab 2028) geprüft: aktuell keine inhaltliche Berührung —
+  `grid_fees` deckt nur NE7 (Haushalt/Niederspannung), NE3-NE6 (Mittelspannung)
+  ist laut TODO.md bewusst nicht befüllt; thematisch angrenzend an dieses
+  bestehende TODO, aber keine Handlung nötig, Phase 1 erst 2028.
+  **ruff-Lint** erstmals gemessen (164 Fehler, s. offene Punkte) — neuer Fund,
+  nicht behoben. Zwei Worktrees per `git worktree list` erneut bestätigt,
+  unverändert seit 04.08.
 - **2026-08-04** — Morgen-Check-in (kein Code, nur Messung + Doku-Korrektur):
   PyPI ≡ Repo bei 0.8.2 bestätigt (`curl pypi.org/pypi/energietools/json`),
   707 Tests grün (`pytest -q`), keine unveröffentlichten Commits. HANDOVER war

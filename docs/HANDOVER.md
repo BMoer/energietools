@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-04.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-05.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -37,6 +37,11 @@
 
 ## Offene Punkte (nächste Session)
 
+- [ ] **ruff-Lint aufräumen.** Erstmals 05.08. gemessen: 164 Fehler (120 × E501
+      Line-too-long, 18 × unsorted-imports, 10 × datetime.UTC-Alias, 4 ×
+      unused-import, 4 × unused-variable, Rest vereinzelt), 34 davon auto-fixbar
+      via `ruff check --fix`. Keine CI, die das fängt — bisher ungetrackt. Umfang
+      sprengt eine "kleine" Check-in-Fix; heute nicht angefasst.
 - [ ] **Restliche SEO/GEO-Punkte umsetzen.** Erledigt ist nur Punkt 1 des Plans
       („GitHub energietools"). Die Punkte 2 ff. liegen bei Ben und wurden in dieser
       Session nicht genannt.
@@ -53,6 +58,26 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-05** — Morgen-Check-in (kein Code-Push, nur Messung + Doku): PyPI ≡
+  Repo bei 0.8.2 bestätigt, 707 Tests grün (`pytest -q`), keine unveröffentlichten
+  Commits. Zwei Tarif-Alarme aus dem Gridbert-Kontext gegengeprüft:
+  **energie_graz FEHLER 1** (05.08.) — Katalog hat 2 valide energie_graz-Einträge
+  (Graz StromFlex, Graz StromKlassik), `data/tariffs/MANIFEST.json` (Stand 04.08.
+  05:57 UTC) zeigt `provider_coverage 60/60 ok`, keine Gas-Fehlklassifikation
+  möglich (Schutzregex prüft nur den Tarifnamen) → kein energietools-seitiger
+  Defekt erkennbar, sieht wie goldgas gestern nach reinem Gridbert-Scrape-Thema
+  aus, das nach dem letzten Katalog-Pull hier aufgetreten ist. **Quellen-Wächter**
+  (72/72 erreichbar, 72 geändert/neu, 04.08.) — `data/tariffs` und `data/netz`
+  MANIFEST beide auf Stand 04.08. 05:57 UTC; kein Fehlerzustand, aber der nächste
+  Gridbert-Datenpull ist hier noch nicht angekommen, reine Beobachtung, nichts zu
+  tun (Daten kommen von außen, "nicht hier raten"). **Regulatorik ElWG §139/142**
+  (Flexibilitätsbeschaffung MS+, Konsultation bis 31.08., Phase 1 ab 2028) geprüft:
+  aktuell keine inhaltliche Berührung — `grid_fees` deckt nur NE7 (Haushalt/
+  Niederspannung), NE3-NE6 (Mittelspannung) ist laut TODO.md bewusst nicht befüllt;
+  thematisch angrenzend an dieses bestehende TODO, aber keine Handlung nötig, Phase
+  1 erst 2028. **ruff-Lint** erstmals gemessen (164 Fehler, s. offene Punkte) —
+  neuer Fund, nicht behoben. Zwei Worktrees per `git worktree list` erneut
+  bestätigt, unverändert seit 04.08.
 - **2026-08-04** — Morgen-Check-in (kein Code, nur Messung + Doku-Korrektur):
   PyPI ≡ Repo bei 0.8.2 bestätigt (`curl pypi.org/pypi/energietools/json`),
   707 Tests grün (`pytest -q`), keine unveröffentlichten Commits. HANDOVER war

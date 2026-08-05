@@ -30,10 +30,10 @@
   Daten-Refresh laufen ausserhalb dieses Repos. Der nächste Release ist wieder
   manuell: `python3 -m build && python3 -m twine upload dist/*`.
 
-## Aus dem globalen Check-in (2026-08-04)
+## Aus dem globalen Check-in (2026-08-05)
 
-- Am 10.08. führt Ben bei e7 (10:00, Energieberatung) und bei TE Consulting (14:00) die Berater-Funktionen von Gridbert vor. Jede dort gezeigte €-Zahl kommt aus dieser Library → bis zum 10.08. keine riskanten Änderungen an Rechenpfaden pushen; 0.8.2 ist der Stand, den Gridbert gepinnt hat. [Quelle: Kalender 10.08., gridbert/pyproject.toml Z.43]
-- Der goldgas-Tarifalarm (FEHLER 2 am 04.08.) ist energietools-seitig geprüft und unauffällig: Katalogeintrag valide, die `\bgas\b`-Wortgrenze in `capabilities/tariffs/catalog.py` schützt „goldgas" testabgesichert vor Fehlklassifikation → die Ursache liegt im Gridbert-Scrape, nicht hier. [Quelle: Check-in energietools 04.08.]
+- Der goldgas-Fund (stiller Drop aus dem Katalog statt Fehlermarkierung, 60 → 59 Anbieter) ist als offener Punkt ins Gridbert-Handover übernommen — dort gehört die Alarm-Logik hin, nicht in diese Library. [Quelle: globaler Check-in 05.08.]
+- Die EbUtilities-Konsultation zur Flexibilitätsbeschaffung (§§139/142 ElWG, Phase 1 ab 2028, Mittelspannung und höher) berührt den aktuellen Scope der Library nicht; sie ist als Geschäfts-/Roadmap-Thema bei Gridbert vermerkt. Fristen: Webinar 18.08. 13:00-15:00, Stellungnahme bis 31.08. [Quelle: Aussendung Oesterreichs Energie 04.08.]
 
 ## Offene Punkte (nächste Session)
 

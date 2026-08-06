@@ -5,8 +5,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from energietools.tools.invoice_parser import (
     _extract_deterministic_from_text,
     _parse_austrian_number,

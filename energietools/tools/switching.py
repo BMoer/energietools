@@ -7,12 +7,12 @@ from __future__ import annotations
 
 import logging
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fpdf import FPDF
 
-from energietools.models import BEGCalculation, Invoice, Tariff
+from energietools.models import BEGCalculation, Invoice
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class _BrandedPDF(FPDF):
         self.set_y(-15)
         self.set_font("Helvetica", "", 7)
         self.set_text_color(100, 116, 139)
-        self.cell(0, 10, f"Erstellt am {datetime.now(tz=timezone.utc).strftime('%d.%m.%Y')} | Alle Preise brutto inkl. 20% MwSt.", align="C")
+        self.cell(0, 10, f"Erstellt am {datetime.now(tz=UTC).strftime('%d.%m.%Y')} | Alle Preise brutto inkl. 20% MwSt.", align="C")
 
 
 def _add_section(pdf: _BrandedPDF, title: str) -> None:
@@ -208,7 +208,7 @@ def generate_switching_pdf(
     pdf.ln(6)
 
     # Digitale Bestätigung
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     _add_section(pdf, "Digitale Bestätigung")
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(30, 41, 59)

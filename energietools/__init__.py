@@ -3,7 +3,8 @@
 
 # Single Source of Truth ist die Version in pyproject.toml — hier nur gelesen,
 # nicht gepflegt (sonst driftet sie, wie 0.1.0 vs. 0.7.2 vor v0.7.3).
-from importlib.metadata import PackageNotFoundError, version as _version
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _version
 
 try:
     __version__ = _version("energietools")

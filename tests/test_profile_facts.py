@@ -16,7 +16,7 @@ Struktur:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -59,7 +59,7 @@ def test_parse_profil_fakten_kurzform_und_objektform() -> None:
     assert pv is not None
     assert pv.wert == 5.5
     assert pv.quelle == "rechnung"
-    assert pv.stand == datetime(2026, 7, 1, tzinfo=timezone.utc)
+    assert pv.stand == datetime(2026, 7, 1, tzinfo=UTC)
     assert pv.anker == "PV-Anlage 5,5 kWp lt. Rechnung"
 
 

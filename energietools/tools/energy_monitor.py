@@ -12,9 +12,9 @@ Three pillars:
 from __future__ import annotations
 
 import logging
-import defusedxml.ElementTree as ET
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 
+import defusedxml.ElementTree as ET
 import httpx
 
 from energietools.capabilities.foerderungen.data import load_foerderungen, load_manifest
@@ -151,7 +151,7 @@ def _fetch_energy_news() -> list[EnergyNewsItem]:
     relevant = [item for item in all_items if _is_energy_relevant(item.titel + " " + item.zusammenfassung)]
 
     # Nach Datum sortieren (neueste zuerst), maximal 10
-    relevant.sort(key=lambda x: x.datum or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+    relevant.sort(key=lambda x: x.datum or datetime.min.replace(tzinfo=UTC), reverse=True)
     return relevant[:10]
 
 
@@ -174,7 +174,7 @@ def _parse_rss_feed(url: str, source_name: str, kategorie: str) -> list[EnergyNe
         if pub_date_str:
             try:
                 datum = datetime.strptime(pub_date_str[:25], "%a, %d %b %Y %H:%M:%S").replace(
-                    tzinfo=timezone.utc
+                    tzinfo=UTC
                 )
             except ValueError:
                 pass

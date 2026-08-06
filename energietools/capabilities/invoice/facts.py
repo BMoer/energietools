@@ -618,7 +618,7 @@ def _pruefe_gates(facts: InvoiceFacts) -> list[dict[str, Any]]:
             "Es fehlt ein belegter Quellen-Anker für den Verbrauch. "
             + _anker_ursache(facts, ("verbrauch_kwh",))
             + " So sieht ein gültiger Anker aus: "
-            + f'{{"feld": "verbrauch_kwh", "zitat": "Jahresverbrauch '
+            + '{"feld": "verbrauch_kwh", "zitat": "Jahresverbrauch '
             + f'{_wert_deutsch(facts.verbrauch_kwh)} kWh"}}',
         ))
     werte = _numerische_feldwerte(facts)

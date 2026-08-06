@@ -10,7 +10,7 @@ import hashlib
 import logging
 import os
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlencode, urlparse
 
 import httpx
@@ -193,7 +193,7 @@ class SmartMeterClient:
         während der neue B2C ``messdaten`` Endpoint 404 gibt).
         """
         if bis is None:
-            bis = datetime.now(tz=timezone.utc)
+            bis = datetime.now(tz=UTC)
         if von is None:
             von = bis - timedelta(days=90)
 

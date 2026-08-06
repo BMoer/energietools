@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-05.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-06.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -37,11 +37,14 @@
 
 ## Offene Punkte (nächste Session)
 
-- [ ] **ruff-Lint aufräumen.** Erstmals 05.08. gemessen: 164 Fehler (120 × E501
-      Line-too-long, 18 × unsorted-imports, 10 × datetime.UTC-Alias, 4 ×
-      unused-import, 4 × unused-variable, Rest vereinzelt), 34 davon auto-fixbar
-      via `ruff check --fix`. Keine CI, die das fängt — bisher ungetrackt. Umfang
-      sprengt eine "kleine" Check-in-Fix; heute nicht angefasst.
+- [ ] **ruff-Lint aufräumen (Rest).** 06.08.: `ruff check --fix` auf `energietools/`
+      + `tests/` angewendet (bewusst ohne `apps/simba`/`web` — eigene Deploy-Ziele,
+      nicht Teil dieses Check-ins), 11 Regeln mechanisch behoben (Importreihenfolge,
+      `timezone.utc`→`UTC`-Alias, unused-import, f-string ohne Platzhalter), 707 Tests
+      vorher/nachher grün, Commit `39c4b31`, gepusht. In-Scope-Rest: 71 → 60 Fehler,
+      Repo-weit 164 → 153. Verbleibend überwiegend **E501 Line-too-long** (manuelles
+      Umbrechen, kein Auto-Fix) plus vereinzelt F841/UP042/E402 — braucht weiter eine
+      eigene Session, keine CI die das fängt.
 - [ ] **Restliche SEO/GEO-Punkte umsetzen.** Erledigt ist nur Punkt 1 des Plans
       („GitHub energietools"). Die Punkte 2 ff. liegen bei Ben und wurden in dieser
       Session nicht genannt.
@@ -58,6 +61,28 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-06** — Morgen-Check-in (Projektmodus, ohne Fan-out): externen
+  `chore(data)`-Refresh vom 06.08. gepullt (`5168f8c`, 05:58 UTC — noch nicht lokal,
+  per `git fetch` gefunden), PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün. Gegen
+  den heutigen Gridbert-Tarif-Alarm geprüft (energie_graz „veraltetes Preisblatt,
+  gültig ab 2024-06-12 statt erwartet 2026-01-28, nicht übernommen" + goldgas „keine
+  Tarif-Blöcke mehr", beide zweite Nacht in Folge):
+  **energie_graz** — Katalog führt weiterhin unverändert 2 valide Einträge (Graz
+  StromFlex, Graz StromKlassik); das Feld `gueltig_ab` ist im gesamten Katalog
+  (119/119 Einträgen) leer, die Preisblatt-Aktualität wird strukturell **nicht** in
+  diesem Katalog geführt — die Staleness-Prüfung läuft vollständig auf Gridbert-Seite,
+  hier nicht sichtbar/prüfbar. Kein energietools-seitiger Defekt.
+  **goldgas** — bestätigt weiterhin 0 Einträge im Katalog (war schon am 05.08. so),
+  Provider-Zahl konstant 59/59 `failed: []`. Tarifzahl 118→119 stammt von einem
+  neuen `energiedirect`-Tarif („Fix Fair 2027"), nicht von goldgas — der stille Drop
+  ist damit die **dritte** bestätigte Nacht in Folge derselben Ursache (Gridbert-seitig,
+  s. `gridbert-scraper-known-issues`). Kein energietools-seitiger Defekt.
+  **ruff-Lint** (Topf A, s. offene Punkte): Scope auf `energietools/`+`tests/`
+  eingegrenzt (`apps/simba`/`web` sind eigene Deploy-Ziele, nicht Teil dieses
+  Check-ins), 11 Regeln mechanisch mit `--fix` behoben, 707 Tests vor/nach grün,
+  Commit `39c4b31` gepusht. Netz-Daten (14 Netzbereiche, 2233 PLZ) und EEG-Verzeichnis
+  ebenfalls im 06.08.-Refresh aktualisiert, keine strukturellen Änderungen — relevant
+  für die Berater-Demo am 12.08., keine Handlung nötig.
 - **2026-08-05** — Morgen-Check-in (nur Doku-Commit + `git pull --rebase`, kein
   Rechenlogik-Push): PyPI ≡ Repo bei 0.8.2 bestätigt, 707 Tests grün (`pytest -q`,
   auch nach dem Datenrefresh unten), keine unveröffentlichten Commits vor dem

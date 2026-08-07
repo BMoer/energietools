@@ -1,6 +1,6 @@
 {
  "data_version": "2",
- "generated_at": "2026-08-06T05:58:19.008690+00:00",
+ "generated_at": "2026-08-07T05:02:06.901834+00:00",
  "market": "AT",
  "energy_type": "POWER",
  "profil": "NE7 Haushalt, ohne Leistungsmessung, Niederspannung",
@@ -8,7 +8,7 @@
   "ok": 14,
   "total_vnb_ca": 119
  },
- "attribution_vnb": 3,
+ "attribution_vnb": 4,
  "plz_count": 2233,
  "provenance": "Netzkosten je Netzbereich aus den offiziellen Netzbetreiber-Preisblättern (NE7-Haushalt), cross-validiert gegen die SNE-V 2018 – Novelle 2026 (BGBl. II Nr. 305/2025). Föderale Abgaben aus den jeweiligen Verordnungen. Erhebung/Extraktion proprietär; nur die Ergebnis-Daten sind hier publiziert.",
  "methodik": "siehe METHODIK.md",

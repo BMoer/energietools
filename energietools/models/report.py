@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel
 
@@ -13,7 +13,7 @@ from energietools.models.smart_meter import SmartMeterData
 from energietools.models.tariff import TariffComparison
 
 
-class ReportSection(str, Enum):
+class ReportSection(StrEnum):
     AKTUELLE_KOSTEN = "aktuelle_kosten"
     TARIFVERGLEICH = "tarifvergleich"
     BEG_VORTEIL = "beg_vorteil"

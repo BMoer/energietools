@@ -259,9 +259,11 @@ def _filter_foerderungen(
 def _check_price_alert() -> str:
     """Spot-Preis-Warnung prüfen (vereinfacht)."""
     try:
-        import os; ENTSOE_API_KEY = os.environ.get('ENTSOE_API_KEY', '')
+        import os
 
-        if not ENTSOE_API_KEY:
+        entsoe_api_key = os.environ.get("ENTSOE_API_KEY", "")
+
+        if not entsoe_api_key:
             return ""
 
         # Simplifiziert — in Zukunft: ENTSO-E day-ahead prices prüfen

@@ -28,7 +28,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
 
 from energietools.capabilities.base import CapabilityError
 from energietools.capabilities.lastgang.granularitaet import GRANULARITAET_SCHWELLE_MIN
@@ -56,7 +56,7 @@ _GRANULARITAET_FEHLER = (
 _LEERER_LASTGANG_FEHLER = "Leerer Lastgang — keine Signale ableitbar."
 
 
-class Signal(str, Enum):
+class Signal(StrEnum):
     """Dreiwertige Hypothese: bestätigt / verneint / unbekannt."""
 
     LIKELY = "likely"

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+import re
 from pathlib import Path
 
 import pdfplumber
@@ -213,8 +214,6 @@ def _annualize_invoice(raw: dict) -> dict:
 
 # --- Deterministic PDF table extraction (Option 3) ---------------------------
 
-import re as _re_module
-
 
 def _parse_austrian_number(s: str, expect_large: bool = False) -> float:
     """Parse Austrian number format: '1.234,56' or '1234,56' or '1234.56'.
@@ -273,15 +272,15 @@ _ADDRESS_STOP = (
 
 # PLZ + Ort, z.B. "8010 Graz" oder "1100 Wien". Der Ort beginnt mit einem
 # Großbuchstaben (inkl. Umlaute), um Firmenbuch-/FN-Nummern nicht zu matchen.
-_PLZ_ORT_RE = _re_module.compile(r"\b(\d{4})\s+([A-ZÄÖÜ][\wäöüß .\-]+)")
+_PLZ_ORT_RE = re.compile(r"\b(\d{4})\s+([A-ZÄÖÜ][\wäöüß .\-]+)")
 
 # Adressblock: Keyword, optionaler Doppelpunkt, dann bis zu 5 Zeilen Adresse.
-_ADDRESS_BLOCK_RE = _re_module.compile(
+_ADDRESS_BLOCK_RE = re.compile(
     r"(?:" + "|".join(_ADDRESS_KEYWORDS) + r")"
     r"\s*:?\s*"
     r"(?P<body>(?:[^\n]+\n?){1,5}?)"
     r"(?=" + _ADDRESS_STOP + r"|\Z)",
-    _re_module.IGNORECASE,
+    re.IGNORECASE,
 )
 
 
@@ -293,13 +292,13 @@ def _compose_address_from_block(body: str) -> tuple[str, str]:
     - fügt die restlichen Teile kommagetrennt zusammen
     Returns ('', ''), wenn der Block keine Straßen-/Hausnummern-Info trägt.
     """
-    parts = [p.strip() for p in _re_module.split(r"[\n,]", body) if p.strip()]
-    while len(parts) > 1 and not _re_module.search(r"\d", parts[0]):
+    parts = [p.strip() for p in re.split(r"[\n,]", body) if p.strip()]
+    while len(parts) > 1 and not re.search(r"\d", parts[0]):
         parts.pop(0)
     if not parts:
         return "", ""
     full = ", ".join(parts)
-    if not _re_module.search(r"\d", full):
+    if not re.search(r"\d", full):
         return "", ""
     plz_match = _PLZ_ORT_RE.search(full)
     plz = plz_match.group(1) if plz_match else ""
@@ -332,7 +331,7 @@ def _is_address_incomplete(adresse: str) -> bool:
     has_plz_ort = bool(_PLZ_ORT_RE.search(a))
     # Hausnummer: eine Ziffer, die NICHT Teil der 4-stelligen PLZ ist.
     without_plz = _PLZ_ORT_RE.sub("", a)
-    has_house_no = bool(_re_module.search(r"\d", without_plz))
+    has_house_no = bool(re.search(r"\d", without_plz))
     return not (has_plz_ort and has_house_no)
 
 
@@ -360,20 +359,20 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
 
     # --- Verbrauch (kWh) ---
     # Pattern: "wurden 13.666,99 kWh verbraucht" (Sturm Energie, many Austrian providers)
-    m = _re_module.search(r'wurden\s+([\d.,]+)\s*kWh\s+verbraucht', text)
+    m = re.search(r'wurden\s+([\d.,]+)\s*kWh\s+verbraucht', text)
     if m:
         result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
         found_anything = True
     # Pattern: "aktuell 3.240 kWh in 365 Tagen" or "aktuell3.240kWh in365 Tagen" (Wien Energie)
     if 'verbrauch_kwh' not in result:
-        m = _re_module.search(r'aktuell\s*([\d.,]+)\s*kWh\s+in\s*(\d+)\s*Tagen', text)
+        m = re.search(r'aktuell\s*([\d.,]+)\s*kWh\s+in\s*(\d+)\s*Tagen', text)
         if m:
             result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
             result['_verbrauch_tage'] = int(m.group(2))
             found_anything = True
     if 'verbrauch_kwh' not in result:
         # Pattern: "Gesamtverbrauch: 3.200 kWh"
-        m = _re_module.search(r'Gesamtverbrauch[:\s]+([\d.,]+)\s*kWh', text)
+        m = re.search(r'Gesamtverbrauch[:\s]+([\d.,]+)\s*kWh', text)
         if m:
             result['verbrauch_kwh'] = _parse_austrian_number(m.group(1), expect_large=True)
             found_anything = True
@@ -381,7 +380,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         # Generic: look for "NNNN kWh" preceded by consumption context
         # "Verbrauch ... NNNN kWh" on same line
         # EXCLUDE "kWh/Tag" matches (those are daily rates, not total consumption)
-        for m in _re_module.finditer(r'(?:Verbrauch|Bezug)\D{0,40}?([\d.,]+)\s*kWh(?!/Tag)', text):
+        for m in re.finditer(r'(?:Verbrauch|Bezug)\D{0,40}?([\d.,]+)\s*kWh(?!/Tag)', text):
             val = _parse_austrian_number(m.group(1), expect_large=True)
             if 10 < val < 200_000:
                 result.setdefault('verbrauch_kwh', val)
@@ -398,7 +397,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'Summe\s+Energielieferung\s+([\d.,]+)',
         r'Summe\s+Energie\s+([\d.,]+)',
     ]:
-        matches = _re_module.findall(pattern, text)
+        matches = re.findall(pattern, text)
         if matches:
             # Take the LAST match (in multi-section invoices, Strom comes after Gas)
             val = _parse_austrian_number(matches[-1], expect_large=True)
@@ -414,7 +413,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'Summe\s+Netzkosten\s+([\d.,]+)',
         r'Summe\s+Netz\s+([\d.,]+)',
     ]:
-        m = _re_module.search(pattern, text)
+        m = re.search(pattern, text)
         if m:
             val = _parse_austrian_number(m.group(1), expect_large=True)
             if val > 0:
@@ -428,7 +427,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'Summe\s+Steuern\s+und\s+Abgaben\s+([\d.,]+)',
         r'Steuern\s+und\s+Abgaben\s+([\d.,]+)',
     ]:
-        m = _re_module.search(pattern, text)
+        m = re.search(pattern, text)
         if m:
             val = _parse_austrian_number(m.group(1), expect_large=True)
             if val > 0:
@@ -444,7 +443,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'Summe\s+exkl\.\s*USt\.?\s+([\d.,]+)',
         r'Gesamtbetrag\s+netto\s+([\d.,]+)',
     ]:
-        matches = _re_module.findall(pattern, text)
+        matches = re.findall(pattern, text)
         if matches:
             val = _parse_austrian_number(matches[-1], expect_large=True)
             if val > 0:
@@ -459,7 +458,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'Gesamtbetrag.*?inkl.*?USt.*?([\d.,]+)',
         r'Endbetrag.*?([\d.,]+)\s*EUR',
     ]:
-        m = _re_module.search(pattern, text)
+        m = re.search(pattern, text)
         if m:
             val = _parse_austrian_number(m.group(1), expect_large=True)
             if val > 0:
@@ -480,7 +479,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'Grundgeb.*?hr.*?([\d.,]+)\s*EUR/Monat',
         r'Grundgeb.*?hr.*?([\d.,]+)\s*EUR/Jahr',
     ]:
-        m = _re_module.search(pattern, text)
+        m = re.search(pattern, text)
         if m:
             val = _parse_austrian_number(m.group(1))
             if val > 0:
@@ -502,7 +501,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'\s+\d{2}\.\d{2}\.\d{2,4}.\d{2}\.\d{2}\.\d{2,4}'
         r'\s+[\d.,]+\s+kWh\s+([\d.,]+)\s*(?:Cent|ct)/kWh',
     ]:
-        for m in _re_module.finditer(pattern, text):
+        for m in re.finditer(pattern, text):
             val = _parse_austrian_number(m.group(1))
             if 1 < val < 100:
                 energie_preis_lines.append(val)
@@ -520,11 +519,11 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
                  len(set(energie_preis_lines)), sorted(set(energie_preis_lines)))
 
     # --- Zählpunkt ---
-    m = _re_module.search(r'(AT\d{30,35})', text.replace(' ', ''))
+    m = re.search(r'(AT\d{30,35})', text.replace(' ', ''))
     if not m:
-        m = _re_module.search(r'(AT[.\s]?\d[\d.\s]{28,38})', text)
+        m = re.search(r'(AT[.\s]?\d[\d.\s]{28,38})', text)
     if m:
-        zp = _re_module.sub(r'[\s.]', '', m.group(1))
+        zp = re.sub(r'[\s.]', '', m.group(1))
         if len(zp) >= 33:
             result['zaehlpunkt'] = zp[:33]
             found_anything = True
@@ -535,7 +534,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'(?:Anlagenadresse|Verbrauchsstelle)[^\n]{0,100}(\d{4})\s+\w',
         r'(?:Anlagenadresse|Verbrauchsstelle).*?\n.*?(\d{4})\s+\w',
     ]:
-        m = _re_module.search(pattern, text)
+        m = re.search(pattern, text)
         if m:
             result['plz'] = m.group(1)
             found_anything = True
@@ -562,7 +561,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'gesch\w+\s+Jahresverbrauch\w*\s+von\s+([\d.,]+)\s*kWh',
         r'prognostiziert\w*\s+Jahresverbrauch\w*\s+von\s+([\d.,]+)\s*kWh',
     ]:
-        m = _re_module.search(pattern, text)
+        m = re.search(pattern, text)
         if m:
             val = _parse_austrian_number(m.group(1), expect_large=True)
             if val > 0:
@@ -579,7 +578,7 @@ def _extract_deterministic_from_text(text: str) -> dict | None:
         r'Verrechnungszeitraum[:\s]+(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
         r'Rechnungszeitraum[:\s]+(\d{2}\.\d{2}\.\d{4})\s*[-–]\s*(\d{2}\.\d{2}\.\d{4})',
     ]:
-        m = _re_module.search(pattern, text)
+        m = re.search(pattern, text)
         if m:
             result['zeitraum_von'] = m.group(1)
             result['zeitraum_bis'] = m.group(2)

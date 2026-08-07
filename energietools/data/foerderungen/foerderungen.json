@@ -54,8 +54,8 @@
   "antrags_url": "https://einreichen.eag-abwicklungsstelle.at/eag/login",
   "quellen": [
    {
-    "url": "https://pvaustria.at/eag-investzuschuss/",
-    "abrufdatum": "2026-08-01",
+    "url": "https://pvbaustria.at/eag-investzuschuss/",
+    "abrufdatum": "2026-08-07",
     "typ": "sekundaer"
    },
    {

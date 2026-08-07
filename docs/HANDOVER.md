@@ -32,27 +32,8 @@
 
 ## Aus dem globalen Check-in (2026-08-07)
 
-- **energie_graz-Alarm (jetzt 3. Nacht in Folge, 06.08./07.08. mit identischen Zahlen)**
-  gegen den frischesten Datenstand geprüft (`chore(data)` 07.08. 05:02 gepullt, `git pull
-  --ff-only`, `f4ff253..6da8902`): Katalog führt weiterhin unverändert 2 valide Einträge
-  (Graz StromFlex, Graz StromKlassik), `provider_coverage` 59/59 ok `failed: []`,
-  `gueltig_ab` bleibt strukturell leer über alle 119/119 Einträge (Staleness-Prüfung läuft
-  komplett Gridbert-seitig, hier nicht führbar). **Kein energietools-seitiger Defekt** —
-  unverändert seit 05.08./06.08., s. Session-Log unten für die Rohbelege.
-- **Quellen-Wächter (14 geändert, u.a. `[foerderung-bund] pvaustria.at/eag-investzuschuss`)**
-  geprüft und **behoben** (Topf A): die Quelle liefert seit mind. 06.08. einen 301 auf
-  `pvbaustria.at` (Bundesverband Photovoltaic Austria — gleiche IP/Betreiber, kein
-  Hijack, per `dig`+`curl`+Content-Vergleich verifiziert). Inhalt deckungsgleich mit dem
-  lokalen Stand (Fördersätze + alle 3 Call-Termine 2026 identisch). URL in
-  `data/foerderungen/foerderungen.json` korrigiert, `abrufdatum` auf 07.08. gezogen.
-  Commit `7d8af3e`, gepusht. [Quelle: globaler Check-in 07.08., Mail „Quellen-Wächter —
-  14 geändert" 05:56.]
-- **best connect + spotty (Mi 12.08., KI-Rechnungsanalyse-Anfrage):** die Rechen-Grundlage
-  liegt bereits hier — `tools/invoice_parser.py` (1156 Zeilen, deterministische
-  Text-PDF-Extraktion ohne LLM/OCR) + `prozesse/rechnungsanalyse.yaml` + die MCP-Tools
-  `submit_invoice_facts`/`tariff_compare` sind produktiv im Gridbert-Stack. Kein Neubau
-  nötig, nur eine Passungsprüfung gegen das konkrete Rechnungsformat von best
-  connect/spotty, sobald das Briefing da ist. [für Ben, s. unten]
+- Die 53 verbleibenden E501-Zeilen waren fuer die Woche 17.-20.08. vorgesehen. Dieselben vier Tage sind die einzige Vorbereitungszeit fuer den Voith/TTTech-Workshop am 24.08. und der wahrscheinliche Ort fuer das neue enery-Angebot (~5 PT). Der Lint-Rest ist der schwaechste Anspruch auf dieses Fenster. [Quelle: beide Kalender + Check-in voith-tttech/enery]
+- Die Rechnungsanalyse hier ist Grundlage fuer Bens Termin am Mi 12.08. 13:00 mit best connect und spotty (KI-Rechnungsanalyse fuer die Seite "Energie in meine Haende", Go-live September). [Quelle: Mail Lukas Liegl 06.08.]
 
 ## Offene Punkte (nächste Session)
 

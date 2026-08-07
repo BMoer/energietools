@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-06.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-07.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -30,20 +30,41 @@
   Daten-Refresh laufen ausserhalb dieses Repos. Der nächste Release ist wieder
   manuell: `python3 -m build && python3 -m twine upload dist/*`.
 
-## Aus dem globalen Check-in (2026-08-05)
+## Aus dem globalen Check-in (2026-08-07)
 
-- Der goldgas-Fund (stiller Drop aus dem Katalog statt Fehlermarkierung, 60 → 59 Anbieter) ist als offener Punkt ins Gridbert-Handover übernommen — dort gehört die Alarm-Logik hin, nicht in diese Library. [Quelle: globaler Check-in 05.08.]
-- Die EbUtilities-Konsultation zur Flexibilitätsbeschaffung (§§139/142 ElWG, Phase 1 ab 2028, Mittelspannung und höher) berührt den aktuellen Scope der Library nicht; sie ist als Geschäfts-/Roadmap-Thema bei Gridbert vermerkt. Fristen: Webinar 18.08. 13:00-15:00, Stellungnahme bis 31.08. [Quelle: Aussendung Oesterreichs Energie 04.08.]
+- **energie_graz-Alarm (jetzt 3. Nacht in Folge, 06.08./07.08. mit identischen Zahlen)**
+  gegen den frischesten Datenstand geprüft (`chore(data)` 07.08. 05:02 gepullt, `git pull
+  --ff-only`, `f4ff253..6da8902`): Katalog führt weiterhin unverändert 2 valide Einträge
+  (Graz StromFlex, Graz StromKlassik), `provider_coverage` 59/59 ok `failed: []`,
+  `gueltig_ab` bleibt strukturell leer über alle 119/119 Einträge (Staleness-Prüfung läuft
+  komplett Gridbert-seitig, hier nicht führbar). **Kein energietools-seitiger Defekt** —
+  unverändert seit 05.08./06.08., s. Session-Log unten für die Rohbelege.
+- **Quellen-Wächter (14 geändert, u.a. `[foerderung-bund] pvaustria.at/eag-investzuschuss`)**
+  geprüft und **behoben** (Topf A): die Quelle liefert seit mind. 06.08. einen 301 auf
+  `pvbaustria.at` (Bundesverband Photovoltaic Austria — gleiche IP/Betreiber, kein
+  Hijack, per `dig`+`curl`+Content-Vergleich verifiziert). Inhalt deckungsgleich mit dem
+  lokalen Stand (Fördersätze + alle 3 Call-Termine 2026 identisch). URL in
+  `data/foerderungen/foerderungen.json` korrigiert, `abrufdatum` auf 07.08. gezogen.
+  Commit `7d8af3e`, gepusht. [Quelle: globaler Check-in 07.08., Mail „Quellen-Wächter —
+  14 geändert" 05:56.]
+- **best connect + spotty (Mi 12.08., KI-Rechnungsanalyse-Anfrage):** die Rechen-Grundlage
+  liegt bereits hier — `tools/invoice_parser.py` (1156 Zeilen, deterministische
+  Text-PDF-Extraktion ohne LLM/OCR) + `prozesse/rechnungsanalyse.yaml` + die MCP-Tools
+  `submit_invoice_facts`/`tariff_compare` sind produktiv im Gridbert-Stack. Kein Neubau
+  nötig, nur eine Passungsprüfung gegen das konkrete Rechnungsformat von best
+  connect/spotty, sobald das Briefing da ist. [für Ben, s. unten]
 
 ## Offene Punkte (nächste Session)
 
-- [ ] **ruff-Lint aufräumen (Rest).** 06.08.: `ruff check --fix` auf `energietools/`
-      + `tests/` angewendet (bewusst ohne `apps/simba`/`web` — eigene Deploy-Ziele,
-      nicht Teil dieses Check-ins), 11 Regeln mechanisch behoben (Importreihenfolge,
-      `timezone.utc`→`UTC`-Alias, unused-import, f-string ohne Platzhalter), 707 Tests
-      vorher/nachher grün, Commit `39c4b31`, gepusht. In-Scope-Rest: 71 → 60 Fehler,
-      Repo-weit 164 → 153. Verbleibend überwiegend **E501 Line-too-long** (manuelles
-      Umbrechen, kein Auto-Fix) plus vereinzelt F841/UP042/E402 — braucht weiter eine
+- [ ] **ruff-Lint aufräumen (Rest).** 07.08. (Topf A, dieser Lauf): die 7 verbleibenden
+      Nicht-E501-Regeln aus dem 06.08.-Fund behoben — `UP042` (`(str, Enum)` →
+      `enum.StrEnum` in `capabilities/lastgang/signals.py` + `models/report.py`,
+      `requires-python >=3.11` deckt das), `I001`/`E702` (verwaister Mid-File-Reimport
+      `import re as _re_module` in `tools/invoice_parser.py` entfernt, `import re` an
+      den Kopf, 24 Aufrufstellen umbenannt; Semikolon-Statement in
+      `tools/energy_monitor.py::_check_price_alert` aufgeteilt). 707 Tests vorher/nachher
+      grün, Commit `c95ffff`, gepusht. In-Scope-Rest: 60 → **53**, ausschließlich noch
+      **E501 Line-too-long** (manuelles Umbrechen, kein Auto-Fix) — braucht weiter eine
       eigene Session, keine CI die das fängt.
 - [ ] **Restliche SEO/GEO-Punkte umsetzen.** Erledigt ist nur Punkt 1 des Plans
       („GitHub energietools"). Die Punkte 2 ff. liegen bei Ben und wurden in dieser
@@ -54,13 +75,43 @@
       `pyproject.toml` ist die einzige Stelle, die dabei zu pflegen ist
       (`__version__` liest sie seit 0.7.3 aus den Paket-Metadaten).
 - [ ] **Zwei Worktrees offen** — Stand 04.08. weiterhin vorhanden (per
-      `git worktree list` geprüft), nicht angefasst, gehören anderen
+      `git worktree list` erneut geprüft, 07.08.), nicht angefasst, gehören anderen
       Arbeitssträngen: `~/.claude/jobs/e7963402/tmp/et-v061`
       (`fix/v061-load-trend-meta`) und `~/Projekte/energietools-sim-fixes`
-      (`sim-fixes`).
+      (`sim-fixes`). Ein dritter, unbenannter Worktree kam dazu:
+      `/private/tmp/gridbert-e2e/wt/energietools` (detached HEAD, `f4ff253`) — vermutlich
+      Rest eines E2E-Testlaufs, nicht angefasst (gehört nicht diesem Check-in).
+- [ ] **best connect + spotty — KI-Rechnungsanalyse (Ben, Mi 12.08. 13:00).** Rechen-
+      Grundlage (Invoice-Parser + Tarifvergleich + rechnungsanalyse-Prozess) existiert
+      bereits produktiv; sobald das Rechnungsformat/Scope-Briefing vorliegt, eine
+      Passungsprüfung fahren (Topf B — Priorität/Zusage liegt bei Ben).
 
 ## Session-Log (letzte 3)
 
+- **2026-08-07** — Morgen-Check-in (Projektmodus, ohne Fan-out): externen
+  `chore(data)`-Refresh vom 07.08. gepullt (`6da8902`, 05:02 UTC, `f4ff253..6da8902`,
+  `git pull --ff-only`), PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün. Gegen den
+  heutigen Gridbert-Tarif-Alarm geprüft (`energie_graz FEHLER 1`, dieselben Zahlen wie
+  06.08., damit die **dritte** Nacht in Folge):
+  **energie_graz** — Katalog unverändert 2 valide Einträge (Graz StromFlex, Graz
+  StromKlassik), `provider_coverage` 59/59 `failed: []`, `gueltig_ab` weiterhin
+  strukturell leer über 119/119 Einträge — Staleness-Prüfung bleibt vollständig
+  Gridbert-seitig. Kein energietools-seitiger Defekt.
+  **Quellen-Wächter** (14 geändert, u.a. `[foerderung-bund]
+  pvaustria.at/eag-investzuschuss`) geprüft: die URL liefert einen 301 auf
+  `pvbaustria.at` (verifiziert per `dig`/`curl`/Content-Abgleich — derselbe Betreiber,
+  Bundesverband Photovoltaic Austria, kein Domain-Hijack; Fördersätze und alle 3
+  Call-Termine 2026 inhaltlich identisch zum lokalen Stand vom 01.08.). URL + Abrufdatum
+  in `data/foerderungen/foerderungen.json` korrigiert, Commit `7d8af3e` gepusht.
+  **ruff-Lint** (Topf A): die 7 verbleibenden Nicht-E501-Fehler aus dem 06.08.-Fund
+  behoben — `UP042` (2× `StrEnum`), `I001`/`E702` (verwaister Mid-File-Reimport in
+  `invoice_parser.py`, Semikolon-Statement in `energy_monitor.py`). 707 Tests vor/nach
+  grün, Commit `c95ffff` gepusht. In-Scope-Rest: 60 → 53, nur noch E501. Drei
+  Worktrees per `git worktree list` bestätigt (zwei bekannt seit 04.08., ein
+  dritter — `/private/tmp/gridbert-e2e/wt/energietools`, detached HEAD — neu
+  aufgefallen, nicht angefasst). Best-connect+spotty-Anfrage (Mi 12.08.) gegen den
+  vorhandenen Bestand geprüft: Invoice-Parser + Tarifvergleich + rechnungsanalyse-
+  Prozess sind bereits da, kein Neubau nötig — s. offene Punkte.
 - **2026-08-06** — Morgen-Check-in (Projektmodus, ohne Fan-out): externen
   `chore(data)`-Refresh vom 06.08. gepullt (`5168f8c`, 05:58 UTC — noch nicht lokal,
   per `git fetch` gefunden), PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün. Gegen
@@ -111,24 +162,3 @@
   **ruff-Lint** erstmals gemessen (164 Fehler, s. offene Punkte) — neuer Fund,
   nicht behoben. Zwei Worktrees per `git worktree list` erneut bestätigt,
   unverändert seit 04.08.
-- **2026-08-04** — Morgen-Check-in (kein Code, nur Messung + Doku-Korrektur):
-  PyPI ≡ Repo bei 0.8.2 bestätigt (`curl pypi.org/pypi/energietools/json`),
-  707 Tests grün (`pytest -q`), keine unveröffentlichten Commits. HANDOVER war
-  vier Releases veraltet (stand noch auf 0.7.4/30.07.) — auf 0.8.2 nachgezogen.
-  Tarif-Alarm „goldgas FEHLER 2" aus dem Gridbert-Check-in gegengeprüft: Katalog
-  hat einen validen goldgas-Eintrag (Stand 03.08.), die Gas/Strom-Abgrenzung
-  (`\bgas\b`-Wortgrenze) schützt „goldgas" explizit vor Fehlklassifikation —
-  kein energietools-seitiger Defekt erkennbar, sieht nach reinem
-  Gridbert-Scrape-Thema aus. Gridbert pinnt energietools bereits auf `@v0.8.2`
-  (`gridbert/pyproject.toml` Zeile 43) — die zwei GH-Actions-Fehlschläge vom
-  03.08. haben keinen Bezug zu einer veralteten Dependency-Version.
-- **2026-07-30** — **PyPI-Release 0.7.4**, der erste überhaupt. Vorher drei Defekte
-  behoben, die den Release beschädigt hätten: nicht lauffähiges README-Beispiel
-  (importierte die vor der Umbenennung gültige `compare_against_catalog`),
-  `__version__` 0.1.0 statt 0.7.x, und fehlende `readme`/`urls`/`classifiers` in
-  `pyproject.toml` (PyPI-Seite wäre leer gewesen).
-- **2026-07-30** — SEO/GEO Punkt 1: GitHub-Metadaten + englischer README-Absatz.
-  Zahlen gegen `MANIFEST.json` und `data/netz/` geprüft; die vorgeschlagenen „300+
-  Tarife" auf das belegbare „over 100 (von 60 Versorgern)" korrigiert. `pip install
-  energietools` als nicht funktionierend erkannt und ersetzt. Ein stale Worktree
-  (`/private/tmp/gridbert-e2e/…`) entfernt.

@@ -44,9 +44,12 @@
       ("PyPI-Upload steht aus, Bens Token") war damit von Anfang an falsch und ist ersetzt.
       **Verifiziert:** frisches venv, `pip install energietools==0.8.3` → Version 0.8.3,
       `vnb_attribution.json` mit 4 Einträgen, `ewerk_kindberg` enthalten.
-      **Lehre für den nächsten Lauf — steht auch im Check-in-Profil:** Einen Tag `vX.Y.Z` zu
-      pushen IST hier der Release. Es gibt keinen manuellen Zwischenschritt, den man noch
-      abbrechen könnte, und eine PyPI-Version ist nicht überschreibbar. Wer taggt, released.
+      **Von Ben am 08.08. nachträglich freigegeben** („kein Problem, ist in Ordnung, wenn das
+      direkt gepusht wird"). Das Check-in-Profil trägt jetzt **Release = Topf A** statt der
+      alten Regel „Kein PyPI-Release, der Upload ist Bens Schritt".
+      **Was man trotzdem wissen muss:** Einen Tag `vX.Y.Z` zu pushen IST hier der Release —
+      kein manueller Zwischenschritt, kein Abbruch möglich, PyPI-Versionen sind nicht
+      überschreibbar. Tests grün und Versionsnummer geprüft, bevor der Tag rausgeht.
 - [ ] **ruff-Lint aufräumen (Rest).** 07.08. (Topf A, dieser Lauf): die 7 verbleibenden
       Nicht-E501-Regeln aus dem 06.08.-Fund behoben — `UP042` (`(str, Enum)` →
       `enum.StrEnum` in `capabilities/lastgang/signals.py` + `models/report.py`,

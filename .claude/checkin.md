@@ -42,18 +42,20 @@ checkin_note: docs/HANDOVER.md → Sektion `## Aus dem globalen Check-in (<Datum
   direkt vor `## Offene Punkte (nächste Session)`. Wird bei jedem Lauf ersetzt.
 
 ## autonomy
-  - **Kein PyPI-Release — und das heißt: KEINEN TAG `vX.Y.Z` PUSHEN.** Der Upload ist Bens
-    Schritt (sein Token, die Version ist danach unwiderruflich belegt). Der Agent darf
-    `version` heben und bauen — hochladen nie.
-    **Die Falle, in die der Check-in am 2026-08-08 gelaufen ist:** „hochladen" passiert hier
-    nicht von Hand. `.github/workflows/release.yml` triggert auf Tag-Push und lädt selbst auf
-    PyPI hoch. `git push origin v0.8.3` war damit der Release — 2 Minuten später lag 0.8.3
-    oben (Lauf `31246991011`), ohne dass irgendjemand `twine` aufgerufen hätte. Es gibt keinen
-    Zwischenschritt zum Abbrechen und PyPI-Versionen sind nicht überschreibbar.
-    **Regel:** Commit und Push auf `main` sind frei (Topf A). **Tag setzen und pushen ist
-    Topf B**, auch wenn es sich nach reiner Git-Hygiene anfühlt. Braucht ein anderes Repo
-    (typisch gridbert) einen neuen Stand von hier, geht das ohne Release: den Pin auf den
-    Commit-SHA oder auf `main` setzen statt auf einen Tag.
+  - **Release ist Topf A — der Agent darf taggen und damit veröffentlichen.**
+    Freigabe von Ben am 2026-08-08 („kein Problem, ist in Ordnung, wenn das direkt gepusht
+    wird"). Sie ersetzt die frühere Regel „Kein PyPI-Release, der Upload ist Bens Schritt";
+    die gilt nicht mehr.
+    **Wie es hier funktioniert, damit es niemand für Git-Hygiene hält:** Es gibt keinen
+    manuellen Upload. `.github/workflows/release.yml` triggert auf Tag-Push und lädt selbst
+    auf PyPI. `git push origin v0.8.3` war der Release — zwei Minuten später lag 0.8.3 oben
+    (Lauf `31246991011`), ohne dass jemand `twine` aufgerufen hätte. **Wer taggt, released.**
+    **Bedingungen, die bleiben:** Tests grün vor dem Tag · `version` in `pyproject.toml` und
+    Tag müssen übereinstimmen · Release-Commit im Format `chore(release): vX.Y.Z — <was drin
+    ist>` · eine PyPI-Version ist **unwiderruflich**, ein Vertipper in der Nummer lässt sich
+    nur durch die nächste Version heilen.
+    Wird nur ein neuer Stand für ein anderes Repo gebraucht (typisch gridbert) und kein
+    Release, geht das weiterhin ohne Tag: Pin auf den Commit-SHA statt auf `vX.Y.Z`.
   - **Kein Push von Rechenlogik ohne grüne Tests.** Public Repo, auditierbarer Kern:
     ein falscher €-Pfad ist hier sichtbarer als irgendwo sonst.
   - **No-LLM-Math gilt hier an der Quelle:** jede €-Zahl muss aus einer Funktion mit

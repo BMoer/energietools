@@ -37,13 +37,16 @@
 
 ## Offene Punkte (nächste Session)
 
-- [ ] **PyPI-Upload für 0.8.3 steht aus (Bens Token, Profil-Regel „Kein PyPI-Release").**
-      Am 08.08. wurde im Check-in v0.8.3 getaggt und gepusht (`407b116`), weil gridbert die
-      Kindberg-Attribution brauchte und per `git+https@<tag>` installiert — dafür genügt der
-      Git-Tag. Bis zum Upload zeigt der Health-Check **„PyPI 0.8.2 ≠ Repo 0.8.3"**; das ist
-      erwartet, kein Defekt.
-
-
+- [x] **0.8.3 ist auf PyPI — automatisch, nicht von Hand (Korrektur derselben Session).**
+      Beim Check-in 08.08. wurde v0.8.3 getaggt und gepusht. **Der Tag-Push hat
+      `.github/workflows/release.yml` ausgelöst**, der Workflow hat um 07:48 UTC gebaut und um
+      07:50:35 auf PyPI hochgeladen (Lauf `31246991011`, success). Die ursprüngliche Notiz
+      ("PyPI-Upload steht aus, Bens Token") war damit von Anfang an falsch und ist ersetzt.
+      **Verifiziert:** frisches venv, `pip install energietools==0.8.3` → Version 0.8.3,
+      `vnb_attribution.json` mit 4 Einträgen, `ewerk_kindberg` enthalten.
+      **Lehre für den nächsten Lauf — steht auch im Check-in-Profil:** Einen Tag `vX.Y.Z` zu
+      pushen IST hier der Release. Es gibt keinen manuellen Zwischenschritt, den man noch
+      abbrechen könnte, und eine PyPI-Version ist nicht überschreibbar. Wer taggt, released.
 - [ ] **ruff-Lint aufräumen (Rest).** 07.08. (Topf A, dieser Lauf): die 7 verbleibenden
       Nicht-E501-Regeln aus dem 06.08.-Fund behoben — `UP042` (`(str, Enum)` →
       `enum.StrEnum` in `capabilities/lastgang/signals.py` + `models/report.py`,

@@ -42,8 +42,18 @@ checkin_note: docs/HANDOVER.md → Sektion `## Aus dem globalen Check-in (<Datum
   direkt vor `## Offene Punkte (nächste Session)`. Wird bei jedem Lauf ersetzt.
 
 ## autonomy
-  - **Kein PyPI-Release.** Der Upload ist Bens Schritt (sein Token, die Version ist danach
-    unwiderruflich belegt). Der Agent darf `version` heben und bauen — hochladen nie.
+  - **Kein PyPI-Release — und das heißt: KEINEN TAG `vX.Y.Z` PUSHEN.** Der Upload ist Bens
+    Schritt (sein Token, die Version ist danach unwiderruflich belegt). Der Agent darf
+    `version` heben und bauen — hochladen nie.
+    **Die Falle, in die der Check-in am 2026-08-08 gelaufen ist:** „hochladen" passiert hier
+    nicht von Hand. `.github/workflows/release.yml` triggert auf Tag-Push und lädt selbst auf
+    PyPI hoch. `git push origin v0.8.3` war damit der Release — 2 Minuten später lag 0.8.3
+    oben (Lauf `31246991011`), ohne dass irgendjemand `twine` aufgerufen hätte. Es gibt keinen
+    Zwischenschritt zum Abbrechen und PyPI-Versionen sind nicht überschreibbar.
+    **Regel:** Commit und Push auf `main` sind frei (Topf A). **Tag setzen und pushen ist
+    Topf B**, auch wenn es sich nach reiner Git-Hygiene anfühlt. Braucht ein anderes Repo
+    (typisch gridbert) einen neuen Stand von hier, geht das ohne Release: den Pin auf den
+    Commit-SHA oder auf `main` setzen statt auf einen Tag.
   - **Kein Push von Rechenlogik ohne grüne Tests.** Public Repo, auditierbarer Kern:
     ein falscher €-Pfad ist hier sichtbarer als irgendwo sonst.
   - **No-LLM-Math gilt hier an der Quelle:** jede €-Zahl muss aus einer Funktion mit

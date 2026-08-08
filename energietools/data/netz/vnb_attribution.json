@@ -1,5 +1,14 @@
 [
  {
+  "key": "ewerk_kindberg",
+  "name": "E-Werk der Stadtgemeinde Kindberg",
+  "bundesland": "Steiermark",
+  "gemeinden": [
+   "Kindberg"
+  ],
+  "tarif_referenz": "energienetze_steiermark"
+ },
+ {
   "key": "stadtwerke_feldkirch",
   "name": "Stadtwerke Feldkirch",
   "bundesland": "Vorarlberg",

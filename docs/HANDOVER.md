@@ -30,12 +30,19 @@
   Daten-Refresh laufen ausserhalb dieses Repos. Der nächste Release ist wieder
   manuell: `python3 -m build && python3 -m twine upload dist/*`.
 
-## Aus dem globalen Check-in (2026-08-07)
+## Aus dem globalen Check-in (2026-08-08)
 
-- Die 53 verbleibenden E501-Zeilen waren fuer die Woche 17.-20.08. vorgesehen. Dieselben vier Tage sind die einzige Vorbereitungszeit fuer den Voith/TTTech-Workshop am 24.08. und der wahrscheinliche Ort fuer das neue enery-Angebot (~5 PT). Der Lint-Rest ist der schwaechste Anspruch auf dieses Fenster. [Quelle: beide Kalender + Check-in voith-tttech/enery]
-- Die Rechnungsanalyse hier ist Grundlage fuer Bens Termin am Mi 12.08. 13:00 mit best connect und spotty (KI-Rechnungsanalyse fuer die Seite "Energie in meine Haende", Go-live September). [Quelle: Mail Lukas Liegl 06.08.]
+- Gridbert lädt dieses Paket gepinnt auf v0.8.2 und braucht dort den 4. Attributions-Eintrag (Kindberg) in `vnb_attribution.json`; auf HEAD `64e1a6d` stehen weiterhin nur 3 → ohne Commit, Tag und Pin-Bump in Gridbert bleibt der Kindberg-Netzbetreiber für Nutzer falsch, obwohl der Fix dort als "ausgerollt" geführt wird [Quelle: Check-in gridbert, 08.08.]
+- Der pvaustria.at-Fehlalarm des Quellen-Wächters hat seine Ursache nicht hier: der Gridbert-Scraper wurde seit dem Fix vom 07.08. nicht auf die Box deployed → die hiesige Korrektur ist bestätigt, die Quellenliste dort läuft nach [Quelle: Check-in gridbert, 08.08.]
 
 ## Offene Punkte (nächste Session)
+
+- [ ] **PyPI-Upload für 0.8.3 steht aus (Bens Token, Profil-Regel „Kein PyPI-Release").**
+      Am 08.08. wurde im Check-in v0.8.3 getaggt und gepusht (`407b116`), weil gridbert die
+      Kindberg-Attribution brauchte und per `git+https@<tag>` installiert — dafür genügt der
+      Git-Tag. Bis zum Upload zeigt der Health-Check **„PyPI 0.8.2 ≠ Repo 0.8.3"**; das ist
+      erwartet, kein Defekt.
+
 
 - [ ] **ruff-Lint aufräumen (Rest).** 07.08. (Topf A, dieser Lauf): die 7 verbleibenden
       Nicht-E501-Regeln aus dem 06.08.-Fund behoben — `UP042` (`(str, Enum)` →

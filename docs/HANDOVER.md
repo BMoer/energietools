@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-07.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-08.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -55,13 +55,13 @@
       weitere Release von Hand gebaut und hochgeladen werden — und `version` in
       `pyproject.toml` ist die einzige Stelle, die dabei zu pflegen ist
       (`__version__` liest sie seit 0.7.3 aus den Paket-Metadaten).
-- [ ] **Zwei Worktrees offen** — Stand 04.08. weiterhin vorhanden (per
-      `git worktree list` erneut geprüft, 07.08.), nicht angefasst, gehören anderen
-      Arbeitssträngen: `~/.claude/jobs/e7963402/tmp/et-v061`
-      (`fix/v061-load-trend-meta`) und `~/Projekte/energietools-sim-fixes`
-      (`sim-fixes`). Ein dritter, unbenannter Worktree kam dazu:
-      `/private/tmp/gridbert-e2e/wt/energietools` (detached HEAD, `f4ff253`) — vermutlich
-      Rest eines E2E-Testlaufs, nicht angefasst (gehört nicht diesem Check-in).
+- [ ] **Drei Worktrees offen** — weiterhin vorhanden (per `git worktree list` erneut
+      geprüft, 08.08.), nicht angefasst, gehören anderen Arbeitssträngen:
+      `~/.claude/jobs/e7963402/tmp/et-v061` (`fix/v061-load-trend-meta`),
+      `~/Projekte/energietools-sim-fixes` (`sim-fixes`) und
+      `/private/tmp/gridbert-e2e/wt/energietools` (detached HEAD, `f4ff253`) —
+      vermutlich Rest eines E2E-Testlaufs, nicht angefasst (gehört nicht diesem
+      Check-in).
 - [ ] **best connect + spotty — KI-Rechnungsanalyse (Ben, Mi 12.08. 13:00).** Rechen-
       Grundlage (Invoice-Parser + Tarifvergleich + rechnungsanalyse-Prozess) existiert
       bereits produktiv; sobald das Rechnungsformat/Scope-Briefing vorliegt, eine
@@ -69,6 +69,31 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-08** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs):
+  externen `chore(data)`-Refresh vom 08.08. gepullt (`b673b3a`, `2cf5421..b673b3a`,
+  `git pull --ff-only`) — Energiegemeinschaften-Verzeichnis, Netz-MANIFEST und
+  Tarif-Katalog aktualisiert (1 Preis-Update: `V-Strom-SPOT-H-KW4925`
+  15.5739→16.4936 ct/kWh). PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün
+  (vor und nach dem Pull). Gegen den heutigen Gridbert-Tarif-Alarm geprüft
+  (`energie_graz FEHLER 1`, identischer Wortlaut wie 06./07.08. — **vierte**
+  Nacht in Folge): Katalog unverändert 119 Einträge, `energie_graz` weiterhin
+  2 valide Einträge (Graz StromFlex, Graz StromKlassik), `gueltig_ab`
+  strukturell leer über alle 119/119 Einträge (unverändert seit 05.08.) —
+  Staleness-Prüfung bleibt vollständig Gridbert-seitig, kein energietools-
+  seitiger Defekt. **Quellen-Wächter** (72/72 erreichbar, 7 geändert, erneut
+  u.a. `[foerderung-bund] pvaustria.at/eag-investzuschuss`) geprüft: lokale
+  Quelle ist seit `7d8af3e` (07.08.) bereits auf `pvbaustria.at` korrigiert;
+  per `curl -IL` + WebFetch gegen die Live-Seite erneut abgeglichen —
+  Fördersätze (150/140/130/120 €/kWp, 150 €/kWh Speicher) und alle drei
+  Call-Termine 2026 weiterhin inhaltlich identisch zum lokalen Stand,
+  `pvaustria.at` liefert weiterhin nur den 301-Redirect auf `pvbaustria.at`.
+  Der wiederholte „geändert"-Flag betrifft damit vermutlich die Quellenliste
+  des Wächters selbst (zeigt noch auf die alte Domain) — kein energietools-
+  Handlungsbedarf. ruff-Lint unverändert bei 53 Fehlern (nur noch E501,
+  absichtlich auf die Woche 17.–20.08. verschoben). Drei Worktrees unverändert
+  (`git worktree list`: `et-v061`, `energietools-sim-fixes`,
+  `gridbert-e2e/wt/energietools`). Kein Push nötig — nur Daten-Pull, keine
+  Rechenlogik geändert.
 - **2026-08-07** — Morgen-Check-in (Projektmodus, ohne Fan-out): externen
   `chore(data)`-Refresh vom 07.08. gepullt (`6da8902`, 05:02 UTC, `f4ff253..6da8902`,
   `git pull --ff-only`), PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün. Gegen den
@@ -115,31 +140,4 @@
   Commit `39c4b31` gepusht. Netz-Daten (14 Netzbereiche, 2233 PLZ) und EEG-Verzeichnis
   ebenfalls im 06.08.-Refresh aktualisiert, keine strukturellen Änderungen — relevant
   für die Berater-Demo am 12.08., keine Handlung nötig.
-- **2026-08-05** — Morgen-Check-in (nur Doku-Commit + `git pull --rebase`, kein
-  Rechenlogik-Push): PyPI ≡ Repo bei 0.8.2 bestätigt, 707 Tests grün (`pytest -q`,
-  auch nach dem Datenrefresh unten), keine unveröffentlichten Commits vor dem
-  Pull. Während der Session landete der externe `chore(data)`-Refresh vom 05.08.
-  (`1ab3227`, 05:54 UTC) auf `main` — damit direkt gegen den frischesten Stand
-  geprüft, nicht nur gegen den 04.08.-Snapshot:
-  **energie_graz FEHLER 1** — im 05.08.-Katalog weiterhin 2 valide Einträge
-  (Graz StromFlex, Graz StromKlassik, unverändert), `provider_coverage` 59/59 ok,
-  keine Gas-Fehlklassifikation möglich (Schutzregex prüft nur den Tarifnamen) →
-  kein energietools-seitiger Defekt, und die Alarm-Ursache hat die heutige
-  Katalog-Auslieferung hier nicht sichtbar beschädigt.
-  **goldgas FEHLER 2 (Folge-Check)** — der goldgas-Eintrag ist im 05.08.-Refresh
-  komplett aus dem Katalog verschwunden (Provider-Zahl 60→59, Tarifzahl 119→118,
-  `failed: []` bleibt leer statt den Ausfall zu listen) → der Scraper droppt einen
-  dauerhaft fehlschlagenden Anbieter offenbar still statt ihn zu melden; auch das
-  ist Gridbert-seitiges Verhalten, keine energietools-Logik.
-  **Quellen-Wächter** (72/72 erreichbar, 72 geändert/neu, 04.08.) — mit dem
-  05.08.-Refresh eingetroffen (s. oben, `energiegemeinschaften/verzeichnis.json`
-  ebenfalls aktualisiert); keine strukturellen Änderungen an Netzebenen/Tarif-Feldern,
-  nur Werte. Nichts zu tun.
-  **Regulatorik ElWG §139/142** (Flexibilitätsbeschaffung MS+, Konsultation bis
-  31.08., Phase 1 ab 2028) geprüft: aktuell keine inhaltliche Berührung —
-  `grid_fees` deckt nur NE7 (Haushalt/Niederspannung), NE3-NE6 (Mittelspannung)
-  ist laut TODO.md bewusst nicht befüllt; thematisch angrenzend an dieses
-  bestehende TODO, aber keine Handlung nötig, Phase 1 erst 2028.
-  **ruff-Lint** erstmals gemessen (164 Fehler, s. offene Punkte) — neuer Fund,
-  nicht behoben. Zwei Worktrees per `git worktree list` erneut bestätigt,
-  unverändert seit 04.08.
+  (siehe vorherige Sessions im Git-Verlauf dieser Datei für 2026-08-05 und älter.)

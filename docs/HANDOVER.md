@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-08.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-09.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -14,21 +14,26 @@
   Library für Suche und KI-Antworten, verlinkt Gridbert. Steht vor dem bestehenden
   deutschen Text, der unverändert blieb.
 
-- **PyPI-Release 0.8.2** (Stand 2026-08-04, verifiziert per `pypi.org/pypi/energietools/json`
-  gegen `pyproject.toml` — beide 0.8.2). Vier Releases seit dem 0.7.4-Ersteintrag
-  (30.07.), alle manuell hochgeladen: **0.7.5** (31.07., Anomalie-Schwelle Lastgang
-  + geteilte PLZ sichtbar), **0.8.0** (01.08., Förderungen/Beratung/
-  Energiegemeinschaften/Marktdaten), **0.8.1** (03.08., EEG-Verzeichnis 0 → 136
-  Einträge), **0.8.2** (03.08., `NetzkostenCapability` löst geteilte PLZ über
-  `nb_key`/Gemeinde auf). Kein PyPI-Eintrag ist eigenständig auf Aktualität geprüft
-  worden — nur der Versions-Gleichstand.
+- **PyPI-Release 0.8.3** (Stand 2026-08-09, verifiziert per `pypi.org/pypi/energietools/json`
+  gegen `pyproject.toml` — beide 0.8.3). Fünf Releases seit dem 0.7.4-Ersteintrag
+  (30.07.): **0.7.5** (31.07., Anomalie-Schwelle Lastgang + geteilte PLZ sichtbar),
+  **0.8.0** (01.08., Förderungen/Beratung/Energiegemeinschaften/Marktdaten),
+  **0.8.1** (03.08., EEG-Verzeichnis 0 → 136 Einträge), **0.8.2** (03.08.,
+  `NetzkostenCapability` löst geteilte PLZ über `nb_key`/Gemeinde auf), **0.8.3**
+  (08.08., Kindberg-Attribution + Förderquelle `pvbaustria.at`) — die ersten vier
+  manuell hochgeladen, **0.8.3 zum ersten Mal automatisch** über
+  `.github/workflows/release.yml` (Tag-Push löst Trusted-Publishing-Upload aus,
+  kein Token mehr nötig, s. Offene Punkte 08.08.). Kein PyPI-Eintrag ist eigenständig
+  auf Aktualität geprüft worden — nur der Versions-Gleichstand.
 
 ## prod ≠ live
 
-- (nichts offen — PyPI 0.8.2 ≡ `pyproject.toml` 0.8.2)
-- Randnotiz: Es gibt **keine CI** (`.github/` fehlt) — Release, Tests und
-  Daten-Refresh laufen ausserhalb dieses Repos. Der nächste Release ist wieder
-  manuell: `python3 -m build && python3 -m twine upload dist/*`.
+- (nichts offen — PyPI 0.8.3 ≡ `pyproject.toml` 0.8.3, verifiziert 09.08.)
+- Randnotiz: Es gibt **keine CI für Tests/Lint** (kein Workflow prüft Pushes) —
+  nur der Release selbst ist automatisiert. `.github/workflows/release.yml`
+  triggert auf `git push origin vX.Y.Z` und lädt via Trusted Publishing (OIDC,
+  kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
+  Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
 ## Aus dem globalen Check-in (2026-08-08)
 
@@ -63,13 +68,15 @@
 - [ ] **Restliche SEO/GEO-Punkte umsetzen.** Erledigt ist nur Punkt 1 des Plans
       („GitHub energietools"). Die Punkte 2 ff. liegen bei Ben und wurden in dieser
       Session nicht genannt.
-- [ ] **PyPI-Release automatisieren?** Vier weitere Releases (0.7.5–0.8.2) sind
-      seit 0.7.4 ebenfalls von Hand raus. Solange es keine CI gibt, muss jeder
-      weitere Release von Hand gebaut und hochgeladen werden — und `version` in
-      `pyproject.toml` ist die einzige Stelle, die dabei zu pflegen ist
-      (`__version__` liest sie seit 0.7.3 aus den Paket-Metadaten).
+- [x] **PyPI-Release automatisieren? — beantwortet, war zum Zeitpunkt dieser Frage
+      bereits erledigt.** Dieser Punkt stammt aus einer Session vor dem 08.08. und
+      ist durch den Fund oben ("0.8.3 ist auf PyPI — automatisch") überholt:
+      `.github/workflows/release.yml` existiert seit 31.07. und automatisiert den
+      Release bereits (Tag-Push → Trusted-Publishing-Upload). Weiterhin zu
+      pflegen bleibt nur `version` in `pyproject.toml` (`__version__` liest sie
+      seit 0.7.3 aus den Paket-Metadaten) plus Tag und Release-Commit passend dazu.
 - [ ] **Drei Worktrees offen** — weiterhin vorhanden (per `git worktree list` erneut
-      geprüft, 08.08.), nicht angefasst, gehören anderen Arbeitssträngen:
+      geprüft, 09.08.), nicht angefasst, gehören anderen Arbeitssträngen:
       `~/.claude/jobs/e7963402/tmp/et-v061` (`fix/v061-load-trend-meta`),
       `~/Projekte/energietools-sim-fixes` (`sim-fixes`) und
       `/private/tmp/gridbert-e2e/wt/energietools` (detached HEAD, `f4ff253`) —
@@ -82,6 +89,38 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-09** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs):
+  externen `chore(data)`-Refresh vom 09.08. gepullt (`3f12b52`, 04:26 UTC,
+  `3513644..3f12b52`, `git pull --ff-only`) — nur Energiegemeinschaften-Verzeichnis
+  (272 Zeilen, ausschließlich `stand`-Datumsbumps 08.08.→09.08., kein inhaltlicher
+  Diff) + Netz-/Tarif-MANIFEST; Tarif-Katalog selbst unverändert (119 Einträge,
+  kein Preis-Update). PyPI ≡ Repo bei **0.8.3** (bestätigt, s. „Was live/fertig"),
+  707 Tests grün (vor und nach dem Pull). Gegen den heutigen Gridbert-Tarif-Alarm
+  geprüft (`energie_graz FEHLER 1`, **fünfte** Nacht in Folge seit 05.08.): Katalog
+  weiterhin unverändert 119 Einträge, `energie_graz` weiterhin 2 valide Einträge
+  (Graz StromFlex, Graz StromKlassik), `gueltig_ab` strukturell leer über alle
+  119/119 Einträge (unverändert seit 05.08.) — Staleness-Prüfung bleibt vollständig
+  Gridbert-seitig, kein energietools-seitiger Defekt (identischer Befund wie
+  05.–08.08.). **Quellen-Wächter** (70/72 erreichbar, 2 Fehler, 5 geändert/neu)
+  im Volltext geprüft (Gmail): die 2 Fehler sind reine Timeouts auf
+  `transparenzportal.gv.at` (CSV-Bericht) und `ris.bka.gv.at` (Gesetzesnummer
+  20010107, EEG) — kein Content-Diff, beide Quellen lokal bereits korrekt
+  referenziert (`data/energiegemeinschaften/fakten.json` Zeile 44/74 zeigt exakt
+  auf `Gesetzesnummer=20010107`). Die 5 geänderten/neuen Quellen sind durchweg
+  Re-Beobachtungen bereits korrekter lokaler Stände (`pvbaustria.at/eag-investzuschuss`
+  + `pvbaustria.at/pv-speicher` **neu beobachtet** — der Wächter zeigt jetzt zum
+  ersten Mal auf die am 07.08. hier korrigierte Domain, der am 08.08. vermutete
+  Deploy-Rückstand auf der Gridbert-Box ist damit behoben; 3× RIS-Gesetzesnummern
+  unverändert). Kein energietools-Handlungsbedarf. ruff-Lint unverändert bei 53
+  Fehlern (nur noch E501, absichtlich auf die Woche 17.–20.08. verschoben). Drei
+  Worktrees unverändert (`git worktree list`: `et-v061`, `energietools-sim-fixes`,
+  `gridbert-e2e/wt/energietools`). **Doku-Korrektur (Topf A):** „Was live/fertig"
+  und „prod ≠ live" trugen noch 0.8.2 und den überholten Satz „nächster Release
+  ist wieder manuell" — beide auf 0.8.3 und den seit 08.08. bekannten
+  Trusted-Publishing-Mechanismus (`.github/workflows/release.yml`, Tag-Push
+  löst automatisch aus) korrigiert; der Offene-Punkt „PyPI-Release automatisieren?"
+  war dadurch bereits beantwortet und als `[x]` markiert. Kein Push nötig — nur
+  Daten-Pull + Doku, keine Rechenlogik geändert.
 - **2026-08-08** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs):
   externen `chore(data)`-Refresh vom 08.08. gepullt (`b673b3a`, `2cf5421..b673b3a`,
   `git pull --ff-only`) — Energiegemeinschaften-Verzeichnis, Netz-MANIFEST und
@@ -131,26 +170,4 @@
   aufgefallen, nicht angefasst). Best-connect+spotty-Anfrage (Mi 12.08.) gegen den
   vorhandenen Bestand geprüft: Invoice-Parser + Tarifvergleich + rechnungsanalyse-
   Prozess sind bereits da, kein Neubau nötig — s. offene Punkte.
-- **2026-08-06** — Morgen-Check-in (Projektmodus, ohne Fan-out): externen
-  `chore(data)`-Refresh vom 06.08. gepullt (`5168f8c`, 05:58 UTC — noch nicht lokal,
-  per `git fetch` gefunden), PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün. Gegen
-  den heutigen Gridbert-Tarif-Alarm geprüft (energie_graz „veraltetes Preisblatt,
-  gültig ab 2024-06-12 statt erwartet 2026-01-28, nicht übernommen" + goldgas „keine
-  Tarif-Blöcke mehr", beide zweite Nacht in Folge):
-  **energie_graz** — Katalog führt weiterhin unverändert 2 valide Einträge (Graz
-  StromFlex, Graz StromKlassik); das Feld `gueltig_ab` ist im gesamten Katalog
-  (119/119 Einträgen) leer, die Preisblatt-Aktualität wird strukturell **nicht** in
-  diesem Katalog geführt — die Staleness-Prüfung läuft vollständig auf Gridbert-Seite,
-  hier nicht sichtbar/prüfbar. Kein energietools-seitiger Defekt.
-  **goldgas** — bestätigt weiterhin 0 Einträge im Katalog (war schon am 05.08. so),
-  Provider-Zahl konstant 59/59 `failed: []`. Tarifzahl 118→119 stammt von einem
-  neuen `energiedirect`-Tarif („Fix Fair 2027"), nicht von goldgas — der stille Drop
-  ist damit die **dritte** bestätigte Nacht in Folge derselben Ursache (Gridbert-seitig,
-  s. `gridbert-scraper-known-issues`). Kein energietools-seitiger Defekt.
-  **ruff-Lint** (Topf A, s. offene Punkte): Scope auf `energietools/`+`tests/`
-  eingegrenzt (`apps/simba`/`web` sind eigene Deploy-Ziele, nicht Teil dieses
-  Check-ins), 11 Regeln mechanisch mit `--fix` behoben, 707 Tests vor/nach grün,
-  Commit `39c4b31` gepusht. Netz-Daten (14 Netzbereiche, 2233 PLZ) und EEG-Verzeichnis
-  ebenfalls im 06.08.-Refresh aktualisiert, keine strukturellen Änderungen — relevant
-  für die Berater-Demo am 12.08., keine Handlung nötig.
-  (siehe vorherige Sessions im Git-Verlauf dieser Datei für 2026-08-05 und älter.)
+  (siehe vorherige Sessions im Git-Verlauf dieser Datei für 2026-08-06 und älter.)

@@ -86,12 +86,25 @@ class Tariff(BaseModel):
         default="", description="Zuletzt an der Quelle bestätigt (ISO); leer = nie gemessen",
     )
 
+    @computed_field(
+        description="Tage seit der letzten Bestätigung; null = nie gemessen",
+    )
+    @property
     def preis_alter_tage(self) -> int | None:
-        """Tage seit der letzten Bestätigung. ``None`` = nie gemessen."""
+        """Tage seit der letzten Bestätigung. ``None`` = nie gemessen.
+
+        Bewusst ein ``computed_field`` und keine reine Property: das Ergebnis
+        geht per ``model_dump`` an aufrufende Systeme (u.a. den MCP-Gateway,
+        der es einem Sprachmodell vorlegt). Müsste der Aufrufer die Tage selbst
+        aus dem Datum ausrechnen, wäre genau das eine Rechnung im Sprachmodell.
+        """
         from energietools.capabilities.tariffs.models import _tage_seit
 
         return _tage_seit(self.zuletzt_bestaetigt)
 
+    @computed_field(
+        description="True = Preis konnte seit über 14 Tagen nicht bestätigt werden",
+    )
     @property
     def preis_veraltet(self) -> bool:
         """Konnte der Preis seit mehr als ``PREIS_MAX_ALTER_TAGE`` nicht bestätigt werden?
@@ -101,7 +114,7 @@ class Tariff(BaseModel):
         """
         from energietools.capabilities.tariffs.models import PREIS_MAX_ALTER_TAGE
 
-        alter = self.preis_alter_tage()
+        alter = self.preis_alter_tage
         return alter is not None and alter > PREIS_MAX_ALTER_TAGE
     ist_biogas: bool = Field(default=False, description="Gas-Ökoflag (Biogas-Anteil)")
     rechenweg: Rechenweg | None = Field(default=None, description="Transparenter Berechnungsweg")

@@ -122,7 +122,7 @@ class TestImVergleichsergebnis:
 
         assert gefunden.zuletzt_bestaetigt == stand
         assert gefunden.preis_veraltet is True
-        assert gefunden.preis_alter_tage() == 20
+        assert gefunden.preis_alter_tage == 20
 
     def test_ein_frischer_tarif_traegt_keinen_hinweis(self):
         assert self._vergleich(_vor(1)).alternativen[0].preis_veraltet is False

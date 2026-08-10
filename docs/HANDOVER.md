@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-09.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-10.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -28,17 +28,54 @@
 
 ## prod ≠ live
 
-- (nichts offen — PyPI 0.8.3 ≡ `pyproject.toml` 0.8.3, verifiziert 09.08.)
+- (nichts offen — PyPI 0.8.3 ≡ `pyproject.toml` 0.8.3, verifiziert 09.08. + erneut 10.08.)
 - Randnotiz: Es gibt **keine CI für Tests/Lint** (kein Workflow prüft Pushes) —
   nur der Release selbst ist automatisiert. `.github/workflows/release.yml`
   triggert auf `git push origin vX.Y.Z` und lädt via Trusted Publishing (OIDC,
   kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
   Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
-## Aus dem globalen Check-in (2026-08-08)
+## Aus dem globalen Check-in (2026-08-10)
 
-- Gridbert lädt dieses Paket gepinnt auf v0.8.2 und braucht dort den 4. Attributions-Eintrag (Kindberg) in `vnb_attribution.json`; auf HEAD `64e1a6d` stehen weiterhin nur 3 → ohne Commit, Tag und Pin-Bump in Gridbert bleibt der Kindberg-Netzbetreiber für Nutzer falsch, obwohl der Fix dort als "ausgerollt" geführt wird [Quelle: Check-in gridbert, 08.08.]
-- Der pvaustria.at-Fehlalarm des Quellen-Wächters hat seine Ursache nicht hier: der Gridbert-Scraper wurde seit dem Fix vom 07.08. nicht auf die Box deployed → die hiesige Korrektur ist bestätigt, die Quellenliste dort läuft nach [Quelle: Check-in gridbert, 08.08.]
+- **Tarif-Daten-Alarm 10.08. 04:47 UTC (FEHLER 2, vorher 1):** Volltext (Gmail) geprüft.
+  `energie_graz` (Graz Klassik) — **6. Nacht in Folge seit 05.08.**, heute mit konkreterer
+  Diagnose als bisher: „Preisblatt ist veraltet (gültig ab 2024-06-12, erwartet ab
+  2026-01-28)" statt der früheren 404. Bereits als Arbeitsauftrag dokumentiert
+  [bekannt: gridbert-scraper-known-issues, Alarm-Abschnitt 05.08.]. energietools-Katalog
+  unverändert: 2 valide Einträge, `gueltig_ab` strukturell leer über 119/119 (unverändert
+  seit 05.08.) — kein energietools-seitiger Defekt, identischer Befund wie 05.–09.08.
+  **Neu und Ursache der Verdopplung:** `redgas_gas` — „Preisblatt kein gültiges PDF"
+  (`redgas.at/php/preisblatt_tcpdf.php`). Geprüft: das ist der **Gas**-Scraper des
+  Lieferanten redgas (nicht der Strom-Tarif `redgas` aus `catalog.json`, Zeile 1829, der
+  unberührt bleibt). Gas-Tarifvergleich ist laut `TODO.md` bewusst noch nicht in
+  energietools (E-Control-Client-Migration offen, Scraper bleiben in gridbert) → außerhalb
+  des Scopes dieser Library, kein hiesiger Katalogeintrag betroffen [neu].
+- **Quellen-Wächter 10.08. 05:58 UTC (4 Fehler, vorher 2, 0 geändert/neu):** Volltext
+  (Gmail) geprüft — alle 4 Fehler sind Timeouts auf **ris.bka.gv.at**. 1 davon ist der seit
+  07./08.08. bekannte EEG-Verweis (Gesetzesnummer 20010107, referenziert in
+  `energiegemeinschaften/fakten.json` Zeile 44/74). **3 sind neu** und zeigen auf
+  Gesetzesnummer 20012195 / 20005371 / 10004873 — per `grep` gegen
+  `data/foerderungen/foerderungen.json` verifiziert: alle drei sind dort korrekt als
+  Primärquelle referenziert (`bund-eag-invest-pv-speicher`, `bund-energiemanagement-
+  flexibilisierung`, `bund-pv-nullsteuersatz`, Abrufdatum 2026-08-01) — kein Link-Rot,
+  keine falsche Domain. **Live-Gegenprobe von hier (10.08., ~11:10):** `curl` gegen
+  `ris.bka.gv.at` timet zweimal aus (sowohl die neue als auch die bekannte
+  Gesetzesnummer-URL, 15s), während `transparenzportal.gv.at` (der 2. Fehler vom 09.08.)
+  jetzt wieder normal antwortet (302, 0,5s). Befund: **RIS-seitige Störung/Latenz beim
+  Bund**, nicht 3 neu kaputte Quellen und nicht dieselbe alte Quelle wiederholt — die
+  Fehlerzahl hat sich verdoppelt, weil ein weiterer RIS-Endpoint zusätzlich zum bekannten
+  betroffen ist. Kein energietools-Handlungsbedarf, keine Korrektur an den Quellen nötig
+  [neu].
+- **Netzbetreiber-IDs (Salzburg Netz / Energie AG KARLSTROM → AT003000):** geprüft, ob
+  diese Library numerische VNB-ID-Codes (E-Control-Schema `AT0xxxxx`) führt — **tut sie
+  nicht**. `vnb_attribution.json` und `netzkosten.json` nutzen lesbare Keys
+  (`netz_ooe`, `ewerk_kindberg`, …), kein `AT0xxxxx`-Feld irgendwo im Repo
+  (`grep -rE "AT[0-9]{6}"` → 0 Treffer). Laut Vault (`eda-ccm-prozess`, Stand 31.07.) ist
+  `AT003000` = Netz Oberösterreich GmbH; der passende lesbare Key `netz_ooe` ist bereits
+  korrekt in `netzkosten.json` vorhanden. `KARLSTROM` kommt in keiner lokalen Datei vor
+  (`grep -rliE karlstrom` → 0 Treffer) — es gibt hier nichts Falsches, weil das
+  AT0xxxxx-Schema zur EDA/CCM-Marktprozessebene gehört (gridbert-seitig), nicht zum
+  Tarif-/Netzkosten-Datenmodell von energietools. Kein Handlungsbedarf hier [neu].
 
 ## Offene Punkte (nächste Session)
 
@@ -62,9 +99,11 @@
       `import re as _re_module` in `tools/invoice_parser.py` entfernt, `import re` an
       den Kopf, 24 Aufrufstellen umbenannt; Semikolon-Statement in
       `tools/energy_monitor.py::_check_price_alert` aufgeteilt). 707 Tests vorher/nachher
-      grün, Commit `c95ffff`, gepusht. In-Scope-Rest: 60 → **53**, ausschließlich noch
-      **E501 Line-too-long** (manuelles Umbrechen, kein Auto-Fix) — braucht weiter eine
-      eigene Session, keine CI die das fängt.
+      grün, Commit `c95ffff`, gepusht. In-Scope-Rest (`energietools/`+`tests/`+`examples/`,
+      ohne `apps/simba/` — eigenes Deploy-Ziel, s. Notes): 60 → 53 → **55** (10.08.,
+      Konsistenzcheck, +2 seit 09.08.), ausschließlich noch **E501 Line-too-long**
+      (manuelles Umbrechen, kein Auto-Fix) — braucht weiter eine eigene Session, bewusst
+      auf die Woche 17.–20.08. verschoben, keine CI die das fängt.
 - [ ] **Restliche SEO/GEO-Punkte umsetzen.** Erledigt ist nur Punkt 1 des Plans
       („GitHub energietools"). Die Punkte 2 ff. liegen bei Ben und wurden in dieser
       Session nicht genannt.
@@ -89,6 +128,33 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-10** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs): kein
+  externer `chore(data)`-Refresh seit 09.08. (nichts zu pullen, `git log` seit 09.08.
+  zeigt nur den eigenen Doku-Commit). PyPI ≡ Repo bei **0.8.3** (erneut verifiziert),
+  707 Tests grün, `git status` sauber, keine unveröffentlichten Commits. Gegen die
+  beiden heutigen Gridbert-Alarme geprüft (Volltext, Gmail):
+  **Tarif-Daten-Alarm** (FEHLER 2, vorher 1) — `energie_graz` unverändert (6. Nacht
+  in Folge seit 05.08., bekannt: `gridbert-scraper-known-issues`), Katalog weiterhin
+  2 valide Einträge, `gueltig_ab` strukturell leer über 119/119. Der zweite Fehler ist
+  **neu und anders**: `redgas_gas` (Gas-Preisblatt kein gültiges PDF) — das ist der
+  Gas-Scraper des Lieferanten redgas, nicht der hier geführte Strom-Tarif `redgas`;
+  Gas ist laut `TODO.md` bewusst noch nicht in energietools → außerhalb des Scopes,
+  kein Katalogeintrag betroffen.
+  **Quellen-Wächter** (4 Fehler, vorher 2, 0 geändert/neu) — alle 4 sind
+  `ris.bka.gv.at`-Timeouts: 1 bekannt (EEG Gesetzesnummer 20010107), 3 neu
+  (Gesetzesnummer 20012195/20005371/10004873, per grep gegen `foerderungen.json`
+  als korrekt referenzierte Primärquellen verifiziert — kein Link-Rot). Live-Gegenprobe
+  von hier: `ris.bka.gv.at` timet gerade selbst zweimal aus (15s), während
+  `transparenzportal.gv.at` (gestriger 2. Fehler) wieder normal antwortet (302,
+  0,5s) — RIS-seitige Störung beim Bund, kein energietools-Handlungsbedarf.
+  **Netzbetreiber-IDs geprüft** (Salzburg Netz / Energie AG KARLSTROM→AT003000 aus
+  dem globalen Kontext): energietools führt keine `AT0xxxxx`-Codes, nur lesbare Keys;
+  `netz_ooe` (= AT003000 laut Vault `eda-ccm-prozess`) ist bereits korrekt vorhanden,
+  `KARLSTROM` kommt nirgends vor — das Thema liegt auf der EDA/CCM-Ebene (gridbert),
+  nicht im Datenmodell dieser Library. ruff-Lint (Konsistenzcheck, In-Scope ohne
+  `apps/simba/`): 53 → **55**, weiterhin ausschließlich E501, weiter auf 17.–20.08.
+  verschoben. Drei Worktrees unverändert (`git worktree list`). Kein Push nötig — nur
+  Doku, keine Rechenlogik geändert.
 - **2026-08-09** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs):
   externen `chore(data)`-Refresh vom 09.08. gepullt (`3f12b52`, 04:26 UTC,
   `3513644..3f12b52`, `git pull --ff-only`) — nur Energiegemeinschaften-Verzeichnis
@@ -146,28 +212,4 @@
   (`git worktree list`: `et-v061`, `energietools-sim-fixes`,
   `gridbert-e2e/wt/energietools`). Kein Push nötig — nur Daten-Pull, keine
   Rechenlogik geändert.
-- **2026-08-07** — Morgen-Check-in (Projektmodus, ohne Fan-out): externen
-  `chore(data)`-Refresh vom 07.08. gepullt (`6da8902`, 05:02 UTC, `f4ff253..6da8902`,
-  `git pull --ff-only`), PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün. Gegen den
-  heutigen Gridbert-Tarif-Alarm geprüft (`energie_graz FEHLER 1`, dieselben Zahlen wie
-  06.08., damit die **dritte** Nacht in Folge):
-  **energie_graz** — Katalog unverändert 2 valide Einträge (Graz StromFlex, Graz
-  StromKlassik), `provider_coverage` 59/59 `failed: []`, `gueltig_ab` weiterhin
-  strukturell leer über 119/119 Einträge — Staleness-Prüfung bleibt vollständig
-  Gridbert-seitig. Kein energietools-seitiger Defekt.
-  **Quellen-Wächter** (14 geändert, u.a. `[foerderung-bund]
-  pvaustria.at/eag-investzuschuss`) geprüft: die URL liefert einen 301 auf
-  `pvbaustria.at` (verifiziert per `dig`/`curl`/Content-Abgleich — derselbe Betreiber,
-  Bundesverband Photovoltaic Austria, kein Domain-Hijack; Fördersätze und alle 3
-  Call-Termine 2026 inhaltlich identisch zum lokalen Stand vom 01.08.). URL + Abrufdatum
-  in `data/foerderungen/foerderungen.json` korrigiert, Commit `7d8af3e` gepusht.
-  **ruff-Lint** (Topf A): die 7 verbleibenden Nicht-E501-Fehler aus dem 06.08.-Fund
-  behoben — `UP042` (2× `StrEnum`), `I001`/`E702` (verwaister Mid-File-Reimport in
-  `invoice_parser.py`, Semikolon-Statement in `energy_monitor.py`). 707 Tests vor/nach
-  grün, Commit `c95ffff` gepusht. In-Scope-Rest: 60 → 53, nur noch E501. Drei
-  Worktrees per `git worktree list` bestätigt (zwei bekannt seit 04.08., ein
-  dritter — `/private/tmp/gridbert-e2e/wt/energietools`, detached HEAD — neu
-  aufgefallen, nicht angefasst). Best-connect+spotty-Anfrage (Mi 12.08.) gegen den
-  vorhandenen Bestand geprüft: Invoice-Parser + Tarifvergleich + rechnungsanalyse-
-  Prozess sind bereits da, kein Neubau nötig — s. offene Punkte.
-  (siehe vorherige Sessions im Git-Verlauf dieser Datei für 2026-08-06 und älter.)
+  (siehe vorherige Sessions im Git-Verlauf dieser Datei für 2026-08-07 und älter.)

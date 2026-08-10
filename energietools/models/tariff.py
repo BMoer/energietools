@@ -78,6 +78,31 @@ class Tariff(BaseModel):
         default=0.0, description="Lieferanten-Aufschlag auf den Spot-Index (netto ct/kWh)",
     )
     spot_index: str = Field(default="", description="Börsenindex des Spot-Tarifs, z.B. 'EPEX AT'")
+    # Wann dieser Preis zuletzt an der Quelle BESTÄTIGT werden konnte. Additiv:
+    # eigene Rechnungen und ältere Katalog-Snapshots tragen es nicht, das gilt
+    # als „nie gemessen" und NICHT als veraltet. Siehe CatalogTariff für die
+    # Herkunft und PREIS_MAX_ALTER_TAGE für die Grenze.
+    zuletzt_bestaetigt: str = Field(
+        default="", description="Zuletzt an der Quelle bestätigt (ISO); leer = nie gemessen",
+    )
+
+    def preis_alter_tage(self) -> int | None:
+        """Tage seit der letzten Bestätigung. ``None`` = nie gemessen."""
+        from energietools.capabilities.tariffs.models import _tage_seit
+
+        return _tage_seit(self.zuletzt_bestaetigt)
+
+    @property
+    def preis_veraltet(self) -> bool:
+        """Konnte der Preis seit mehr als ``PREIS_MAX_ALTER_TAGE`` nicht bestätigt werden?
+
+        Ein Hinweis für die Anzeige, kein Ausschluss: der Tarif bleibt im
+        Vergleich. Ohne Datum ``False`` — ungemessen ist nicht veraltet.
+        """
+        from energietools.capabilities.tariffs.models import PREIS_MAX_ALTER_TAGE
+
+        alter = self.preis_alter_tage()
+        return alter is not None and alter > PREIS_MAX_ALTER_TAGE
     ist_biogas: bool = Field(default=False, description="Gas-Ökoflag (Biogas-Anteil)")
     rechenweg: Rechenweg | None = Field(default=None, description="Transparenter Berechnungsweg")
     # Präsentations-/Vertragsfelder (B.1-Port des Vergleichskerns; additiv/defaulted).
@@ -140,6 +165,7 @@ class VersorgerAbdeckungBlock(BaseModel):
         """Skalarer Zähler der Abdeckungslücke — für numerische Caveat-Trigger
         (ein '> 0'-Vergleich auf der Liste selbst wäre ein Typfehler)."""
         return len(self.im_katalog_fehlend)
+
 
 
 class TariffComparison(BaseModel):

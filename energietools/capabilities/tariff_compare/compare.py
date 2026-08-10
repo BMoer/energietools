@@ -121,6 +121,10 @@ def _tariff_from_row(
         wechsel_link=row.get("wechsel_link", ""),
         spot_aufschlag_ct=float(row.get("spot_aufschlag_ct") or 0.0),
         spot_index=row.get("spot_index", ""),
+        # Bestaetigungsdatum durchreichen: ohne diese Zeile bliebe die
+        # Kennzeichnung im Katalog stecken, weil das Ergebnis feldweise
+        # gebaut wird und unbekannte row-Keys still verloren gehen.
+        zuletzt_bestaetigt=str(row.get("zuletzt_bestaetigt") or ""),
         # Zielgruppe: fail-closed — fehlt der Key (Bestandszeile), gilt "standard".
         zielgruppe=row.get("zielgruppe") or "standard",
         unterbrechbar=bool(row.get("unterbrechbar")),

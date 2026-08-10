@@ -128,10 +128,13 @@
 
 ## Session-Log (letzte 3)
 
-- **2026-08-10** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs): kein
-  externer `chore(data)`-Refresh seit 09.08. (nichts zu pullen, `git log` seit 09.08.
-  zeigt nur den eigenen Doku-Commit). PyPI ≡ Repo bei **0.8.3** (erneut verifiziert),
-  707 Tests grün, `git status` sauber, keine unveröffentlichten Commits. Gegen die
+- **2026-08-10** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs): externen
+  `chore(data)`-Refresh vom 10.08. gepullt/rebased (`77a3c00`, 04:48 UTC — lag beim ersten
+  Health-Check noch nicht im lokalen Fetch, per `git fetch`+`rebase` nachgezogen) — 3
+  Preis-Updates (`spot_aufschlag_ct` 2×, `energiepreis_ct_kwh` 1×) + Energiegemeinschaften-
+  Verzeichnis-Datumsbumps; Tarif-Katalog weiterhin 119 Einträge, `energie_graz` unverändert
+  2 valide Einträge. PyPI ≡ Repo bei **0.8.3** (erneut verifiziert), 707 Tests grün (vor
+  und nach dem Rebase), `git status` sauber. Gegen die
   beiden heutigen Gridbert-Alarme geprüft (Volltext, Gmail):
   **Tarif-Daten-Alarm** (FEHLER 2, vorher 1) — `energie_graz` unverändert (6. Nacht
   in Folge seit 05.08., bekannt: `gridbert-scraper-known-issues`), Katalog weiterhin
@@ -153,8 +156,9 @@
   `KARLSTROM` kommt nirgends vor — das Thema liegt auf der EDA/CCM-Ebene (gridbert),
   nicht im Datenmodell dieser Library. ruff-Lint (Konsistenzcheck, In-Scope ohne
   `apps/simba/`): 53 → **55**, weiterhin ausschließlich E501, weiter auf 17.–20.08.
-  verschoben. Drei Worktrees unverändert (`git worktree list`). Kein Push nötig — nur
-  Doku, keine Rechenlogik geändert.
+  verschoben. Drei Worktrees unverändert (`git worktree list`). Nur Doku-Commit gepusht
+  (der Daten-Refresh kam bereits gepusht vom externen Workflow) — keine Rechenlogik
+  geändert.
 - **2026-08-09** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs):
   externen `chore(data)`-Refresh vom 09.08. gepullt (`3f12b52`, 04:26 UTC,
   `3513644..3f12b52`, `git pull --ff-only`) — nur Energiegemeinschaften-Verzeichnis

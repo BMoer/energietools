@@ -92,7 +92,15 @@
       **Was man trotzdem wissen muss:** Einen Tag `vX.Y.Z` zu pushen IST hier der Release —
       kein manueller Zwischenschritt, kein Abbruch möglich, PyPI-Versionen sind nicht
       überschreibbar. Tests grün und Versionsnummer geprüft, bevor der Tag rausgeht.
-- [ ] **ruff-Lint aufräumen (Rest).** 07.08. (Topf A, dieser Lauf): die 7 verbleibenden
+- [x] **ruff-Lint aufräumen (Rest) — abgeschlossen 2026-08-10.** Der Lauf meldete 148 Befunde, davon 120
+      `E501`. Die 28 echten Regelverstöße (15× `I001`, 4× `F841`, 4× `UP017`, 2× `F401`, 2× `UP006`,
+      1× `UP035`) lagen **ausnahmslos in `apps/simba/vendor/pvtool/`**, also in eingebundenem
+      Fremdcode. Ein `--fix`-Lauf hätte dort 19 Dateien umformatiert und beim nächsten
+      Upstream-Abgleich nur Konflikte erzeugt; die Änderung wurde deshalb zurückgenommen
+      (`git checkout -- apps/simba/vendor/`, Arbeitsverzeichnis danach sauber) und stattdessen
+      `extend-exclude = ["apps/simba/vendor"]` in `pyproject.toml` gesetzt. Ergebnis: 148 → 89
+      Befunde, **alle verbleibenden sind `E501`**, kein einziger echter Regelverstoß im eigenen
+      Code. 707 Tests grün vor und nach der Änderung. Ursprünglicher Punkt: 07.08. (Topf A, dieser Lauf): 07.08. (Topf A, dieser Lauf): die 7 verbleibenden
       Nicht-E501-Regeln aus dem 06.08.-Fund behoben — `UP042` (`(str, Enum)` →
       `enum.StrEnum` in `capabilities/lastgang/signals.py` + `models/report.py`,
       `requires-python >=3.11` deckt das), `I001`/`E702` (verwaister Mid-File-Reimport
@@ -114,7 +122,7 @@
       Release bereits (Tag-Push → Trusted-Publishing-Upload). Weiterhin zu
       pflegen bleibt nur `version` in `pyproject.toml` (`__version__` liest sie
       seit 0.7.3 aus den Paket-Metadaten) plus Tag und Release-Commit passend dazu.
-- [ ] **Drei Worktrees offen** — weiterhin vorhanden (per `git worktree list` erneut
+- [x] **Worktrees aufgeräumt (2026-08-10): einer entfernt, zwei bleiben bewusst.** `/private/tmp/gridbert-e2e/wt/energietools` war als `prunable` markiert (Zielverzeichnis existierte nicht mehr) und wurde per `git worktree prune` entfernt. Die anderen beiden (`~/.claude/jobs/e7963402/tmp/et-v061` auf `fix/v061-load-trend-meta` und `~/Projekte/energietools-sim-fixes` auf `sim-fixes`) existieren weiterhin auf der Platte, gehören anderen Arbeitssträngen und wurden nicht angefasst. Ursprünglicher Punkt: **Drei Worktrees offen** — weiterhin vorhanden (per `git worktree list` erneut
       geprüft, 09.08.), nicht angefasst, gehören anderen Arbeitssträngen:
       `~/.claude/jobs/e7963402/tmp/et-v061` (`fix/v061-load-trend-meta`),
       `~/Projekte/energietools-sim-fixes` (`sim-fixes`) und

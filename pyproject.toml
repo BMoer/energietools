@@ -91,6 +91,10 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+# Eingebundener Fremdcode wird nicht mitgelintet. Er stellte 28 der 148 Befunde
+# vom 10.08. — allesamt Importsortierung und Modernisierungshinweise, die beim
+# nächsten Upstream-Abgleich nur Konflikte erzeugen würden.
+extend-exclude = ["apps/simba/vendor"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]

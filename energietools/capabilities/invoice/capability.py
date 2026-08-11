@@ -205,14 +205,22 @@ class FinalizeInvoiceCapability(Capability):
         }
 
     def _run(self, **kwargs: Any) -> dict[str, Any]:
+        from dataclasses import asdict
+
+        from energietools.capabilities.invoice.nachrechnung import rechne_nach
         from energietools.models import Invoice
         from energietools.tools.invoice_parser import finalize_invoice
 
         facts = _validiere_oder_rejecte(kwargs)
         ergebnis = finalize_invoice(facts_zu_rohdict(facts))
         invoice = Invoice(**ergebnis)
+        # Formale Prüfung: rechnet die Rechnung Position für Position nach,
+        # statt sie nur auf Plausibilität abzuklopfen. Getrennt vom
+        # ``invoice``-Block, weil es eine Aussage ÜBER die Rechnung ist und
+        # keine abgeleitete Kennzahl AUS ihr.
         return {
             "invoice": invoice.model_dump(mode="json"),
             "rechenweg": invoice.rechenweg,
             "warnings": invoice.warnings,
+            "formale_pruefung": asdict(rechne_nach(facts)),
         }

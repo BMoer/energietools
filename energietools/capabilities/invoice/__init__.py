@@ -22,9 +22,16 @@ from energietools.capabilities.invoice.facts import (
     QuellenAnker,
     pruefe_invoice_facts,
 )
+from energietools.capabilities.invoice.nachrechnung import (
+    Nachrechnung,
+    Positionspruefung,
+    rechne_nach,
+)
 
 __all__ = [
     "Betrag",
+    "Nachrechnung",
+    "Positionspruefung",
     "FinalizeInvoiceCapability",
     "Grundgebuehr",
     "InvoiceFacts",
@@ -32,4 +39,5 @@ __all__ = [
     "QuellenAnker",
     "ValidateInvoiceFactsCapability",
     "pruefe_invoice_facts",
+    "rechne_nach",
 ]

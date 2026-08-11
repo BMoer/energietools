@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-10.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-11.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -25,57 +25,99 @@
   `.github/workflows/release.yml` (Tag-Push löst Trusted-Publishing-Upload aus,
   kein Token mehr nötig, s. Offene Punkte 08.08.). Kein PyPI-Eintrag ist eigenständig
   auf Aktualität geprüft worden — nur der Versions-Gleichstand.
+- **PyPI-Release 0.8.5** (Stand 2026-08-11, verifiziert per `pypi.org/pypi/energietools/json`
+  gegen `pyproject.toml` — beide 0.8.5). Zwei weitere Releases am **10.08. abends,
+  außerhalb des Check-in-Flows** (Ben direkt, Commits `74f3bdb`/`e6e4588`, 18:37/18:47,
+  kein begleitender `docs(handover)`-Commit — deshalb hier erst jetzt nachgetragen):
+  **0.8.4** führt `CatalogTariff.zuletzt_bestaetigt` (ISO, additiv/defaulted) plus
+  `preis_alter_tage()`/`preis_veraltet` (Schwelle `PREIS_MAX_ALTER_TAGE=14` Tage) ein —
+  ein Preis wird bei Überschreitung **gekennzeichnet, nicht ausgeblendet**; **0.8.5**
+  macht beide zu `computed_field`s am `Tariff`-Ergebnismodell, damit sie im
+  `model_dump` ankommen (der MCP-Gateway legt das Dump einem Sprachmodell vor, das
+  sonst selbst rechnen müsste). 15 neue Tests, Motivation laut Commit-Body explizit
+  der 11-Tage-404-Fall vom August 2026. **Befund dieses Check-ins, zweifach
+  überprüft (erster Stand vor dem 11.08.-Datenrefresh, dann erneut danach — 4
+  `chore(data)`-Commits liefen während dieser Session, 04:29–06:37 UTC):** vor dem
+  Refresh war `zuletzt_bestaetigt` katalogweit 0/119 befüllt. **Nach dem Refresh
+  (aktueller Stand, `origin/main`): 117/119 befüllt** — gridberts Scraper-Stack hat
+  das neue Feld also bereits am selben Tag angeschlossen. Die **exakt 2 Ausnahmen
+  sind beide `energie_graz`-Einträge** (`zuletzt_bestaetigt: ""`), und zwar bereits
+  im allerersten Refresh dieser Session (04:29 UTC) — kein Zufall, sondern Abbild
+  des Scrape-Fehlers: ein Preis, der nie bestätigt werden konnte, bekommt nie ein
+  Bestätigungsdatum. **Das deckt aber eine Lücke im Mechanismus auf, keine
+  Bestätigung, dass er greift:** `preis_veraltet` ist laut Code (`models.py`)
+  bei leerem `zuletzt_bestaetigt` bewusst `False` („nie gemessen" ≠ „veraltet",
+  Begründung im Commit: sonst wären alle Alt-Snapshots ohne das Feld fälschlich
+  markiert). Für `energie_graz` bedeutet das: der Tarif mit dem greifbar
+  schlechtesten Bestätigungsstand im ganzen Katalog (6.+ Nacht in Folge
+  ungeprüft, Preisblatt 2024-06-12 statt 2026-01-28) zeigt **denselben
+  `preis_veraltet=False`** wie ein heute frisch bestätigter Tarif — die
+  14-Tage-Regel läuft nur für Tarife an, die *einmal* bestätigt wurden und dann
+  veralten, nicht für einen, der *nie* bestätigt wird. Das ist eine bewusste
+  Designentscheidung von Ben (Commit-Body von `74f3bdb`), keine Codeänderung von
+  hier aus — aber ein konkreter Punkt, den er kennen sollte, weil er am
+  einzigen aktuell betroffenen Fall sichtbar wird [siehe `fuer_ben`].
 
 ## prod ≠ live
 
-- (nichts offen — PyPI 0.8.3 ≡ `pyproject.toml` 0.8.3, verifiziert 09.08. + erneut 10.08.)
+- (nichts offen — PyPI 0.8.5 ≡ `pyproject.toml` 0.8.5, verifiziert 11.08.; 0.8.4/0.8.5
+  liefen am 10.08. abends außerhalb des Check-in-Flows, s. „Was live/fertig")
 - Randnotiz: Es gibt **keine CI für Tests/Lint** (kein Workflow prüft Pushes) —
   nur der Release selbst ist automatisiert. `.github/workflows/release.yml`
   triggert auf `git push origin vX.Y.Z` und lädt via Trusted Publishing (OIDC,
   kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
   Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
-## Aus dem globalen Check-in (2026-08-10)
+## Aus dem globalen Check-in (2026-08-11)
 
-- **Tarif-Daten-Alarm 10.08. 04:47 UTC (FEHLER 2, vorher 1):** Volltext (Gmail) geprüft.
-  `energie_graz` (Graz Klassik) — **6. Nacht in Folge seit 05.08.**, heute mit konkreterer
-  Diagnose als bisher: „Preisblatt ist veraltet (gültig ab 2024-06-12, erwartet ab
-  2026-01-28)" statt der früheren 404. Bereits als Arbeitsauftrag dokumentiert
-  [bekannt: gridbert-scraper-known-issues, Alarm-Abschnitt 05.08.]. energietools-Katalog
-  unverändert: 2 valide Einträge, `gueltig_ab` strukturell leer über 119/119 (unverändert
-  seit 05.08.) — kein energietools-seitiger Defekt, identischer Befund wie 05.–09.08.
-  **Neu und Ursache der Verdopplung:** `redgas_gas` — „Preisblatt kein gültiges PDF"
-  (`redgas.at/php/preisblatt_tcpdf.php`). Geprüft: das ist der **Gas**-Scraper des
-  Lieferanten redgas (nicht der Strom-Tarif `redgas` aus `catalog.json`, Zeile 1829, der
-  unberührt bleibt). Gas-Tarifvergleich ist laut `TODO.md` bewusst noch nicht in
-  energietools (E-Control-Client-Migration offen, Scraper bleiben in gridbert) → außerhalb
-  des Scopes dieser Library, kein hiesiger Katalogeintrag betroffen [neu].
-- **Quellen-Wächter 10.08. 05:58 UTC (4 Fehler, vorher 2, 0 geändert/neu):** Volltext
-  (Gmail) geprüft — alle 4 Fehler sind Timeouts auf **ris.bka.gv.at**. 1 davon ist der seit
-  07./08.08. bekannte EEG-Verweis (Gesetzesnummer 20010107, referenziert in
-  `energiegemeinschaften/fakten.json` Zeile 44/74). **3 sind neu** und zeigen auf
-  Gesetzesnummer 20012195 / 20005371 / 10004873 — per `grep` gegen
-  `data/foerderungen/foerderungen.json` verifiziert: alle drei sind dort korrekt als
-  Primärquelle referenziert (`bund-eag-invest-pv-speicher`, `bund-energiemanagement-
-  flexibilisierung`, `bund-pv-nullsteuersatz`, Abrufdatum 2026-08-01) — kein Link-Rot,
-  keine falsche Domain. **Live-Gegenprobe von hier (10.08., ~11:10):** `curl` gegen
-  `ris.bka.gv.at` timet zweimal aus (sowohl die neue als auch die bekannte
-  Gesetzesnummer-URL, 15s), während `transparenzportal.gv.at` (der 2. Fehler vom 09.08.)
-  jetzt wieder normal antwortet (302, 0,5s). Befund: **RIS-seitige Störung/Latenz beim
-  Bund**, nicht 3 neu kaputte Quellen und nicht dieselbe alte Quelle wiederholt — die
-  Fehlerzahl hat sich verdoppelt, weil ein weiterer RIS-Endpoint zusätzlich zum bekannten
-  betroffen ist. Kein energietools-Handlungsbedarf, keine Korrektur an den Quellen nötig
-  [neu].
-- **Netzbetreiber-IDs (Salzburg Netz / Energie AG KARLSTROM → AT003000):** geprüft, ob
-  diese Library numerische VNB-ID-Codes (E-Control-Schema `AT0xxxxx`) führt — **tut sie
-  nicht**. `vnb_attribution.json` und `netzkosten.json` nutzen lesbare Keys
-  (`netz_ooe`, `ewerk_kindberg`, …), kein `AT0xxxxx`-Feld irgendwo im Repo
-  (`grep -rE "AT[0-9]{6}"` → 0 Treffer). Laut Vault (`eda-ccm-prozess`, Stand 31.07.) ist
-  `AT003000` = Netz Oberösterreich GmbH; der passende lesbare Key `netz_ooe` ist bereits
-  korrekt in `netzkosten.json` vorhanden. `KARLSTROM` kommt in keiner lokalen Datei vor
-  (`grep -rliE karlstrom` → 0 Treffer) — es gibt hier nichts Falsches, weil das
-  AT0xxxxx-Schema zur EDA/CCM-Marktprozessebene gehört (gridbert-seitig), nicht zum
-  Tarif-/Netzkosten-Datenmodell von energietools. Kein Handlungsbedarf hier [neu].
+- **Tarif-Daten-Alarm 11.08. (4× FEHLER 1, energie_graz):** Katalog geprüft —
+  unverändert 2 valide Einträge (Graz StromFlex, Graz StromKlassik), `gueltig_ab`
+  bei beiden weiterhin `""`. Live-Preisblatt laut Alarm auf 2024-06-12 datiert statt
+  der erwarteten 2026-01-28 — Anbieter pflegt seit über 1,5 Jahren nicht
+  [bekannt: gridbert-scraper-known-issues]. **Neuer Befund, der über die reine
+  Wiederholung hinausgeht:** energietools trägt seit 10.08. abends (0.8.4/0.8.5,
+  s. „Was live/fertig") einen fertigen Mechanismus genau für diesen Fall —
+  `zuletzt_bestaetigt`/`preis_alter_tage()`/`preis_veraltet` (14-Tage-Schwelle).
+  gridberts Scraper-Stack hat das Feld **noch während dieser Session** angeschlossen
+  (4 `chore(data)`-Refreshs 04:29–06:37 UTC: vorher 0/119, nachher 117/119 befüllt) —
+  die **einzigen 2 unbefüllten Einträge im ganzen Katalog sind `energie_graz`**
+  (Abbild des Scrape-Fehlers: nie bestätigt → kein Datum). Trotzdem zeigt
+  `preis_veraltet` für `energie_graz` weiterhin `False`, weil der Code ein leeres
+  Datum bewusst als „nie gemessen", nicht als „veraltet" wertet — die 14-Tage-Regel
+  greift nur bei *einmal bestätigt, dann alt geworden*, nicht bei *nie bestätigt*.
+  Der Mechanismus markiert also aktuell nicht den einzigen Katalogeintrag, für den
+  er gebaut wurde [siehe `fuer_ben`]. **Stilllegen geprüft:** ein Entfernen/Befristen der 2 `energie_graz`-Einträge wäre
+  in energietools **eine reine Datenänderung, keine Codeänderung** —
+  `capabilities/tariffs/catalog.py` filtert bereits generisch über `gueltig_bis`
+  (kein Provider-Key ist im Code hartverdrahtet), und die Firmenmetadaten in
+  `providers/anbieter.json`/`lieferanten.json` (E-Mail/Website/Aliases fürs
+  Wechsel-Tooling) sind unabhängig davon und blieben unberührt. Kein Katalog-Eintrag
+  wurde geändert — die Stilllegen-Entscheidung selbst ist Bens Rückmeldetermin
+  Mi 12.08. [neu, Details s. `fuer_ben`/`global`].
+- **Quellen-Wächter 11.08. (5 Fehler bei 72, vorher 4; 1 geänderte Quelle:
+  `[eeg] e-control.at EAG-Monitoringbericht`):** die geänderte Quelle wird hier an
+  zwei Stellen referenziert — `data/energiegemeinschaften/fakten.json`
+  (`quelle_primaer`, Stand 2025-06-30/Abrufdatum 2026-07-31, 5.043 EEG bundesweit)
+  und in derselben Datei nochmal in `quellen[]` (`https://www.e-control.at/
+  eag-monitoringbericht`, Abrufdatum 2026-07-31) sowie in
+  `verzeichnis.MANIFEST.json` (737 BEG, Stand 30.06.2025). Live-Gegenprobe per
+  WebFetch auf die e-control-Seite war **nicht schlüssig** — die Navigationsseite
+  lieferte kein PDF-Datum/keine neuere Version, aber auch keinen Beleg, dass der
+  Bericht unverändert ist. Kein Code-/Datenfehler hier feststellbar, aber
+  unbestätigt, ob eine neuere Bericht-Ausgabe die hinterlegten Zahlen (Stand
+  30.06.2025) überholt hat [neu — braucht ggf. eine gezielte Prüfung, keine
+  Handlungsbedarfs-Aussage möglich].
+- **Netzbetreiber-Nachfolge (Netz OÖ + Energie AG bestätigt: KARLSTROM-Netz →
+  Verteilercode AT003000; heute erstmals mit dem alten Code AT003470 benannt):**
+  erneut geprüft, diesmal explizit auf `AT003470` — **0 Treffer im gesamten Repo**
+  (`rg -n "AT003470"`), ebenso weiterhin 0 Treffer für `KARLSTROM` und für jedes
+  `AT0xxxxx`-Muster außer den (irrelevanten) Zählpunkt-Beispielen in Tests/Prozess-
+  Fixtures. Die 14 `netzkosten.json`-Einträge wurden zusätzlich einzeln durchgesehen
+  (Key/Name/Bundesland/Gemeinden) — keine Duplikat- oder Karlstrom-Altlast neben
+  `netz_ooe`. Bestätigt denselben Befund wie 10.08.: energietools führt keine
+  `AT0xxxxx`-Codes, nur lesbare Keys, `netz_ooe` ist bereits korrekt. **Kein
+  Handlungsbedarf, keine Codeänderung nötig** [bekannt: 10.08.-Check-in, heute mit
+  dem zusätzlichen Code `AT003470` gegengeprüft].
 
 ## Offene Punkte (nächste Session)
 
@@ -133,9 +175,66 @@
       Grundlage (Invoice-Parser + Tarifvergleich + rechnungsanalyse-Prozess) existiert
       bereits produktiv; sobald das Rechnungsformat/Scope-Briefing vorliegt, eine
       Passungsprüfung fahren (Topf B — Priorität/Zusage liegt bei Ben).
+- [ ] **`preis_veraltet` markiert `energie_graz` nicht, obwohl das genau der Fall
+      ist, für den es gebaut wurde — Design-Frage an Ben, keine Codeänderung von
+      hier aus.** `zuletzt_bestaetigt` ist seit 11.08. (während dieser Session,
+      gridbert-seitig nachgezogen) katalogweit 117/119 befüllt; die **einzigen 2
+      leeren Einträge sind `energie_graz`** (nie erfolgreich bestätigt). Weil der
+      Code ein leeres Datum als „nie gemessen" statt „veraltet" wertet
+      (`models.py`, bewusste Entscheidung in `74f3bdb`), bleibt `preis_veraltet`
+      für `energie_graz` `False` — identisch zu einem heute frisch bestätigten
+      Tarif. Empfehlung für eine mögliche spätere Änderung: ein nie bestätigter
+      Preis ist mindestens so verdächtig wie ein 15 Tage alter — eine dritte
+      Ausprägung (`nie_bestaetigt`/„unbekannt-verdächtig") oder ein Alter ab dem
+      Katalog-`stand` statt ab `zuletzt_bestaetigt` würde die Lücke schließen.
+      Nicht selbst umgesetzt, weil das eine sehr frische, im Commit-Body
+      begründete Design-Entscheidung überschreiben würde.
+- [ ] **EAG-Monitoringbericht (e-control.at) — Versionsstand unbestätigt.**
+      Quellen-Wächter meldete die Quelle 11.08. als „geändert"; ein WebFetch gegen
+      `e-control.at/eag-monitoringbericht` lieferte nur die Navigationsseite, kein
+      Datum/keine PDF-URL — weder bestätigt noch widerlegt, dass eine neuere Ausgabe
+      die hier hinterlegten Zahlen (Stand 30.06.2025, `fakten.json`/
+      `verzeichnis.MANIFEST.json`) überholt hat. Braucht bei Gelegenheit einen
+      gezielteren Abgleich (Direktlink zum aktuellen PDF suchen statt der Nav-Seite).
 
 ## Session-Log (letzte 3)
 
+- **2026-08-11** — Tages-Check-in (Projektmodus). Beim ersten Health-Check
+  (14:10 Ortszeit) lag lokal noch kein `git fetch` seit 10.08. vor — Befund „nichts
+  offen" war dadurch **schon veraltet, bevor er geschrieben war**: 4 externe
+  `chore(data)`-Refreshs waren bereits 04:29–06:37 UTC gelaufen. Beim
+  Push-Versuch der eigenen Doku-Änderung von GitHub zurückgewiesen
+  (`! [rejected] … fetch first`) — Fehler bemerkt, `git fetch` + `pull --rebase`
+  nachgeholt, alle Befunde unten sind **gegen den Stand nach dem Rebase**
+  verifiziert (722 Tests erneut grün danach). PyPI ≡ Repo bei **0.8.5**
+  (verifiziert) — **überholt seit 10.08. abends**: Ben hatte außerhalb des
+  Check-in-Flows selbst 0.8.4 und 0.8.5 getaggt/gepusht (`74f3bdb`/`e6e4588`,
+  Preisfrische-Feature `zuletzt_bestaetigt`/`preis_veraltet`), ohne begleitenden
+  Handover-Eintrag — hier nachgetragen (s. „Was live/fertig"). 722 Tests grün
+  (vorher 707 laut letztem Handover-Stand — Differenz sind die 15 neuen Tests aus
+  0.8.4). Gegen die drei heutigen Gridbert-Signale geprüft: **Tarif-Alarm**
+  (`energie_graz`, 4× FEHLER 1) — Katalog unverändert 2 valide Einträge,
+  `gueltig_ab` weiterhin leer; neu geprüft, ob Stilllegen eine Codeänderung
+  bräuchte — **nein**, `catalog.py` filtert bereits generisch über `gueltig_bis`,
+  kein Provider ist im Code hartverdrahtet, reine Datenfrage. **Kernbefund:**
+  gridberts Scraper-Stack hat `zuletzt_bestaetigt` noch während dieser Session
+  angeschlossen (0/119 → 117/119 befüllt); die 2 verbleibenden Lücken sind exakt
+  `energie_graz` — aber `preis_veraltet` bleibt für beide `False`, weil „nie
+  bestätigt" im Code nicht als „veraltet" zählt. Der Mechanismus markiert damit
+  aktuell nicht den Fall, für den er gebaut wurde — als Design-Frage an Ben
+  dokumentiert, nicht selbst geändert.
+  **Netzbetreiber-Nachfolge** (Netz OÖ + Energie AG: KARLSTROM-Netz → AT003000, heute
+  erstmals mit Altcode `AT003470` benannt) — `AT003470` und `KARLSTROM` weiterhin 0
+  Treffer im Repo, alle 14 `netzkosten.json`-Einträge einzeln gegengeprüft, keine
+  Karlstrom-Altlast neben `netz_ooe`. Kein Handlungsbedarf. **Quellen-Wächter** (5
+  Fehler bei 72, vorher 4; 1 geänderte Quelle `[eeg] e-control.at
+  EAG-Monitoringbericht`) — Quelle wird in `fakten.json`
+  (`quelle_primaer`+`quellen[]`) und `verzeichnis.MANIFEST.json` referenziert
+  (Stand 30.06.2025/Abrufdatum 2026-07-31); WebFetch-Gegenprobe auf die e-control-Seite
+  war nicht schlüssig (nur Navigationsseite, kein PDF-Datum) — als offener Punkt
+  vermerkt, kein bestätigter Fehler. Ein `docs(handover)`-Commit gepusht (auf die 4
+  externen `chore(data)`-Refreshs rebast, danach erneut 722 Tests grün) — keine
+  Rechenlogik geändert, keine Katalog-Daten angefasst.
 - **2026-08-10** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs): externen
   `chore(data)`-Refresh vom 10.08. gepullt/rebased (`77a3c00`, 04:48 UTC — lag beim ersten
   Health-Check noch nicht im lokalen Fetch, per `git fetch`+`rebase` nachgezogen) — 3
@@ -199,29 +298,4 @@
   löst automatisch aus) korrigiert; der Offene-Punkt „PyPI-Release automatisieren?"
   war dadurch bereits beantwortet und als `[x]` markiert. Kein Push nötig — nur
   Daten-Pull + Doku, keine Rechenlogik geändert.
-- **2026-08-08** — Morgen-Check-in (Projektmodus, Teil des globalen Fan-outs):
-  externen `chore(data)`-Refresh vom 08.08. gepullt (`b673b3a`, `2cf5421..b673b3a`,
-  `git pull --ff-only`) — Energiegemeinschaften-Verzeichnis, Netz-MANIFEST und
-  Tarif-Katalog aktualisiert (1 Preis-Update: `V-Strom-SPOT-H-KW4925`
-  15.5739→16.4936 ct/kWh). PyPI ≡ Repo weiterhin bei 0.8.2, 707 Tests grün
-  (vor und nach dem Pull). Gegen den heutigen Gridbert-Tarif-Alarm geprüft
-  (`energie_graz FEHLER 1`, identischer Wortlaut wie 06./07.08. — **vierte**
-  Nacht in Folge): Katalog unverändert 119 Einträge, `energie_graz` weiterhin
-  2 valide Einträge (Graz StromFlex, Graz StromKlassik), `gueltig_ab`
-  strukturell leer über alle 119/119 Einträge (unverändert seit 05.08.) —
-  Staleness-Prüfung bleibt vollständig Gridbert-seitig, kein energietools-
-  seitiger Defekt. **Quellen-Wächter** (72/72 erreichbar, 7 geändert, erneut
-  u.a. `[foerderung-bund] pvaustria.at/eag-investzuschuss`) geprüft: lokale
-  Quelle ist seit `7d8af3e` (07.08.) bereits auf `pvbaustria.at` korrigiert;
-  per `curl -IL` + WebFetch gegen die Live-Seite erneut abgeglichen —
-  Fördersätze (150/140/130/120 €/kWp, 150 €/kWh Speicher) und alle drei
-  Call-Termine 2026 weiterhin inhaltlich identisch zum lokalen Stand,
-  `pvaustria.at` liefert weiterhin nur den 301-Redirect auf `pvbaustria.at`.
-  Der wiederholte „geändert"-Flag betrifft damit vermutlich die Quellenliste
-  des Wächters selbst (zeigt noch auf die alte Domain) — kein energietools-
-  Handlungsbedarf. ruff-Lint unverändert bei 53 Fehlern (nur noch E501,
-  absichtlich auf die Woche 17.–20.08. verschoben). Drei Worktrees unverändert
-  (`git worktree list`: `et-v061`, `energietools-sim-fixes`,
-  `gridbert-e2e/wt/energietools`). Kein Push nötig — nur Daten-Pull, keine
-  Rechenlogik geändert.
-  (siehe vorherige Sessions im Git-Verlauf dieser Datei für 2026-08-07 und älter.)
+  (siehe vorherige Sessions im Git-Verlauf dieser Datei für 2026-08-08 und älter.)

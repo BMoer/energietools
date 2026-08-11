@@ -305,8 +305,14 @@ def _gebrauchsabgabe(regel, *, netz_netto: float, energie_netto: float) -> float
 
 
 def _pruefe_referenzblock(
-    f: InvoiceFacts, *, block: str, bezeichnung: str, angegeben: float | None, erwartet: float | None,
-    vnb: str, zusatz: str,
+    f: InvoiceFacts,
+    *,
+    block: str,
+    bezeichnung: str,
+    angegeben: float | None,
+    erwartet: float | None,
+    vnb: str,
+    zusatz: str,
 ) -> Positionspruefung:
     if angegeben is None:
         return _nicht_pruefbar(
@@ -367,7 +373,8 @@ def _pruefe_summe(f: InvoiceFacts) -> Positionspruefung:
         toleranz=SUMMEN_TOLERANZ_EUR,
         rechenweg=(
             " + ".join(teile)
-            + f" = {netto_summe:.2f} € netto; + {UST_SATZ:.0%} USt = {erwartet_brutto:.2f} € brutto; "
+            + f" = {netto_summe:.2f} € netto; + {UST_SATZ:.0%} USt = "
+            f"{erwartet_brutto:.2f} € brutto; "
             f"Rechnungsbetrag {f.rechnungsbetrag_brutto_eur:.2f} €"
         ),
     )
@@ -385,13 +392,21 @@ def rechne_nach(f: InvoiceFacts) -> Nachrechnung:
         _pruefe_summe(f),
         _pruefe_energie(f),
         _pruefe_referenzblock(
-            f, block="netzentgelte", bezeichnung="Netzentgelt (Netznutzung + Netzverlust)",
-            angegeben=_netto(f.summe_netzentgelte), erwartet=netz_erwartet, vnb=vnb,
+            f,
+            block="netzentgelte",
+            bezeichnung="Netzentgelt (Netznutzung + Netzverlust)",
+            angegeben=_netto(f.summe_netzentgelte),
+            erwartet=netz_erwartet,
+            vnb=vnb,
             zusatz=" inkl. Grundpauschale anteilig",
         ),
         _pruefe_referenzblock(
-            f, block="steuern_abgaben", bezeichnung="Steuern und Abgaben",
-            angegeben=_netto(f.summe_steuern_abgaben), erwartet=abgaben_erwartet, vnb=vnb,
+            f,
+            block="steuern_abgaben",
+            bezeichnung="Steuern und Abgaben",
+            angegeben=_netto(f.summe_steuern_abgaben),
+            erwartet=abgaben_erwartet,
+            vnb=vnb,
             zusatz=" (EAG-Beitrag, Elektrizitätsabgabe, ggf. Gebrauchsabgabe)",
         ),
     ]
@@ -450,8 +465,10 @@ def _zusammenfassung(positionen: list[Positionspruefung]) -> str:
         if auffaellig:
             return (
                 "Die Gesamtsumme geht centgenau auf. Auffällig ist aber: "
-                + "; ".join(f"{p.bezeichnung} liegt {p.abweichung_eur:.2f} € über der Erwartung"
-                            for p in auffaellig)
+                + "; ".join(
+                    f"{p.bezeichnung} liegt {p.abweichung_eur:.2f} € über der Erwartung"
+                    for p in auffaellig
+                )
                 + "."
             )
         return "Die Rechnung geht centgenau auf — Summe und geprüfte Positionen stimmen."

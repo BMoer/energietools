@@ -70,54 +70,8 @@
 
 ## Aus dem globalen Check-in (2026-08-11)
 
-- **Tarif-Daten-Alarm 11.08. (4× FEHLER 1, energie_graz):** Katalog geprüft —
-  unverändert 2 valide Einträge (Graz StromFlex, Graz StromKlassik), `gueltig_ab`
-  bei beiden weiterhin `""`. Live-Preisblatt laut Alarm auf 2024-06-12 datiert statt
-  der erwarteten 2026-01-28 — Anbieter pflegt seit über 1,5 Jahren nicht
-  [bekannt: gridbert-scraper-known-issues]. **Neuer Befund, der über die reine
-  Wiederholung hinausgeht:** energietools trägt seit 10.08. abends (0.8.4/0.8.5,
-  s. „Was live/fertig") einen fertigen Mechanismus genau für diesen Fall —
-  `zuletzt_bestaetigt`/`preis_alter_tage()`/`preis_veraltet` (14-Tage-Schwelle).
-  gridberts Scraper-Stack hat das Feld **noch während dieser Session** angeschlossen
-  (4 `chore(data)`-Refreshs 04:29–06:37 UTC: vorher 0/119, nachher 117/119 befüllt) —
-  die **einzigen 2 unbefüllten Einträge im ganzen Katalog sind `energie_graz`**
-  (Abbild des Scrape-Fehlers: nie bestätigt → kein Datum). Trotzdem zeigt
-  `preis_veraltet` für `energie_graz` weiterhin `False`, weil der Code ein leeres
-  Datum bewusst als „nie gemessen", nicht als „veraltet" wertet — die 14-Tage-Regel
-  greift nur bei *einmal bestätigt, dann alt geworden*, nicht bei *nie bestätigt*.
-  Der Mechanismus markiert also aktuell nicht den einzigen Katalogeintrag, für den
-  er gebaut wurde [siehe `fuer_ben`]. **Stilllegen geprüft:** ein Entfernen/Befristen der 2 `energie_graz`-Einträge wäre
-  in energietools **eine reine Datenänderung, keine Codeänderung** —
-  `capabilities/tariffs/catalog.py` filtert bereits generisch über `gueltig_bis`
-  (kein Provider-Key ist im Code hartverdrahtet), und die Firmenmetadaten in
-  `providers/anbieter.json`/`lieferanten.json` (E-Mail/Website/Aliases fürs
-  Wechsel-Tooling) sind unabhängig davon und blieben unberührt. Kein Katalog-Eintrag
-  wurde geändert — die Stilllegen-Entscheidung selbst ist Bens Rückmeldetermin
-  Mi 12.08. [neu, Details s. `fuer_ben`/`global`].
-- **Quellen-Wächter 11.08. (5 Fehler bei 72, vorher 4; 1 geänderte Quelle:
-  `[eeg] e-control.at EAG-Monitoringbericht`):** die geänderte Quelle wird hier an
-  zwei Stellen referenziert — `data/energiegemeinschaften/fakten.json`
-  (`quelle_primaer`, Stand 2025-06-30/Abrufdatum 2026-07-31, 5.043 EEG bundesweit)
-  und in derselben Datei nochmal in `quellen[]` (`https://www.e-control.at/
-  eag-monitoringbericht`, Abrufdatum 2026-07-31) sowie in
-  `verzeichnis.MANIFEST.json` (737 BEG, Stand 30.06.2025). Live-Gegenprobe per
-  WebFetch auf die e-control-Seite war **nicht schlüssig** — die Navigationsseite
-  lieferte kein PDF-Datum/keine neuere Version, aber auch keinen Beleg, dass der
-  Bericht unverändert ist. Kein Code-/Datenfehler hier feststellbar, aber
-  unbestätigt, ob eine neuere Bericht-Ausgabe die hinterlegten Zahlen (Stand
-  30.06.2025) überholt hat [neu — braucht ggf. eine gezielte Prüfung, keine
-  Handlungsbedarfs-Aussage möglich].
-- **Netzbetreiber-Nachfolge (Netz OÖ + Energie AG bestätigt: KARLSTROM-Netz →
-  Verteilercode AT003000; heute erstmals mit dem alten Code AT003470 benannt):**
-  erneut geprüft, diesmal explizit auf `AT003470` — **0 Treffer im gesamten Repo**
-  (`rg -n "AT003470"`), ebenso weiterhin 0 Treffer für `KARLSTROM` und für jedes
-  `AT0xxxxx`-Muster außer den (irrelevanten) Zählpunkt-Beispielen in Tests/Prozess-
-  Fixtures. Die 14 `netzkosten.json`-Einträge wurden zusätzlich einzeln durchgesehen
-  (Key/Name/Bundesland/Gemeinden) — keine Duplikat- oder Karlstrom-Altlast neben
-  `netz_ooe`. Bestätigt denselben Befund wie 10.08.: energietools führt keine
-  `AT0xxxxx`-Codes, nur lesbare Keys, `netz_ooe` ist bereits korrekt. **Kein
-  Handlungsbedarf, keine Codeänderung nötig** [bekannt: 10.08.-Check-in, heute mit
-  dem zusätzlichen Code `AT003470` gegengeprüft].
+- Gridbert hat die Energie-Graz-Entscheidung mit Rückmeldetermin Mi 12.08. und heute live erneut bestätigt, dass das Preisblatt beim Anbieter unverändert auf 12.06.2024 steht → sobald Ben stilllegt, ist der Schnitt hier eine reine Datenänderung, kein Code [Quelle: Check-in gridbert 11.08.]
+- Die `preis_veraltet`-Lücke (nie bestätigte Preise gelten nicht als veraltet) ist damit kein theoretischer Fall mehr, sondern hat mit energie_graz einen konkreten Belegfall im Live-Katalog [Quelle: Check-in gridbert 11.08.]
 
 ## Offene Punkte (nächste Session)
 

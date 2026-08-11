@@ -18,6 +18,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -40,6 +41,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -62,6 +64,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -84,6 +87,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -106,6 +110,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.aae.at/stromprodukte/stromprodukte-privat/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -128,6 +133,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://kittelmuehle.at/oekostrom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -150,6 +156,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://kittelmuehle.at/strom/aquaventoflex.php",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -172,6 +179,7 @@
     "hat_bindung": false,
     "preisanpassung": "monatliche",
     "wechsel_link": "https://www.eigl.at/avia-strom/unsere-tarife/eigl-avia-naturstrom-plus-floater-50771x50242.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -194,6 +202,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.eigl.at/avia-strom/unsere-tarife/eigl-avia-waldviertel-strom-plus-50767x50242.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -216,6 +225,7 @@
     "hat_bindung": false,
     "preisanpassung": "stündliche",
     "wechsel_link": "https://www.awattar.at/tariffs/hourly",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -238,6 +248,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.drei-energie.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -260,6 +271,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.ewg.at/produkte/strom/strom-fuer-privathaushalte/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -282,6 +294,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.ewg.at/produkte/strom/strom-fuer-privathaushalte/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -304,6 +317,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.ewerksigl.at/online-anmeldung/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -313,7 +327,7 @@
     "tarif_name": "E.ON ÖkoStrom Basis",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
-    "energiepreis_ct_kwh": 19.45,
+    "energiepreis_ct_kwh": 18.95,
     "grundgebuehr_eur_monat": 4.5,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
@@ -321,11 +335,12 @@
     "energiequellen_erneuerbar_pct": 0.0,
     "neukundenrabatt_eur": 0.0,
     "neukundenrabatt_ct_kwh": 0.0,
-    "neukundenrabatt_name": "Neukundenrabatt 30% auf Jahres-Energieabrechnung (Jahr 1)",
-    "preisgarantie_monate": 15,
+    "neukundenrabatt_name": "Neukundenrabatt 38% auf Jahres-Energieabrechnung (Jahr 1)",
+    "preisgarantie_monate": 16,
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.010062",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -335,7 +350,7 @@
     "tarif_name": "E.ON ÖkoStrom Basis Plus",
     "tariftyp": "Fixpreis",
     "preismodell": "Festpreis mit Garantie",
-    "energiepreis_ct_kwh": 19.45,
+    "energiepreis_ct_kwh": 18.95,
     "grundgebuehr_eur_monat": 5.5,
     "spot_aufschlag_ct": 0.0,
     "spot_index": "",
@@ -343,11 +358,12 @@
     "energiequellen_erneuerbar_pct": 0.0,
     "neukundenrabatt_eur": 0.0,
     "neukundenrabatt_ct_kwh": 0.0,
-    "neukundenrabatt_name": "Neukundenrabatt 30% auf Jahres-Energieabrechnung (Jahr 1)",
-    "preisgarantie_monate": 15,
+    "neukundenrabatt_name": "Neukundenrabatt 38% auf Jahres-Energieabrechnung (Jahr 1)",
+    "preisgarantie_monate": 16,
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.011912",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -370,6 +386,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.eon-energie.at/at/strom/stromtarif.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -392,6 +409,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.erste-energie.at/tarife/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -414,6 +432,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.erste-energie.at/tarife/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -436,6 +455,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.erste-energie.at/tarife/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -458,6 +478,7 @@
     "hat_bindung": false,
     "preisanpassung": "monatliche",
     "wechsel_link": "https://www.efriends.at/new/prices/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -480,6 +501,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.ewr-energie.com/strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -502,6 +524,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.ewr-energie.com/strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -524,6 +547,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://energieag.cdn.picturepark.com/v/3VFSFhf7/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -546,6 +570,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://energieag.cdn.picturepark.com/v/SzeF1EjB/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -568,6 +593,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -590,6 +616,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -612,6 +639,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.burgenlandenergie.at/de/privat/tarifwechsel/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -634,6 +662,7 @@
     "hat_bindung": false,
     "preisanpassung": "monatliche",
     "wechsel_link": "https://www.energie-graz.at/egg/strom/produkte-preismodelle",
+    "zuletzt_bestaetigt": null,
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -656,6 +685,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.energie-graz.at/egg/strom/produkte-preismodelle",
+    "zuletzt_bestaetigt": null,
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -678,6 +708,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stw.at/privat/energie/strom/stromkunde-werden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -700,6 +731,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stw.at/privat/energie/strom/stromkunde-werden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -722,6 +754,7 @@
     "hat_bindung": false,
     "preisanpassung": "stündliche",
     "wechsel_link": "https://www.smartenergy.at/smartcontrol",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -744,6 +777,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.e-steiermark.com/privat/produkte/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -766,6 +800,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://anmeldung.switch.at/?customer_type=0&tariff_type=1",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -788,6 +823,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://anmeldung.switch.at/?customer_type=0&tariff_type=1",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -810,6 +846,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-88-Fix Fair 2027.pdf",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -832,6 +869,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-79-Fix FairPlay.pdf",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -854,6 +892,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-4-Flex.pdf",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -876,6 +915,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://ed-strom.at/dokumenteupload/tarifblatt/Tarifblatt-15-Flex Start.pdf",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -898,6 +938,7 @@
     "hat_bindung": false,
     "preisanpassung": "monatliche",
     "wechsel_link": "https://enstroga.at/tarife/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -920,6 +961,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.xn--hofer-grnstrom-nsb.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -942,6 +984,7 @@
     "hat_bindung": false,
     "preisanpassung": "monatliche",
     "wechsel_link": "https://www.evn.at/home/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -964,6 +1007,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.evn.at/home/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -986,6 +1030,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.evu-mureck.at/strombelieferung/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1008,6 +1053,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.evu-mureck.at/strombelieferung/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1030,6 +1076,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=OnlineBonus",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1052,6 +1099,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cfuture%2COnlineBonus",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1074,6 +1122,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cplus%2COnlineBonus",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1096,6 +1145,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.gogreenenergy.at/kunde-werden.html?ec=3095&productType=electricity&options=__subsidy__%2Cplus%2Cfuture%2COnlineBonus",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1118,6 +1168,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.gruenwelt.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1140,6 +1191,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.gruenwelt.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1162,6 +1214,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.gruenwelt.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1184,6 +1237,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.disk.energy/wechseln",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1206,6 +1260,7 @@
     "hat_bindung": false,
     "preisanpassung": "monatliche",
     "wechsel_link": "https://www.disk.energy/wechseln",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1228,6 +1283,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.vkw.at/produkte/strom/strom-duo",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1250,6 +1306,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.vkw.at/produkte/strom/strom-duo",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1272,6 +1329,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1294,6 +1352,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1316,6 +1375,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.ikb.at/energie/stromtarife-privat",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1338,6 +1398,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.kelag.at/privatkunden/strom.htm",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1360,6 +1421,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.kelag.at/privatkunden/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1382,6 +1444,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.kelag.at/privatkunden/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1404,6 +1467,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.linzag.at/portal/de/privatkunden/zuhause/strom/stromtarife",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1426,6 +1490,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.linzag.at/portal/de/privatkunden/zuhause/strom/stromtarife",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1448,6 +1513,7 @@
     "hat_bindung": false,
     "preisanpassung": "stündlich",
     "wechsel_link": "https://portal.m4energy.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1470,6 +1536,7 @@
     "hat_bindung": false,
     "preisanpassung": "jährlich",
     "wechsel_link": "https://portal.m4energy.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1492,6 +1559,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://portal.m4energy.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1514,6 +1582,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://mein.auri.at/preisvergleich/?invoiceUpload",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1536,6 +1605,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1558,6 +1628,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1580,6 +1651,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1602,6 +1674,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://maxenergy.at/privatkunden/tarife-und-produkte-privatkunden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1624,6 +1697,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.x-powr.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1646,6 +1720,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.montana-energie.at/privatkunden/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1668,6 +1743,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.montana-energie.at/privatkunden/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1690,6 +1766,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://myelectric.at/de-at/strom/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1712,6 +1789,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1734,6 +1812,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1756,6 +1835,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1778,6 +1858,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.naturkraft.at/privatkunden.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1800,6 +1881,7 @@
     "hat_bindung": false,
     "preisanpassung": "viertelstündliche",
     "wechsel_link": "https://oekostrom.at/spot-preis/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1822,6 +1904,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.fairnando.at/index.php?param=offer&produkt=strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1844,6 +1927,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.redgas.at/index.php?param=offer&produkt=strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1866,6 +1950,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://portal.rz-oekostrom.at/Wechselportal/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1888,6 +1973,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.salzburg-ag.at/strom/privat/stromprodukte/strom-preisfix.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1910,6 +1996,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.salzburg-ag.at/strom/privat/stromprodukte/strom-privat.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1932,6 +2019,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stadtwerke-bruck.at/strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1954,6 +2042,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stadtwerke-hartberg.at/energie/unsere-tarife/privatkunden-3/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1976,6 +2065,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://stadtwerke.co.at/service-fuer-mich/mein-strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -1998,6 +2088,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stadtwerke-kapfenberg.at/strom.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2020,6 +2111,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stadtwerke-kapfenberg.at/strom.html",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2042,6 +2134,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.pullstrom.at/tarifvergleich/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2064,6 +2157,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.pullstrom.at/tarifvergleich/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2086,6 +2180,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.stadtwerke-koeflach.at/stromanbieterwechsel",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2108,6 +2203,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2130,6 +2226,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2152,6 +2249,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2174,6 +2272,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://stadtwerke-mz.at/mein-kundencenter/mein-strom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2196,6 +2295,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stww.at/strom/oekostrom-privat/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2218,6 +2318,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.stww.at/strom/oekostrom-privat/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2240,6 +2341,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2262,6 +2364,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2284,6 +2387,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.tiwag.at/privat/jetzt-kunde-werden/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2306,6 +2410,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.tullnenergie.at/regionaler-okostrom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2328,6 +2433,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.tullnenergie.at/regionaler-okostrom/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2350,6 +2456,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.wasserkraft.at/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2372,6 +2479,7 @@
     "hat_bindung": false,
     "preisanpassung": "monatliche",
     "wechsel_link": "https://www.wasserkraft.at/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2394,6 +2502,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.verbund.com/de/privat/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2416,6 +2525,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.verbund.com/de/privat/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2438,6 +2548,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.verbund.com/de-at/privatkunden/strom",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2460,6 +2571,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2482,6 +2594,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2504,6 +2617,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.web.energy/at-de/privatkunde/gruenstrom-privat",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2526,6 +2640,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.voltino.at/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2548,6 +2663,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://dokumente.wienenergie.at/wp-content/uploads/preisblatt-optima-entspannt-plus-strom-wien.pdf",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2570,6 +2686,7 @@
     "hat_bindung": true,
     "preisanpassung": "",
     "wechsel_link": "https://www.wuesterstrom.at/produkt/one-stromtarif/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2592,6 +2709,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.wuesterstrom.at/produkt/one-stromtarif/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   },
@@ -2614,6 +2732,7 @@
     "hat_bindung": false,
     "preisanpassung": "",
     "wechsel_link": "https://www.oekoenergie.tirol/oekostrom/private-haushalte/oekostrom-produkte/",
+    "zuletzt_bestaetigt": "2026-08-11T04:27:05.076249",
     "gueltig_ab": "",
     "gueltig_bis": ""
   }

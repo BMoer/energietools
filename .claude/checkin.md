@@ -24,7 +24,10 @@ one_liner: Python-Library für den österreichischen Strommarkt (Tarife, Netzkos
   - **Gridbert ist der einzige echte Konsument.** Auffälligkeiten im Gridbert-Check-in,
     die eine €-Zahl betreffen (Tarif-Alarm, DISAGREE, Quarantäne), gehören hier
     gegengeprüft — das ist der wichtigste Querbezug dieses Projekts.
-  - Es gibt **keine CI** (`.github/` existiert nicht). Was nicht lokal läuft, läuft nirgends.
+  - Es gibt **keine CI für Tests/Lint auf jeden Push** — `.github/workflows/release.yml`
+    existiert seit 31.07., läuft aber nur bei Tag-Push (`v*`) oder manuellem Dispatch,
+    nicht bei normalen Commits auf `main`. Was nicht lokal läuft, läuft nirgends
+    (Ausnahme: der Release-Lauf selbst prüft Tests vor dem PyPI-Upload).
 
 ## open_points
   - `rg -n "^\s*- \[ \]" docs/HANDOVER.md` — rollierender Session-Stand (Kanon)

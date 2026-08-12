@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-11.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-12.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -57,21 +57,53 @@
   Designentscheidung von Ben (Commit-Body von `74f3bdb`), keine Codeänderung von
   hier aus — aber ein konkreter Punkt, den er kennen sollte, weil er am
   einzigen aktuell betroffenen Fall sichtbar wird [siehe `fuer_ben`].
+- **PyPI-Release 0.8.6** (Stand 2026-08-12, verifiziert per `pypi.org/pypi/energietools/json`
+  gegen `pyproject.toml` — beide 0.8.6). **0.8.6 liegt korrekt und vollständig auf PyPI**
+  (Wheel + sdist, hochgeladen 11.08. 17:59 UTC, Lauf `31520153666`, `success`). Der
+  Commit, dessen Build tatsächlich hochgeladen wurde, ist `9111161` (feat: centgenaue
+  Nachrechnung). **Root Cause des GitHub-Actions-Alarms ("Release to PyPI – v0.8.6
+  (abf803e) failed", 11.08. 18:33 UTC):** Nach dem erfolgreichen Release wurde ein
+  weiterer, rein kosmetischer Commit (`abf803e`, Zeilenlänge/Formatierung in
+  `nachrechnung.py` + HANDOVER-Kürzung, **kein Logikunterschied** — per
+  `git diff 9111161 abf803e` geprüft) auf den **bereits vergebenen Tag `v0.8.6`
+  umgehängt** und erneut gepusht (Lauf `31523124901`, Tag-Push auf denselben Namen,
+  18:31 UTC). Das hat den Release-Workflow ein zweites Mal ausgelöst, der Build/Test-Job
+  lief grün ("Succeeded in 1 minute and 49...", daher die widersprüchliche
+  Benachrichtigung), aber der Upload-Job scheiterte mit `400 Bad Request: File already
+  exists ('energietools-0.8.6-py3-none-any.whl', ...)` — PyPI verweigert das erwartungs-
+  gemäß, weil Version 0.8.6 schon vorhanden war (unwiderrufliche Versionen, s. `autonomy`).
+  **Kein Schaden, keine falsche Version live.** Einzige Nebenwirkung: der Git-Tag `v0.8.6`
+  zeigt jetzt auf `abf803e`, nicht auf den tatsächlich hochgeladenen Commit `9111161` —
+  ein Provenance-Versatz ohne Funktionsunterschied (Diff ist ausschließlich Formatierung).
+  **Nicht selbst repariert:** den Tag zurückzuhängen würde erneut `push --tags` und damit
+  erneut den Release-Workflow auslösen — das ist laut Grenzen dieser Session explizit
+  nicht erlaubt und wäre ohnehin wirkungslos (PyPI nimmt 0.8.6 so oder so nicht zweimal).
+  Empfehlung an Ben s. `fuer_ben`. **Gridbert ist von diesem Vorfall nicht betroffen:**
+  `gridbert/pyproject.toml` pinnt `energietools @ git+https://github.com/BMoer/energietools@v0.8.6`
+  — das zieht direkt vom Git-Tag, nicht von PyPI, und der Tag zeigt auf funktional
+  identischen Code.
 
 ## prod ≠ live
 
-- (nichts offen — PyPI 0.8.5 ≡ `pyproject.toml` 0.8.5, verifiziert 11.08.; 0.8.4/0.8.5
-  liefen am 10.08. abends außerhalb des Check-in-Flows, s. „Was live/fertig")
+- (nichts offen — PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6, verifiziert 12.08.; s. „Was
+  live/fertig" für den Doppel-Tag-Vorfall bei 0.8.6, der PyPI nicht betrifft)
 - Randnotiz: Es gibt **keine CI für Tests/Lint** (kein Workflow prüft Pushes) —
   nur der Release selbst ist automatisiert. `.github/workflows/release.yml`
   triggert auf `git push origin vX.Y.Z` und lädt via Trusted Publishing (OIDC,
   kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
   Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
-## Aus dem globalen Check-in (2026-08-11)
+## Aus dem globalen Check-in (2026-08-12)
 
-- Gridbert hat die Energie-Graz-Entscheidung mit Rückmeldetermin Mi 12.08. und heute live erneut bestätigt, dass das Preisblatt beim Anbieter unverändert auf 12.06.2024 steht → sobald Ben stilllegt, ist der Schnitt hier eine reine Datenänderung, kein Code [Quelle: Check-in gridbert 11.08.]
-- Die `preis_veraltet`-Lücke (nie bestätigte Preise gelten nicht als veraltet) ist damit kein theoretischer Fall mehr, sondern hat mit energie_graz einen konkreten Belegfall im Live-Katalog [Quelle: Check-in gridbert 11.08.]
+- GitHub-Actions-Signal "Release to PyPI – v0.8.6 (abf803e) failed" (11.08. 18:33 UTC)
+  war der Leitpunkt des heutigen Laufs — Root Cause geklärt und hier dokumentiert
+  (s. „Was live/fertig"): Doppel-Tag auf `v0.8.6` nach bereits erfolgtem Release,
+  PyPI 0.8.6 unverändert korrekt live, Gridbert nicht betroffen (pinnt Git-Tag,
+  nicht PyPI) [Quelle: globaler Check-in 12.08.].
+- Bens Kapazität laut globalem Kontext: 12.08. voll, 13.–17.08. Sommerlager (weg),
+  24.08. Workshop TTTech × Voith — bis Montag 17.08. praktisch keine Umsetzungszeit
+  für Topf-B-Punkte dieses Projekts (u. a. der Tag-Hygiene-Hinweis unten) [Quelle:
+  globaler Check-in 12.08.].
 
 ## Offene Punkte (nächste Session)
 
@@ -143,6 +175,29 @@
       Katalog-`stand` statt ab `zuletzt_bestaetigt` würde die Lücke schließen.
       Nicht selbst umgesetzt, weil das eine sehr frische, im Commit-Body
       begründete Design-Entscheidung überschreiben würde.
+- [x] **"Release to PyPI – v0.8.6 (abf803e) failed" — geklärt, kein Release-Defekt
+      (Topf A, dieser Lauf 12.08.).** `gh run view --log-failed` auf Lauf `31523124901`:
+      `400 Bad Request: File already exists ('energietools-0.8.6-py3-none-any.whl', ...)`.
+      Ursache: Tag `v0.8.6` wurde nach dem bereits erfolgreichen Release (Lauf
+      `31520153666`, Commit `9111161`, 17:59 UTC) auf einen späteren, rein
+      kosmetischen Commit (`abf803e`) umgehängt und erneut gepusht — PyPI lehnt das
+      korrekt ab, Versionen sind unwiderruflich. PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6
+      (verifiziert per JSON-API), Tests 740/740 grün, `git status`/unpushed sauber.
+      Gridbert prüft: pinnt Git-Tag `v0.8.6`, nicht PyPI → unbetroffen. **Empfehlung
+      für Ben s. `fuer_ben`/unten** — nicht selbst umgesetzt, weil jede Aktion am Tag
+      (zurückhängen) den Release-Workflow erneut auslösen würde (Grenze dieser Session).
+- [ ] **Tag-Hygiene nach Release — Empfehlung, keine Codeänderung.** Ein Tag sollte
+      nach einem erfolgreichen PyPI-Upload nicht mehr bewegt werden, auch nicht für
+      rein kosmetische Nachbesserungen — PyPI nimmt die Version ohnehin nicht zweimal
+      an, das Ergebnis ist nur ein verwirrender roter Actions-Lauf plus ein Tag, der
+      nicht mehr exakt den hochgeladenen Commit trifft (aktuell `v0.8.6` → `abf803e`,
+      hochgeladen wurde `9111161`; funktional identisch, geprüft per Diff). Für den
+      nächsten Nachbesserungs-Fall: entweder vor dem ersten Tag-Push warten, bis der
+      Commit final ist, oder eine neue Patch-Version ziehen statt den Tag zu bewegen.
+      Optional (nicht umgesetzt, Workflow-Änderung liegt bei Ben): ein Preflight-Check
+      in `release.yml`, der die Zielversion vorab gegen die PyPI-JSON-API prüft und bei
+      Kollision mit einer klaren Meldung abbricht, statt den vollen Build/Test-Lauf
+      (~2 Min) durchzuziehen und erst beim Upload mit einem rohen 400 zu scheitern.
 - [ ] **EAG-Monitoringbericht (e-control.at) — Versionsstand unbestätigt.**
       Quellen-Wächter meldete die Quelle 11.08. als „geändert"; ein WebFetch gegen
       `e-control.at/eag-monitoringbericht` lieferte nur die Navigationsseite, kein
@@ -153,6 +208,26 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-12** — Tages-Check-in (Projektmodus). Leitpunkt war der GitHub-Actions-
+  Alarm "Release to PyPI – v0.8.6 (abf803e) failed" (11.08. 18:33 UTC). Root Cause
+  per `gh run list`/`gh run view --log-failed` (Lauf `31523124901`) geklärt: Tag
+  `v0.8.6` wurde nach dem bereits erfolgreichen Release (Lauf `31520153666`, Commit
+  `9111161`, 17:59 UTC, Wheel+sdist erfolgreich hochgeladen) auf den späteren,
+  rein kosmetischen Commit `abf803e` umgehängt und erneut gepusht — PyPI lehnte den
+  zweiten Upload korrekt mit `400 File already exists` ab. PyPI 0.8.6 ≡
+  `pyproject.toml` 0.8.6 (JSON-API verifiziert), 740 Tests grün, `git status` sauber,
+  nichts unpushed. `git diff 9111161 abf803e` bestätigt: nur Zeilenumbrüche/Formatierung,
+  keine Logikänderung — kein funktionaler Unterschied zwischen getaggtem und tatsächlich
+  veröffentlichtem Commit. Gridbert-Pin geprüft (`gridbert/pyproject.toml`): zieht
+  `energietools @ git+…@v0.8.6` direkt vom Git-Tag, nicht von PyPI → vom Vorfall nicht
+  betroffen. Kein Code-/Datenfehler in energietools; Empfehlung zur Tag-Hygiene für Ben
+  dokumentiert (s. „Offene Punkte"), Tag selbst nicht angefasst (jede Aktion daran hätte
+  den Release-Workflow erneut ausgelöst — Grenze dieser Session). Zwei Doku-Korrekturen
+  gemacht: `.claude/checkin.md` („keine CI, `.github/` existiert nicht" war seit 31.07.
+  stale — `release.yml` existiert, läuft aber nur bei Tag-Push, nicht bei jedem Commit)
+  und dieses HANDOVER (0.8.6-Stand + Vorfall nachgetragen). TODO.md unverändert (20
+  offene Punkte, keine Änderung signalisiert). Nur Doku-Commit vorgesehen — keine
+  Rechenlogik, keine Katalog-Daten, kein Tag/Workflow angefasst.
 - **2026-08-11** — Tages-Check-in (Projektmodus). Beim ersten Health-Check
   (14:10 Ortszeit) lag lokal noch kein `git fetch` seit 10.08. vor — Befund „nichts
   offen" war dadurch **schon veraltet, bevor er geschrieben war**: 4 externe

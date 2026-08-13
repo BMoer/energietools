@@ -16,7 +16,6 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
-
 # Ab wann ein Katalogpreis als „nicht mehr bestätigt" gilt. 14 Tage, weil der
 # Katalog nächtlich erhoben wird: ein Anbieter, der zwei Wochen lang an keinem
 # einzigen Tag nachprüfbar war, hat ein Quellenproblem und keine ruhige

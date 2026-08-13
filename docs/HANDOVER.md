@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-12.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-13.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -85,25 +85,31 @@
 
 ## prod ≠ live
 
-- (nichts offen — PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6, verifiziert 12.08.; s. „Was
-  live/fertig" für den Doppel-Tag-Vorfall bei 0.8.6, der PyPI nicht betrifft)
+- (nichts offen — PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6, erneut verifiziert 13.08.;
+  s. „Was live/fertig" für den Doppel-Tag-Vorfall bei 0.8.6, der PyPI nicht betrifft)
 - Randnotiz: Es gibt **keine CI für Tests/Lint** (kein Workflow prüft Pushes) —
   nur der Release selbst ist automatisiert. `.github/workflows/release.yml`
   triggert auf `git push origin vX.Y.Z` und lädt via Trusted Publishing (OIDC,
   kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
   Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
-## Aus dem globalen Check-in (2026-08-12)
+## Aus dem globalen Check-in (2026-08-13)
 
-- GitHub-Actions-Signal "Release to PyPI – v0.8.6 (abf803e) failed" (11.08. 18:33 UTC)
-  war der Leitpunkt des heutigen Laufs — Root Cause geklärt und hier dokumentiert
-  (s. „Was live/fertig"): Doppel-Tag auf `v0.8.6` nach bereits erfolgtem Release,
-  PyPI 0.8.6 unverändert korrekt live, Gridbert nicht betroffen (pinnt Git-Tag,
-  nicht PyPI) [Quelle: globaler Check-in 12.08.].
-- Bens Kapazität laut globalem Kontext: 12.08. voll, 13.–17.08. Sommerlager (weg),
-  24.08. Workshop TTTech × Voith — bis Montag 17.08. praktisch keine Umsetzungszeit
-  für Topf-B-Punkte dieses Projekts (u. a. der Tag-Hygiene-Hinweis unten) [Quelle:
-  globaler Check-in 12.08.].
+- Vorgabe „prüf nach, ob das noch stimmt" zum GitHub-Actions-Alarm vom 11.08. —
+  erneut verifiziert: `gh run list --workflow=release.yml` zeigt weiterhin genau
+  den einen historischen Fehl-Lauf (`31523124901`, Doppel-Tag), keinen neuen
+  Vorfall seither. PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6, unverändert korrekt live
+  [Quelle: dieser Lauf 13.08., `gh run list`].
+- Aus dem Gridbert-Umfeld gemeldet: Tarif-Refresh weiterhin Scrape-FEHLER bei
+  `energie_graz`, Quellen-Wächter 5 geänderte/neue Quellen. Gegengeprüft: Katalog
+  unverändert 119 Einträge/2 valide `energie_graz`-Tarife, `zuletzt_bestaetigt`
+  weiterhin nur bei diesen beiden leer (117/119 befüllt, wie seit 11.08.) — kein
+  neuer energietools-seitiger Befund. Die EAG-Monitoringbericht-Quelle (mutmaßlich
+  eine der 5 geänderten) wurde als offener Punkt aus dieser Session abschließend
+  geklärt (s. „Offene Punkte") [Quelle: globaler Kontext 13.08. + dieser Lauf].
+- Ben ab heute Abend weg: Sommerlager 13.–16.08., Kiten bis 17.08. 12:30, danach
+  Voith-Workshop-Woche bis 24.08. — bis Montag 17.08. keine Umsetzungszeit für
+  Topf-B-Punkte dieses Projekts [Quelle: globaler Kontext 13.08.].
 
 ## Offene Punkte (nächste Session)
 
@@ -198,16 +204,47 @@
       in `release.yml`, der die Zielversion vorab gegen die PyPI-JSON-API prüft und bei
       Kollision mit einer klaren Meldung abbricht, statt den vollen Build/Test-Lauf
       (~2 Min) durchzuziehen und erst beim Upload mit einem rohen 400 zu scheitern.
-- [ ] **EAG-Monitoringbericht (e-control.at) — Versionsstand unbestätigt.**
-      Quellen-Wächter meldete die Quelle 11.08. als „geändert"; ein WebFetch gegen
-      `e-control.at/eag-monitoringbericht` lieferte nur die Navigationsseite, kein
-      Datum/keine PDF-URL — weder bestätigt noch widerlegt, dass eine neuere Ausgabe
-      die hier hinterlegten Zahlen (Stand 30.06.2025, `fakten.json`/
-      `verzeichnis.MANIFEST.json`) überholt hat. Braucht bei Gelegenheit einen
-      gezielteren Abgleich (Direktlink zum aktuellen PDF suchen statt der Nav-Seite).
+- [x] **EAG-Monitoringbericht (e-control.at) — geklärt, keine neuere Ausgabe
+      (Topf A, dieser Lauf 13.08.).** Direktlink zum PDF gefunden (statt Nav-Seite):
+      `e-control.at/documents/1785851/1811582/E-Control-EAG-Monitoringbericht-2025-FINAL...pdf`.
+      Deckblatt: „EAG-Monitoringbericht 2025 | Berichtsjahr 2024" — das ist die
+      **aktuellste verfügbare Ausgabe** (Publikationsseite `e-control.at/eag-monitoringbericht`
+      listet keine neuere). Kapitel 9 (Energiegemeinschaften, S. 87–89) trägt
+      **„Quelle: E-Control; Stand: Juli 2025"** mit Tabellen bis zum Stichtag
+      **30.06.2025** — exakt der Stand, der hier in
+      `energietools/data/energiegemeinschaften/MANIFEST.json` als
+      `marktstand_stichtag: "2025-06-30"` hinterlegt ist. Die Zahlen sind also
+      nicht überholt, sondern bereits der aktuelle Stand; der Quellen-Wächter-Alarm
+      vom 11.08. war ein technischer Seiten-Diff, keine neue Berichtsausgabe.
+      Kein Datenrefresh nötig, keine Codeänderung.
 
 ## Session-Log (letzte 3)
 
+- **2026-08-13** — Tages-Check-in (Projektmodus). Externen `chore(data)`-Refresh
+  vom 13.08. gepullt (`3bb117e`, ff-only) — Tarif-Katalog + Netz-MANIFEST +
+  Energiegemeinschaften-Verzeichnis, 119 Tarif-Einträge unverändert,
+  `energie_graz` weiterhin 2 valide Einträge mit leerem `zuletzt_bestaetigt`
+  (117/119 katalogweit befüllt, unverändert seit 11.08.). 740 Tests grün vor und
+  nach dem Pull. PyPI ≡ Repo bei **0.8.6** (erneut verifiziert). GitHub-Actions-
+  Alarm vom 11.08. erneut geprüft (`gh run list --workflow=release.yml`): kein
+  neuer Vorfall, weiterhin nur der eine historische Doppel-Tag-Fehl-Lauf.
+  **EAG-Monitoringbericht-Punkt abschließend geklärt (Topf A):** Direktlink zum
+  PDF gefunden statt Nav-Seite — aktuellste Ausgabe ist „EAG-Monitoringbericht
+  2025 (Berichtsjahr 2024)", Energiegemeinschaften-Kapitel „Stand: Juli 2025" mit
+  Stichtag 30.06.2025, deckt sich exakt mit dem hier hinterlegten
+  `marktstand_stichtag`. Keine neuere Ausgabe verfügbar, keine überholten Zahlen,
+  Quellen-Wächter-Alarm war ein technischer Seiten-Diff (s. „Offene Punkte").
+  **Ruff-Kleinfund behoben (Topf A):** In-Scope-Lint stieg 55 → 56 durch eine
+  echte Regelverletzung (`I001`, doppelte Leerzeile nach dem Import-Block in
+  `energietools/capabilities/tariffs/models.py:13`, Nebenwirkung des
+  0.8.4-Feature-Commits `74f3bdb`) — per `ruff check --fix` behoben (Whitespace-
+  only, kein Logikunterschied), zurück auf 55, ausschließlich `E501`. 740 Tests
+  vorher/nachher grün. Worktrees: `git worktree list` zeigt weiterhin nur die
+  zwei bewusst belassenen (`et-v061`, `energietools-sim-fixes`); der am 10.08.
+  geprunte dritte taucht nicht wieder auf. TODO.md unverändert (20 offene
+  Punkte). Ein `docs(handover)`-Commit vorgesehen plus der Ruff-Fix — keine
+  Rechenlogik geändert, keine Katalog-Daten von hier aus angefasst (nur der
+  externe Refresh gepullt).
 - **2026-08-12** — Tages-Check-in (Projektmodus). Leitpunkt war der GitHub-Actions-
   Alarm "Release to PyPI – v0.8.6 (abf803e) failed" (11.08. 18:33 UTC). Root Cause
   per `gh run list`/`gh run view --log-failed` (Lauf `31523124901`) geklärt: Tag

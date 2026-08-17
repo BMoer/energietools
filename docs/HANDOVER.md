@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-13.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-17.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -85,7 +85,7 @@
 
 ## prod ≠ live
 
-- (nichts offen — PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6, erneut verifiziert 13.08.;
+- (nichts offen — PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6, erneut verifiziert 17.08.;
   s. „Was live/fertig" für den Doppel-Tag-Vorfall bei 0.8.6, der PyPI nicht betrifft)
 - Randnotiz: Es gibt **keine CI für Tests/Lint** (kein Workflow prüft Pushes) —
   nur der Release selbst ist automatisiert. `.github/workflows/release.yml`
@@ -95,21 +95,8 @@
 
 ## Aus dem globalen Check-in (2026-08-13)
 
-- Vorgabe „prüf nach, ob das noch stimmt" zum GitHub-Actions-Alarm vom 11.08. —
-  erneut verifiziert: `gh run list --workflow=release.yml` zeigt weiterhin genau
-  den einen historischen Fehl-Lauf (`31523124901`, Doppel-Tag), keinen neuen
-  Vorfall seither. PyPI 0.8.6 ≡ `pyproject.toml` 0.8.6, unverändert korrekt live
-  [Quelle: dieser Lauf 13.08., `gh run list`].
-- Aus dem Gridbert-Umfeld gemeldet: Tarif-Refresh weiterhin Scrape-FEHLER bei
-  `energie_graz`, Quellen-Wächter 5 geänderte/neue Quellen. Gegengeprüft: Katalog
-  unverändert 119 Einträge/2 valide `energie_graz`-Tarife, `zuletzt_bestaetigt`
-  weiterhin nur bei diesen beiden leer (117/119 befüllt, wie seit 11.08.) — kein
-  neuer energietools-seitiger Befund. Die EAG-Monitoringbericht-Quelle (mutmaßlich
-  eine der 5 geänderten) wurde als offener Punkt aus dieser Session abschließend
-  geklärt (s. „Offene Punkte") [Quelle: globaler Kontext 13.08. + dieser Lauf].
-- Ben ab heute Abend weg: Sommerlager 13.–16.08., Kiten bis 17.08. 12:30, danach
-  Voith-Workshop-Woche bis 24.08. — bis Montag 17.08. keine Umsetzungszeit für
-  Topf-B-Punkte dieses Projekts [Quelle: globaler Kontext 13.08.].
+- Gridbert hat heute gemessen, dass die STMK-Heizungstausch-Förderung im Modell auf Stand 20.07. steht ("45 % ausgeschöpft"), die Live-Seite am 10.08. aber "noch 41 % verfügbar" nennt → die Datenquelle liegt hier, nicht in gridbert; Nutzer bekommen bis zur Korrektur eine drei Wochen alte Zahl. [Quelle: gridbert-Check-in 13.08., WebFetch gegen die Förderseite]
+- Ben ist ab heute Abend bis Mo 17.08. weg, danach Voith-Workshop-Vorbereitung → die offenen Design-Fragen (preis_veraltet, Tag-Hygiene) bewegen sich diese Woche nicht. [Quelle: privater Kalender]
 
 ## Offene Punkte (nächste Session)
 
@@ -218,8 +205,68 @@
       vom 11.08. war ein technischer Seiten-Diff, keine neue Berichtsausgabe.
       Kein Datenrefresh nötig, keine Codeänderung.
 
+- [x] **STMK-Heizungstausch-Förderstand aktualisiert (Topf A, dieser Lauf 17.08.,
+      löst den 13.08.-Fund ab).** Gridbert hatte am 13.08. gemeldet, dass unser
+      Modell „45 % ausgeschöpft (Stand 20.07.)" zeigt, während die Landesseite
+      am 10.08. „noch 41 % verfügbar" (= 59 % ausgeschöpft) nannte. Per WebFetch
+      gegen `wohnbau.steiermark.at/cms/beitrag/13000784/183599709` erneut
+      bestätigt: die Live-Anzeige steht **weiterhin** auf „41 % verfügbar,
+      Stand 10.08.2026" (seit einer Woche unverändert) — unser Katalogeintrag war
+      also ca. 3 Wochen veraltet. `energietools/data/foerderungen/foerderungen.json`
+      (`stmk-heizungstausch`) korrigiert: `status_detail` trägt jetzt den
+      10.08.-Stand, `quellen[0].abrufdatum` auf 2026-08-17 gesetzt. Kein Test hing
+      an dem alten Text (`grep` vorher leer), 740 Tests grün vor und nach der
+      Änderung. Diff minimal (2 Zeilen) — ein erster Versuch mit `json.dump`
+      hätte die ganze Datei auf 2-Space-Einrückung reformatiert (1747
+      Zeilen Diff statt 2), wurde verworfen und durch einen gezielten
+      String-Edit ersetzt. **Kein Release nötig** (reine Datenkorrektur, wie
+      bei den externen `chore(data)`-Refreshs auch ohne Versionsbump) — Gridbert
+      pinnt aber Git-Tag `v0.8.6`, bekommt den korrigierten Wert also nur über
+      ein Re-Pin auf den neuen Commit oder einen neuen Tag (s. `global`/`fuer_ben`
+      im Check-in-Bericht).
+- [x] **Externe Daten-Refreshs 14.–17.08. nachgeholt — waren 4 Commits im
+      Rückstand.** `git status`/`git log origin/main..HEAD` zeigten zunächst
+      „sauber", aber `git diff HEAD origin/main` deckte 4 ungepullte
+      `chore(data)`-Commits auf (14., 15., 16., 17.08. — Tarif-Katalog, Netz-
+      und EEG-Verzeichnis). Kein Merge-Konflikt möglich, da diese Commits nur
+      Datendateien anfassen, die diese Session nicht bearbeitet hat (geprüft per
+      `git diff --name-only`). `git pull --ff-only` nachgeholt, 740 Tests
+      danach erneut grün. Katalog jetzt: 119 Tarife, weiterhin nur die 2
+      `energie_graz`-Einträge mit leerem `zuletzt_bestaetigt` (bekanntes Muster
+      seit 11.08., kein neuer Befund). **`naturkraft`** (3 nächtliche FEHLER-2-
+      Meldungen 14.–16.08. laut globalem Kontext) zeigt keine Datenlücke: alle
+      4 Einträge zuletzt am 17.08. 03:56 UTC erfolgreich bestätigt — die
+      Scrape-Fehler haben sich nicht in fehlenden/veralteten Katalogdaten
+      niedergeschlagen.
+- [x] **Uncommitteter Rest im Arbeitsverzeichnis eingesammelt.** `docs/HANDOVER.md`
+      trug seit dem globalen Check-in vom 13.08. eine lokal geänderte, nie
+      committete „Aus dem globalen Check-in"-Sektion (STMK-Fund + Bens
+      Abwesenheit) — 4 Tage lang uncommitted im Arbeitsverzeichnis. Inhaltlich
+      korrekt (deckt sich mit `handoff.sh read energietools`), deshalb nicht
+      verworfen, sondern zusammen mit den Änderungen dieser Session committet.
+      Für künftige Läufe: `git status --short` ist Teil der Health-Checks, aber
+      ein sauberer `git log origin/main..HEAD` sagt nichts über uncommittete
+      Änderungen im Working Tree — beide Prüfungen bleiben nötig.
+
 ## Session-Log (letzte 3)
 
+- **2026-08-17** — Tages-Check-in (Projektmodus). PyPI ≡ Repo bei **0.8.6**
+  (erneut verifiziert), 740 Tests grün. Ruff in-scope unverändert **55**
+  (ausschließlich E501). **4 externe `chore(data)`-Refreshs (14.–17.08.)
+  nachgeholt** (waren nicht gepullt, s. „Offene Punkte") — Katalog danach
+  119 Einträge, `naturkraft` (Gridbert-Alarm 14.–16.08.) zuletzt 17.08. 03:56
+  UTC bestätigt, keine Datenlücke; `energie_graz` weiterhin die einzigen 2
+  unbestätigten Einträge (unverändertes bekanntes Muster). **STMK-Heizungstausch-
+  Förderstand korrigiert** (Topf A) — Live-Seite bestätigt weiterhin „41 %
+  verfügbar, Stand 10.08.", unser Katalog stand auf dem alten 20.07.-Wert;
+  jetzt nachgezogen. Ein 4 Tage alter uncommitteter Rest in `docs/HANDOVER.md`
+  (aus dem globalen Lauf 13.08.) eingesammelt und mit committet. `git status`
+  nach diesem Lauf: nur die beiden Doku-/Datendateien dieser Session, kein
+  Rechenlogik-Push. Quellen-Wächter/Gridbert-Kontext (72/72 erreichbar, 4
+  geänderte Quellen inkl. Bundesförderungen RIS/umweltfoerderung.at/bmwet.gv.at)
+  nicht einzeln nachgeprüft — keine der 4 genannten Quellen betrifft einen
+  hier bereits bekannten offenen Punkt; als Rückstand vermerkt, falls ein
+  künftiger Lauf gezielt nachschauen will.
 - **2026-08-13** — Tages-Check-in (Projektmodus). Externen `chore(data)`-Refresh
   vom 13.08. gepullt (`3bb117e`, ff-only) — Tarif-Katalog + Netz-MANIFEST +
   Energiegemeinschaften-Verzeichnis, 119 Tarif-Einträge unverändert,

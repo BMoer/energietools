@@ -882,7 +882,7 @@
   "foerderstelle": "Land Steiermark",
   "status": "offen",
   "status_seit": "2026-03-01",
-  "status_detail": "Förderzeitraum 1.3.–31.12.2026. Budget 2026: 700.000 € (korrigiert gegenüber einer überholten PDF-Version mit 300.000 €), Stand 20.07.2026 bereits 45 % ausgeschöpft. Bestehende Heizanlage muss ab Antragstellung mindestens 15 Jahre alt sein.",
+  "status_detail": "Förderzeitraum 1.3.–31.12.2026. Budget 2026: 700.000 € (korrigiert gegenüber einer überholten PDF-Version mit 300.000 €), Stand 10.08.2026 noch 41 % verfügbar (= 59 % ausgeschöpft; Live-Anzeige der Landesseite, per WebFetch 17.08. erneut bestätigt — abgelöst: vorheriger Stand 20.07.2026/45 % ausgeschöpft). Bestehende Heizanlage muss ab Antragstellung mindestens 15 Jahre alt sein.",
   "foerderhoehe": {
    "typ": "prozent",
    "werte": [
@@ -901,7 +901,7 @@
   "quellen": [
    {
     "url": "https://www.wohnbau.steiermark.at/cms/beitrag/13000784/183599709",
-    "abrufdatum": "2026-08-01",
+    "abrufdatum": "2026-08-17",
     "typ": "primaer"
    }
   ],

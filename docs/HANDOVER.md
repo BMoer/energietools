@@ -93,10 +93,11 @@
   kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
   Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
-## Aus dem globalen Check-in (2026-08-13)
+## Aus dem globalen Check-in (2026-08-17)
 
-- Gridbert hat heute gemessen, dass die STMK-Heizungstausch-Förderung im Modell auf Stand 20.07. steht ("45 % ausgeschöpft"), die Live-Seite am 10.08. aber "noch 41 % verfügbar" nennt → die Datenquelle liegt hier, nicht in gridbert; Nutzer bekommen bis zur Korrektur eine drei Wochen alte Zahl. [Quelle: gridbert-Check-in 13.08., WebFetch gegen die Förderseite]
-- Ben ist ab heute Abend bis Mo 17.08. weg, danach Voith-Workshop-Vorbereitung → die offenen Design-Fragen (preis_veraltet, Tag-Hygiene) bewegen sich diese Woche nicht. [Quelle: privater Kalender]
+- Der heutige STMK-Förderdatenfix (Commit c7b1e37) erreicht Gridbert nicht automatisch: Gridbert pinnt den Git-Tag v0.8.6 → entweder auf den neuen Commit re-pinnen oder einen neuen Tag setzen, sonst rechnet Gridbert weiter mit dem 20.07.-Stand [Quelle: Projekt-Check-in 17.08.]
+- Falls best connect/spotty heute Nachmittag zum Angebot Rechnungsanalyse zusagt, liegt die Rechen-Grundlage (Invoice-Parser und Tarifvergleich) in diesem Repo, nicht in Gridbert → Format und Briefing kommen dann von Ben [Quelle: Mails 13./14.08.]
+- Bens letztes Arbeitsfenster dieser Woche endet Donnerstag 20.08. abends; Fr–So ist er privat weg, Mo 24.08. ganztägig beim Voith-Workshop [Quelle: Kalender beide Konten]
 
 ## Offene Punkte (nächste Session)
 

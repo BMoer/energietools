@@ -93,11 +93,42 @@
   kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
   Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
-## Aus dem globalen Check-in (2026-08-17)
+## Aus dem globalen Check-in (2026-08-18)
 
-- Der heutige STMK-Förderdatenfix (Commit c7b1e37) erreicht Gridbert nicht automatisch: Gridbert pinnt den Git-Tag v0.8.6 → entweder auf den neuen Commit re-pinnen oder einen neuen Tag setzen, sonst rechnet Gridbert weiter mit dem 20.07.-Stand [Quelle: Projekt-Check-in 17.08.]
-- Falls best connect/spotty heute Nachmittag zum Angebot Rechnungsanalyse zusagt, liegt die Rechen-Grundlage (Invoice-Parser und Tarifvergleich) in diesem Repo, nicht in Gridbert → Format und Briefing kommen dann von Ben [Quelle: Mails 13./14.08.]
-- Bens letztes Arbeitsfenster dieser Woche endet Donnerstag 20.08. abends; Fr–So ist er privat weg, Mo 24.08. ganztägig beim Voith-Workshop [Quelle: Kalender beide Konten]
+- **B2B-Lead (Druckerei NÖ) fragt Energieanalyse mit Gasverbrauch an — Lücke gegen den Code
+  vermessen (Topf A, dieser Lauf):** zwei getrennte Gaps, keine Vermutung. (1) Tarifvergleich
+  ist strom-only **by design**: `catalog.py::_ist_gas_eintrag` filtert jeden Gas-Eintrag aktiv
+  aus dem Katalog (119/119 Einträge ohne `energy_type=GAS`), Gridberts `tariff_compare` lehnt
+  `energieart='gas'` als `not_supported` ab. Rechnungs-**Validierung** (`submit_invoice_facts`)
+  kann Gas/Kombi-Rechnungen dagegen bereits entgegennehmen (`Invoice.energieart: strom|gas|kombi`)
+  — nur der Preisvergleich fehlt. (2) Netzkosten decken nur **NE7-Haushalt**
+  (`netzkosten.json`: ein flacher Satz je Netzbereich, kein Netzebenen-Feld); NE3–NE6
+  (gewerblich/Industrie — die Ebene, auf der eine Druckerei typischerweise hängt) sind laut
+  `TODO.md` bewusst noch nicht befüllt, kommen erst aus gridbert. Für diesen Lead heißt das:
+  Lastprofil/PV-Rechnung trägt die Library, Gas-Tarif und der richtige Netzentgelt-Satz nicht
+  — Scope-Ansage an den Kunden nötig, bevor ein Angebot rausgeht [Quelle: globaler Kontext
+  18.08.; verifiziert `energietools/capabilities/tariffs/catalog.py`,
+  `energietools/data/netz/netzkosten.json`, `TODO.md` Netzentgelte-Abschnitt].
+- **energie_graz-Scrapefehler 17./18.08. — unverändertes bekanntes Muster, gegengeprüft:**
+  weiterhin exakt die 2 `energie_graz`-Katalogeinträge mit leerem `zuletzt_bestaetigt`
+  (117/119 sonst befüllt), `preis_veraltet` bleibt `False` (bekannte Designlücke, s. Offene
+  Punkte). Kein neuer Befund, keine Codeänderung nötig [Quelle: Katalog-Check dieser Lauf].
+- **Quellen-Wächter 71/72 (vorher 72/72), 4 geänderte/neue Quellen inkl. einer
+  Bundesförderungs-Quelle im RIS — lokale Referenzen gegengeprüft, kein Drift gefunden:**
+  die 3 in `foerderungen.json` verlinkten RIS-Gesetzesnummern (20012195, 20005371,
+  10004873) stimmen unverändert; welche der 4 Quellen konkret die gemeldete ist, ließ sich
+  ohne den Quellen-Wächter-Bericht selbst nicht eindeutig zuordnen — falls eine neue
+  Bundesförderung im RIS auftaucht, die hier noch fehlt, wäre das ein Fund für den
+  nächsten Lauf mit Mail-Zugriff [Quelle: globaler Kontext 18.08.; `rg` gegen
+  `foerderungen.json`].
+- Der 17.08.-STMK-Förderdatenfix (Commit `c7b1e37`) erreicht Gridbert weiterhin nicht
+  automatisch: Gridbert pinnt Git-Tag `v0.8.6` → Re-Pin auf neuen Commit oder neuen Tag
+  nötig, sonst rechnet Gridbert mit dem 20.07.-Stand [Quelle: Projekt-Check-in 17.08.,
+  weiterhin offen].
+- Bens Woche: heute 18.08. nur 11–14 Uhr frei, danach eng bis Donnerstagabend; 21.–23.08.
+  privat verplant, 24.08. ganztägig Voith-Workshop Heidenheim, 25.08. Rückreise; 25.08.–29.09.
+  laut eigener Aussage gegenüber best connect ausgebucht [Quelle: Kalender beide Konten,
+  globaler Kontext 18.08.].
 
 ## Offene Punkte (nächste Session)
 
@@ -251,6 +282,22 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-18** — Tages-Check-in (Projektmodus). PyPI ≡ Repo bei **0.8.6** (erneut
+  verifiziert), `git status`/unpushed sauber, 740 Tests grün, Ruff in-scope unverändert
+  **55** (ausschließlich E501). TODO.md unverändert (20 offene Punkte).
+  **B2B-Lead-Lücke vermessen (Topf A):** Druckerei-Anfrage nennt Gasverbrauch — Katalog
+  ist strom-only per aktivem Filter (`_ist_gas_eintrag`), Netzkosten decken nur NE7-
+  Haushalt, nicht NE3-6 (gewerblich); beides bereits in `TODO.md` als bewusste, noch
+  offene Lücke dokumentiert, hier gegen den Code verifiziert statt vermutet (s.
+  „Aus dem globalen Check-in"). **Worktree-Hygiene:** `et-v061`
+  (`~/.claude/jobs/e7963402/tmp/et-v061`) war `prunable` (Zieldirectory nicht mehr
+  vorhanden, vermutlich Job-Cleanup) — per `git worktree prune` entfernt, analog zum
+  10.08.-Präzedenzfall; die verbleibende `energietools-sim-fixes` weiterhin unangetastet
+  (eigener Arbeitsstrang). **energie_graz** unverändert (2 unbestätigte Katalogeinträge,
+  bekanntes Muster). Quellen-Wächter-Meldung (71/72, 4 geänderte Quellen inkl. RIS-
+  Bundesförderung) gegen lokale RIS-Referenzen geprüft, kein Drift, exakte Quelle ohne
+  Mail-Zugriff nicht zuordenbar. Nur Doku-Commit + Worktree-Prune (lokal, nichts zu
+  pushen) — keine Rechenlogik, keine Katalog-Daten geändert.
 - **2026-08-17** — Tages-Check-in (Projektmodus). PyPI ≡ Repo bei **0.8.6**
   (erneut verifiziert), 740 Tests grün. Ruff in-scope unverändert **55**
   (ausschließlich E501). **4 externe `chore(data)`-Refreshs (14.–17.08.)

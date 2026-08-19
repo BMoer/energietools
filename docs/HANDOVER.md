@@ -167,6 +167,57 @@
       Katalog-`stand` statt ab `zuletzt_bestaetigt` würde die Lücke schließen.
       Nicht selbst umgesetzt, weil das eine sehr frische, im Commit-Body
       begründete Design-Entscheidung überschreiben würde.
+- [ ] **`preis_veraltet` dritte Ausprägung — Aufwand beziffert (Topf A, dieser
+      Lauf 19.08.), Entscheidung weiterhin bei Ben.** Datenseitig kostenlos:
+      `zuletzt_bestaetigt == ""` unterscheidet schon heute eindeutig „nie
+      bestätigt" von „X Tage alt" — kein Daten-Refresh, keine Migration nötig,
+      betrifft unverändert exakt 2 von 119 Einträgen (beide `energie_graz`,
+      nachgemessen). Sauberster Schnitt ist additiv: `preis_veraltet: bool`
+      unverändert lassen (kein Breaking Change), daneben ein neues
+      `computed_field` `preis_status: Literal["frisch","veraltet",
+      "nie_bestaetigt"]` aus derselben `preis_alter_tage()`-Grundlage. Code-
+      Fläche: `capabilities/tariffs/models.py` + `models/tariff.py` (je ein
+      neues Feld) plus `tests/test_preis_alter.py` (aktuell 12 Tests, +3–4 für
+      den dritten Zustand). Downstream, nur zur Einordnung (nicht Teil dieses
+      Repos): `~/Projekte/gridbert` hat eine **eigene, unabhängige**
+      Re-Implementierung (`gridbert/storage/repositories/tariff_repo.py::
+      preis_veraltet`, identische 14-Tage-Logik auf Gridberts eigener DB), und
+      `website/scripts/tarife-erzeugen.py` schreibt `t.preis_veraltet` direkt
+      als `"preisVeraltet"` in die öffentliche Website-JSON — genau dort bleibt
+      der `energie_graz`-Fall heute unsichtbar (`false`, identisch zu einem
+      frisch bestätigten Tarif). Ein additiver dritter Wert bricht diese
+      Konsumenten nicht, macht den Fall aber nur sichtbar, wenn sie ihn selbst
+      abfragen — dieselbe Design-Entscheidung müsste Ben ggf. ein zweites Mal
+      in Gridberts `tariff_repo.py` treffen, wenn auch die eigene DB-Ansicht
+      die Unterscheidung zeigen soll.
+- [ ] **Quellen-Wächter-Meldung 19.08. (5 geändert) gegen den Code geprüft —
+      betrifft 3 Datensätze dieser Bibliothek, keiner heute automatisch
+      aktualisiert (Topf A, dieser Lauf).** Alle 5 gemeldeten Quellen sind
+      eindeutig referenziert: RIS-Gesetzesnummer 20012195 (EAG-Investitions-
+      zuschüsse, Antragsreihenfolge) → `foerderungen.json::
+      bund-eag-invest-pv-speicher`; RIS 20005371 (Klima- und Energiefondsgesetz,
+      Ressortstruktur) + `umweltfoerderung.at` (Registrierungsfrist) →
+      `foerderungen.json::bund-energiemanagement-flexibilisierung` (beide dort
+      primär referenziert); RIS 10004873 (UStG § 28 Abs. 62) →
+      `foerderungen.json::bund-pv-nullsteuersatz`; RIS 20010107 (SNE-VO 2018
+      § 5 Abs. 1a, 57/28/64 %) → `energiegemeinschaften/fakten.json`
+      (`eeg_lokal`/`eeg_regional`). Der heutige `chore(data)`-Refresh
+      (`131dd09`, 03:55 UTC — lief **vor** der Wächter-Meldung 05:04 UTC) hat
+      nur `tariffs/catalog.json` + `energiegemeinschaften/verzeichnis.json`
+      (Registrierungs-Verzeichnis, nicht `fakten.json`) angefasst;
+      `foerderungen.json` und `fakten.json` gehören **nicht** zum
+      automatisierten Pipeline-Scope, ihr `abrufdatum` steht weiter auf
+      31.07./01.08. Direkte Gegenprobe: `umweltfoerderung.at` per WebFetch
+      bestätigt die Registrierungsfrist **unverändert** „längstens bis
+      15.04.2027, 12:00 Uhr" — deckt sich mit dem Katalog, kein Drift. Die vier
+      RIS-Seiten selbst liefern über WebFetch durchgängig `503` (kein
+      Session-/JS-Handling) — keine direkte inhaltliche Bestätigung möglich, ob
+      Antragsreihenfolge/Ressortstruktur/Nullsteuersatz-Übergang/57-28-64-%-Sätze
+      wirklich abweichen oder der Wächter nur einen technischen Seiten-Diff sieht
+      (Präzedenzfall 13.08.: EAG-Monitoringbericht-Alarm war rein technisch).
+      Kein Fehler festgestellt, aber auch keine Entwarnung — bräuchte entweder
+      Gridberts Scraper-Diff-Text oder eine manuelle RIS-Prüfung außerhalb
+      dieses Tool-Zugriffs.
 - [x] **"Release to PyPI – v0.8.6 (abf803e) failed" — geklärt, kein Release-Defekt
       (Topf A, dieser Lauf 12.08.).** `gh run view --log-failed` auf Lauf `31523124901`:
       `400 Bad Request: File already exists ('energietools-0.8.6-py3-none-any.whl', ...)`.
@@ -249,6 +300,27 @@
 
 ## Session-Log (letzte 3)
 
+- **2026-08-19** — Tages-Check-in (Projektmodus). PyPI ≡ Repo bei **0.8.6** (erneut
+  verifiziert), `git status` sauber. Externen `chore(data)`-Refresh vom 19.08.
+  gepullt (`131dd09`, 03:55 UTC, ff-only — Tarif-Katalog + Netz-MANIFEST +
+  Energiegemeinschaften-Verzeichnis), 740 Tests grün vor und nach dem Pull.
+  Ruff in-scope unverändert **55** (rohe Zahl heute 89, weil `apps/simba/` erstmals
+  mitgelaufen ist — 34 davon dort, per Profil-Scope ausgeklammert, Rest exakt
+  unverändert). TODO.md unverändert (20 offene Punkte). Katalog: 119 Tarife,
+  **`energie_graz` weiterhin die einzigen 2 unbestätigten Einträge** (nachgemessen:
+  `zuletzt_bestaetigt` bei beiden leer, alle übrigen 117 genau 1 Tag alt),
+  `preis_veraltet` aktuell bei 0/119 `True`. **Quellen-Wächter 5 geändert
+  gegengeprüft (Topf A):** alle 5 Änderungen zeigen auf 3 Datensätze dieser
+  Bibliothek (`foerderungen.json` × 3, `energiegemeinschaften/fakten.json` EEG-
+  Sätze), keiner davon Teil der automatisierten Pipeline — Detail und Grenzen der
+  Prüfung (RIS liefert `503` über WebFetch, `umweltfoerderung.at`-Registrierungsfrist
+  direkt bestätigt unverändert) s. „Offene Punkte". **`preis_veraltet`-Design
+  quantifiziert (Topf A):** additive dritte Ausprägung wäre datenseitig kostenlos,
+  zwei kleine Code-Stellen plus Tests, Downstream-Reichweite (Gridberts eigene
+  `tariff_repo.py`-Kopie + `website/scripts/tarife-erzeugen.py`s öffentliche
+  `preisVeraltet`-Ausgabe) recherchiert und dokumentiert — Entscheidung bleibt bei
+  Ben, s. „Offene Punkte". Nur Doku-Commit + Datenpull — keine Rechenlogik
+  geändert.
 - **2026-08-18** — Tages-Check-in (Projektmodus). PyPI ≡ Repo bei **0.8.6** (erneut
   verifiziert), `git status`/unpushed sauber, 740 Tests grün, Ruff in-scope unverändert
   **55** (ausschließlich E501). TODO.md unverändert (20 offene Punkte).

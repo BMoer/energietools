@@ -226,8 +226,16 @@ def finde_ereignisse(
     if len(basis) < MIN_BASELINE_TAGE or not fenster:
         return []
 
-    markierungen = _markiere(fenster, basis, k_sigma)
-    return _zu_ereignissen(markierungen, fenster, basis)
+    # Markiert wird über BASIS UND FENSTER, gemeldet nur, was das Fenster
+    # berührt. Der Grund ist der Beginn eines Ereignisses: würde nur über die
+    # Fenstertage markiert, wäre ``von`` nicht der wahre Anfang, sondern die
+    # Fensterkante — und die wandert mit jedem Lauf einen Tag weiter. Ein
+    # dauerhaft laufendes Gerät ergäbe dadurch jeden Tag ein „neues" Ereignis
+    # mit neuem Schlüssel und damit eine neue Mail. Nachgestellt: 12 Mails in
+    # 12 Tagen, auch nachdem der Haushalt geantwortet hatte.
+    alle = basis + fenster
+    markierungen = _markiere(alle, basis, k_sigma)
+    return _zu_ereignissen(markierungen, alle, basis, fenster_start=fenster_start)
 
 
 # --- Tages-Kennzahlen ---------------------------------------------------------
@@ -387,13 +395,22 @@ def _markiere(
 
 
 def _zu_ereignissen(
-    markierungen: dict[date, set[str]], fenster: list[_Tag], basis: list[_Tag]
+    markierungen: dict[date, set[str]],
+    tage_alle: list[_Tag],
+    basis: list[_Tag],
+    *,
+    fenster_start: date,
 ) -> list[Ereignis]:
     """Bündelt aufeinanderfolgende Tage gleicher Art zu einem Ereignis.
 
     Fünf heiße Tage hintereinander sind eine Nachricht, nicht fünf.
+
+    Gebündelt wird über den GESAMTEN Zeitraum (Vergleichstage eingeschlossen),
+    gemeldet wird nur, was bis ins Beobachtungsfenster reicht. So trägt jedes
+    Ereignis seinen wahren Beginn — und behält ihn über die Läufe hinweg, was
+    die Melde-Marke des Aufrufers erst funktionsfähig macht.
     """
-    nach_tag = {t.tag: t for t in fenster}
+    nach_tag = {t.tag: t for t in tage_alle}
     med_kwh = _median([t.kwh for t in basis])
     med_nacht = _median([float(t.nacht_w) for t in basis])
     med_stunden = [
@@ -407,6 +424,10 @@ def _zu_ereignissen(
     for art in EREIGNISARTEN:
         tage = sorted(d for d, arten in markierungen.items() if art in arten)
         for block in _bloecke(tage):
+            # Nur Blöcke, die bis ins Beobachtungsfenster reichen. Was davor
+            # endete, ist Vergangenheit und wurde (falls nötig) längst gemeldet.
+            if block[-1] < fenster_start:
+                continue
             if art == ABWESENHEIT and len(block) < ABWESEND_MIN_TAGE:
                 continue
             ereignisse.append(

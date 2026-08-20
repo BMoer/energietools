@@ -329,3 +329,45 @@ def test_abwesenheits_sockel_kommt_aus_der_energie_nicht_aus_dem_median():
     assert 84 <= abw.zusatz_leistung_w <= 91
     # Der Median läge bei 30+88 = 118 W und damit 36 % zu hoch.
     assert abw.zusatz_leistung_w < 100
+
+
+def test_dauerhaftes_geraet_behaelt_seinen_beginn_ueber_die_laeufe():
+    """Regression (Review 20.08.2026, BLOCKER): der Beginn eines Ereignisses
+    darf nicht mit der Fensterkante wandern.
+
+    Läuft ein Gerät dauerhaft, sah jeder Lauf ein Ereignis mit einem um einen
+    Tag verschobenen ``von`` — neuer Schlüssel, neue Zeile, neue Mail.
+    Nachgestellt waren das 12 Mails in 12 Tagen, auch nachdem der Haushalt
+    geantwortet hatte. Der Beginn muss über alle Läufe derselbe bleiben.
+    """
+
+    def eingriff(i, ts, wert):
+        if i >= 70 and ts.hour < 5:
+            return wert + 0.0875  # +350 W, ab Tag 70 dauerhaft
+        return wert
+
+    serie = _serie(90, eingriff=eingriff)
+    beginne = set()
+    for tag in range(76, 90):
+        gefunden = finde_ereignisse(
+            serie, heute=_START + timedelta(days=tag), fenster_tage=7
+        )
+        for e in gefunden:
+            if e.typ == DAUERLAST_NACHT:
+                beginne.add(e.von)
+    assert len(beginne) == 1, f"Der Beginn wandert: {sorted(beginne)}"
+    assert beginne == {_START + timedelta(days=70)}
+
+
+def test_ereignis_das_vor_dem_fenster_endete_wird_nicht_gemeldet():
+    """Die Rückwärts-Verlängerung darf keine alten Ereignisse wieder aufwecken."""
+
+    def eingriff(i, ts, wert):
+        if 40 <= i <= 44 and ts.hour < 5:
+            return wert + 0.0875
+        return wert
+
+    ereignisse = finde_ereignisse(
+        _serie(90, eingriff=eingriff), heute=_START + timedelta(days=89), fenster_tage=7
+    )
+    assert ereignisse == []

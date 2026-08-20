@@ -306,3 +306,26 @@ def test_signatur_traegt_die_betroffenen_stunden():
     )
     nacht = [e for e in ereignisse if e.typ == DAUERLAST_NACHT][0]
     assert nacht.stunden == (0, 1, 2, 3, 4)
+
+
+def test_abwesenheits_sockel_kommt_aus_der_energie_nicht_aus_dem_median():
+    """Regression: der Sockel eines leeren Haushalts wird vom taktenden
+    Kühlgerät dominiert. Ein Median über taktende Werte liegt immer auf einem
+    der beiden Zustände — an vier Einschaltquoten gemessen lag die frühere
+    Median-Hochrechnung zwischen 27 % zu niedrig und 36 % zu hoch."""
+
+    def eingriff(i, ts, wert):
+        if 84 <= i <= 87:
+            # 30 W Dauerlast + Kühlgerät, das die Hälfte der Zeit mit 88 W läuft.
+            an = (ts.hour * 4 + ts.minute // 15) % 12 < 6
+            return (30 + (88 if an else 26)) / 4000
+        return wert
+
+    ereignisse = finde_ereignisse(
+        _serie(90, eingriff=eingriff), heute=_START + timedelta(days=89)
+    )
+    abw = [e for e in ereignisse if e.typ == ABWESENHEIT][0]
+    # Wahre mittlere Leistung: 30 + (26+88)/2 = 87 W
+    assert 84 <= abw.zusatz_leistung_w <= 91
+    # Der Median läge bei 30+88 = 118 W und damit 36 % zu hoch.
+    assert abw.zusatz_leistung_w < 100

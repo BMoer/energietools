@@ -53,6 +53,7 @@ from energietools.capabilities.lastgang.ereignisse import (
 from energietools.capabilities.profile import ProfileSource
 
 STUNDEN_PRO_JAHR = 8760
+TAGE_PRO_JAHR = 365
 
 # Ab so vielen betroffenen Stunden gilt ein Verbrauchssprung als durchgehend
 # (und nicht als "ein Gerät lief ein paar Stunden").
@@ -435,8 +436,19 @@ def _deute_abwesenheit(
     Was in dieser Zeit gelaufen ist, läuft das ganze Jahr — das ist die
     einzige Gelegenheit, an der man den Grundverbrauch eines Haushalts sauber
     messen kann, ohne ihn vom Alltag getrennt zu bekommen.
+
+    **Die Hochrechnung geht über die Energie, nicht über eine Leistung.** Eine
+    Leistung aufs Jahr zu multiplizieren setzt voraus, dass sie konstant ist.
+    Der Kühlschrank, der den Sockel eines leeren Haushalts dominiert, taktet
+    aber — und ein Median über taktende Werte liegt immer auf einem der beiden
+    Zustände, nie dazwischen. An vier Einschaltquoten nachgemessen lag die
+    frühere Leistungs-Hochrechnung zwischen 27 % zu niedrig und 36 % zu hoch.
     """
-    kwh_jahr = round(ereignis.zusatz_leistung_w / 1000 * STUNDEN_PRO_JAHR, 1)
+    # Hochgerechnet wird die GEMESSENE Tagesenergie, nicht eine Leistung.
+    # Der Weg über eine Leistung setzt voraus, dass sie konstant ist — bei
+    # jedem taktenden Gerät ist sie das nicht, und der Fehler geht in beide
+    # Richtungen (gemessen: −27 % bis +36 %).
+    kwh_jahr = round(ereignis.kwh_tag * TAGE_PRO_JAHR, 1)
     eur_jahr = round(kwh_jahr * preis / 100, 2) if preis is not None else None
     return Deutung(
         ereignis=ereignis,

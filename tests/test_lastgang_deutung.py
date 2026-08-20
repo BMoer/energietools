@@ -193,8 +193,9 @@ def test_abwesenheit_fragt_nicht_nach_einem_geraet():
     d = deute(e, arbeitspreis_ct_kwh=25.0)
     assert d.hochrechnung_kwh_jahr is not None
     assert d.hochrechnung_eur_jahr is not None
-    # 112 W durchgehend ≈ 981 kWh/Jahr
-    assert 900 < d.hochrechnung_kwh_jahr < 1050
+    # 2,69 kWh am Tag × 365 = 982 kWh/Jahr — hochgerechnet wird die gemessene
+    # Energie, nicht eine Leistung (die bei taktenden Geräten nicht konstant ist).
+    assert d.hochrechnung_kwh_jahr == pytest.approx(2.69 * 365, abs=1.0)
 
 
 # --- Kosten -------------------------------------------------------------------

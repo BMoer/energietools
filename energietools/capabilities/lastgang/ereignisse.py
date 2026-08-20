@@ -493,6 +493,14 @@ def _baue(
         )
 
     if art == ABWESENHEIT:
+        # Die Sockel-Leistung kommt aus der GEMESSENEN Tagesenergie, nicht aus
+        # dem Median der Nachtwerte. Der Unterschied ist keine Feinheit: ein
+        # taktendes Kühlgerät (52 W aus, 176 W an) hat einen Median, der je
+        # nach Einschaltdauer auf dem einen oder dem anderen Wert liegt, nie
+        # dazwischen. Nachgemessen an vier Einschaltquoten lag die
+        # Median-Hochrechnung zwischen 27 % zu niedrig und 36 % zu hoch; der
+        # Energieweg trifft auf unter 0,5 %.
+        sockel_w = int(round(kwh_tag / 24 * 1000))
         return Ereignis(
             typ=art,
             von=block[0],
@@ -500,7 +508,7 @@ def _baue(
             tage=len(block),
             stunden=(),
             zusatz_kwh=0.0,
-            zusatz_leistung_w=int(round(_median([float(t.nacht_w) for t in tage]))),
+            zusatz_leistung_w=sockel_w,
             baseline_leistung_w=int(round(med_nacht)),
             kwh_tag=kwh_tag,
             baseline_kwh_tag=round(med_kwh, 2),

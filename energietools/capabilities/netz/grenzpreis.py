@@ -44,6 +44,15 @@ Netzbetreiber-Schlüssel.
 **Fail-open, aber nie erfindend:** kein auflösbarer Netzbetreiber, ein
 unsinniger Energiepreis → ``None``. Der Aufrufer schreibt dann keine €-Zahl,
 statt eine geschätzte zu nennen.
+
+**Der Platzhalter ist gerechnet, nicht gesetzt.** Kennt man den Lieferanten-
+preis eines Haushalts nicht, liefert :func:`grenzpreis_mit_platzhalter` den
+Grenzpreis mit dem **Median der heute angebotenen Fixpreis-Tarife** an dieser
+Stelle — eine Zahl aus dem tagesaktuellen Katalog, mit Stand und Anzahl
+belegbar, keine Faustregel. Ersetzt wird dabei ausschließlich der
+Energiepreis: Netzentgelt und Abgaben sind der größere Anteil und der
+einzige, der nie geschätzt wird. Ohne auflösbares Netzgebiet gibt es deshalb
+auch keinen ungefähren Preis.
 """
 
 from __future__ import annotations
@@ -64,6 +73,10 @@ UST_SATZ = 1.20
 #: darüber ist ein Eingabefehler — der höchste je in Österreich beworbene
 #: Haushaltstarif lag während der Energiekrise unter 100 ct/kWh.
 ENERGIEPREIS_MAX_CT_KWH = 100.0
+
+#: So viele Tarife braucht der Katalog mindestens, damit ein Median eine
+#: Marktaussage ist und nicht ein Zufall aus drei Angeboten.
+MIN_TARIFE_FUER_MEDIAN = 20
 
 
 @dataclass(frozen=True, slots=True)
@@ -109,6 +122,80 @@ class Grenzpreis:
 
 def _z(x: float) -> str:
     return f"{x:.2f}".replace(".", ",")
+
+
+@dataclass(frozen=True, slots=True)
+class MarktMedian:
+    """Der mittlere Arbeitspreis am Markt — Grundlage des Platzhalters."""
+
+    brutto_ct_kwh: float
+    anzahl_tarife: int
+    stand: str
+    beschreibung: str
+
+
+def markt_median_energiepreis() -> MarktMedian | None:
+    """Median-Arbeitspreis der aktiven Fixpreis-Tarife aus dem Katalog.
+
+    Nur Fixpreis-Tarife: bei Spot- und Floater-Tarifen steht im Katalog ein
+    Aufschlag, kein Arbeitspreis — sie in einen Median zu mischen ergäbe eine
+    Zahl, die es am Markt nicht gibt.
+
+    ``None``, wenn der Katalog fehlt oder zu dünn ist. Auch der Platzhalter
+    wird lieber weggelassen als geraten.
+    """
+    import json
+    import pathlib
+    from statistics import median
+
+    try:
+        import energietools.data.tariffs as _katalog_paket
+
+        ordner = pathlib.Path(_katalog_paket.__file__).parent
+        roh = json.loads((ordner / "catalog.json").read_text(encoding="utf-8"))
+        manifest = json.loads((ordner / "MANIFEST.json").read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001 — ohne Katalog kein Platzhalter, kein Absturz
+        return None
+
+    eintraege = roh if isinstance(roh, list) else roh.get("tariffs") or roh.get("tarife") or []
+    preise = [
+        float(e["energiepreis_ct_kwh"])
+        for e in eintraege
+        if isinstance(e, dict)
+        and e.get("tariftyp") == "Fixpreis"
+        and isinstance(e.get("energiepreis_ct_kwh"), (int, float))
+        and 0 < float(e["energiepreis_ct_kwh"]) <= ENERGIEPREIS_MAX_CT_KWH
+    ]
+    if len(preise) < MIN_TARIFE_FUER_MEDIAN:
+        return None
+
+    stand = str(manifest.get("stand") or "")
+    return MarktMedian(
+        brutto_ct_kwh=round(median(preise), 2),
+        anzahl_tarife=len(preise),
+        stand=stand,
+        beschreibung=(
+            f"Median aus {len(preise)} Fixpreis-Tarifen im Katalog"
+            + (f", Stand {stand}" if stand else "")
+        ),
+    )
+
+
+def grenzpreis_mit_platzhalter(*, vnb_key: str | None, plz: str = "") -> Grenzpreis | None:
+    """Grenzpreis mit dem Markt-Median als Energiepreis.
+
+    Für Haushalte, deren eigener Tarif nicht bekannt ist. Der Aufrufer MUSS
+    kenntlich machen, dass der Energieanteil ein Marktwert ist und nicht der
+    eigene — sonst liest sich eine Schätzung wie eine Messung.
+    """
+    median_preis = markt_median_energiepreis()
+    if median_preis is None:
+        return None
+    return grenzpreis_ct_kwh(
+        energiepreis_netto_ct_kwh=median_preis.brutto_ct_kwh / UST_SATZ,
+        vnb_key=vnb_key,
+        plz=plz,
+    )
 
 
 def grenzpreis_ct_kwh(

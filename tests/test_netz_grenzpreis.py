@@ -220,3 +220,41 @@ def test_grenzpreis_entspricht_der_differenz_zweier_jahresrechnungen(plz, vnb_ke
     )
     assert komponiert is not None
     assert komponiert.brutto_ct_kwh == pytest.approx(differenz_ct_kwh, abs=0.02)
+
+
+# --- Platzhalter: gerechnet, nicht geraten ------------------------------------
+
+
+def test_markt_median_kommt_aus_dem_katalog():
+    """Der Platzhalter ist keine gesetzte Zahl, sondern der Median der heute
+    angebotenen Fixpreis-Tarife — mit Stand und Anzahl belegbar."""
+    from energietools.capabilities.netz.grenzpreis import markt_median_energiepreis
+
+    m = markt_median_energiepreis()
+    assert m is not None
+    assert 5.0 < m.brutto_ct_kwh < 60.0
+    assert m.anzahl_tarife >= 20
+    assert m.stand  # ISO-Datum aus dem Katalog-Manifest
+    assert "Median" in m.beschreibung
+
+
+def test_platzhalter_ersetzt_nur_den_energiepreis():
+    """Netz und Abgaben werden NIE geraten — nur der Lieferantenpreis."""
+    from energietools.capabilities.netz.grenzpreis import (
+        markt_median_energiepreis,
+        grenzpreis_mit_platzhalter,
+    )
+
+    m = markt_median_energiepreis()
+    p = grenzpreis_mit_platzhalter(vnb_key="wiener_netze", plz="1010")
+    assert p is not None
+    assert p.energie_ct_kwh == pytest.approx(m.brutto_ct_kwh / UST_SATZ, abs=0.01)
+    assert p.netznutzung_ct_kwh == pytest.approx(6.98)
+
+
+def test_platzhalter_ohne_netzbetreiber_liefert_nichts():
+    """Ohne Netzgebiet gibt es keinen Preis — auch keinen ungefähren. Der
+    Netzanteil ist der größere und der einzige, der nie geschätzt wird."""
+    from energietools.capabilities.netz.grenzpreis import grenzpreis_mit_platzhalter
+
+    assert grenzpreis_mit_platzhalter(vnb_key="gibt_es_nicht", plz="1010") is None

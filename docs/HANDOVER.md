@@ -93,9 +93,10 @@
   kein Token) direkt auf PyPI hoch — kein manuelles `twine upload` mehr nötig.
   Tests/Daten-Refresh laufen weiterhin ausserhalb dieses Repos.
 
-## Aus dem globalen Check-in (2026-08-18)
+## Aus dem globalen Check-in (2026-08-20)
 
-- Ein B2B-Lead macht die bekannte Gas-/Gewerbe-Lücke erstmals konkret: eine Druckerei in Horn (NÖ) fragt am 18.08. nach einer Energieanalyse und nennt ausdrücklich Gasverbrauch; ein Produktionsbetrieb dieser Größe liegt zudem sicher nicht auf NE7 → die Beschränkung ist im Mail-Entwurf offen benannt, aber die Lücke ist jetzt vertrieblich relevant, nicht mehr nur theoretisch [Quelle: Mail Steindl/Berger, 18.08.]
+- Bens Kapazität: 20.08. ist der letzte Arbeitstag vor dem Voith-Workshop (24.08.) — 21.–23.08. privat ganztägig weg, 25.08. Rückreise; energietools war diese Woche bewusst nicht Priorität.
+- best-connect-Angebot (17.08.) verspricht offenen MIT-Rechenkern als Ausfallsicherung — heute gegengeprüft, Stand trägt die Zusage (s. „Offene Punkte" 20.08.).
 
 ## Offene Punkte (nächste Session)
 
@@ -190,6 +191,23 @@
       abfragen — dieselbe Design-Entscheidung müsste Ben ggf. ein zweites Mal
       in Gridberts `tariff_repo.py` treffen, wenn auch die eigene DB-Ansicht
       die Unterscheidung zeigen soll.
+- [ ] **`preis_veraltet` dritte Ausprägung — Prototyp jetzt Code, nicht mehr nur
+      Schätzung (Topf A, dieser Lauf 20.08.), Entscheidung weiterhin bei Ben.**
+      Branch `prototype/preis-status-nie-bestaetigt`, Commit `2a83d3d`, **lokal,
+      nicht gepusht, nicht auf `main`.** Umgesetzt genau wie am 19.08. skizziert:
+      `computed_field preis_status: Literal["frisch","veraltet","nie_bestaetigt"]`
+      auf `CatalogTariff` (Property) und `Tariff` (computed_field, geht über
+      `model_dump` an den MCP-Gateway) — `preis_veraltet: bool` unverändert,
+      kein Feld entfernt oder umgedeutet. `tests/test_preis_alter.py` von 12 auf
+      19 Tests (`TestPreisStatusPrototyp`, 7 neu), 747/747 grün auf dem Branch.
+      Katalog heute nachgemessen (nicht aus der 19.08.-Notiz übernommen):
+      weiterhin 119 Einträge, 2 `nie_bestaetigt` (beide `energie_graz`), 0 mit
+      Datum älter als 14 Tage, 117 `frisch`. **Für Ben nur noch Ja/Nein:** Ja =
+      `git merge prototype/preis-status-nie-bestaetigt`, Tag ziehen, released
+      (Release ist Topf A); Nein = Branch verwerfen, `preis_veraltet: bool`
+      bleibt wie es ist. Gridberts eigene `tariff_repo.py`-Kopie und
+      `website/scripts/tarife-erzeugen.py` bleiben in jedem Fall unberührt (nicht
+      Teil dieses Repos, s. 19.08.).
 - [ ] **Quellen-Wächter-Meldung 19.08. (5 geändert) gegen den Code geprüft —
       betrifft 3 Datensätze dieser Bibliothek, keiner heute automatisch
       aktualisiert (Topf A, dieser Lauf).** Alle 5 gemeldeten Quellen sind
@@ -297,9 +315,58 @@
       Für künftige Läufe: `git status --short` ist Teil der Health-Checks, aber
       ein sauberer `git log origin/main..HEAD` sagt nichts über uncommittete
       Änderungen im Working Tree — beide Prüfungen bleiben nötig.
+- [x] **Quellen-Wächter-Fehler 20.08. (1 Fehler) geprüft — kein Objekt dieses
+      Repos (Topf A, dieser Lauf).** Der eine gemeldete Fehler ist ein Timeout
+      auf `land-oberoesterreich.gv.at/Mediendateien/Formulare/Dokumente UWD
+      Abt_US/Photovoltaik_Leitfaden.pdf` (Kategorie `foerderung-land-OOE`).
+      Geprüft gegen alle drei OÖ-Einträge in `foerderungen.json`
+      (`ooe-speicher-nachruestung`, `ooe-kesseltausch`, `linz-pv`): keiner trägt
+      diese URL in seinem `quellen[]`-Array — sie taucht nur als Prosa-Erwähnung
+      in `linz-pv.status_detail` auf ("die Seite verlinkt aktiv auf den
+      'Photovoltaikanlagen Leitfaden 2026 für OÖ'"), `linz-pv`s tatsächliche
+      Quelle ist `linz.at`. Eine Land-OÖ-PV-Förderung (analog zu
+      `wien-pv-foerderpaket-2026`) existiert in diesem Katalog gar nicht — der
+      Wächter beobachtet diese URL also für Gridberts eigene Quellenliste, nicht
+      für einen hier gepflegten Datensatz. Keine Reparatur in diesem Repo nötig;
+      falls doch ein Datensatz fehlt, ist das eine Katalog-Lücke (neuer Eintrag),
+      keine kaputte bestehende Quelle. Die zweite Mail („2 Datenströme
+      abgerissen", 19.08.) betrifft Wiener-Netze-Zählpunkt-Lastgänge (Gridberts
+      Ingest) — energietools hat keine Live-Messdaten-Anbindung, damit sicher
+      kein Objekt dieses Repos.
+- [x] **Lizenz-/Veröffentlichungs-Zusage an best connect gegengeprüft (Topf A,
+      dieser Lauf 20.08.).** Angebot vom 17.08. verspricht offenen MIT-Kern als
+      Ausfallsicherung. Stand trägt das: `LICENSE` = MIT (Copyright 2026
+      Benjamin Mörzinger), `pyproject.toml` → `license = "MIT"`, README
+      (`README.md:222`) bestätigt MIT für das gesamte Repo, `gh repo view` →
+      `BMoer/energietools` ist **PUBLIC**. `CREDITS.md` dokumentiert die
+      Herkunft ohne Lizenz-Bruch: die portierten `pvtool`-Teile (Batterie-
+      Dispatch, Wärmepumpen-COP) sind mit Zustimmung des Autors unter MIT
+      übernommen (namentlich als Co-Autor geführt), die Finanz-/Netzentgelt-
+      Logik ist Clean-Room, und ein eigener Abschnitt dokumentiert die
+      Relizenzierung selbst geschriebener Module von AGPL (gridbert) nach MIT.
+      Kein Widerspruch gefunden.
 
 ## Session-Log (letzte 3)
 
+- **2026-08-20** — Tages-Check-in (Projektmodus, letzter Werktag vor Bens
+  Voith-Workshop). PyPI ≡ Repo bei **0.8.6** (erneut verifiziert), `git
+  status`/unpushed sauber, 740 Tests grün, TODO.md unverändert (20 offene
+  Punkte). Katalog nachgemessen (nicht aus alten Notizen übernommen): 119
+  Einträge, **2 `nie_bestaetigt`** (beide `energie_graz`), **0** mit Datum
+  über 14 Tage alt, 117 frisch — deckt sich exakt mit der 19.08.-Notiz.
+  **Quellen-Wächter-Fehler 20.08. geprüft:** die eine gemeldete Fehlerquelle
+  (OÖ-PV-Leitfaden-PDF, Timeout) ist kein von diesem Repo gepflegter
+  `quellen[]`-Eintrag — kein Fix nötig, Detail s. „Offene Punkte". Die zweite
+  Alarm-Mail („2 Datenströme abgerissen") betrifft Gridberts Zählpunkt-Ingest,
+  nicht diese Bibliothek. **Lizenz-Zusage an best connect gegengeprüft:** MIT,
+  Repo public, `CREDITS.md` deckt Herkunft sauber — trägt die Zusage (Beleg s.
+  „Offene Punkte"). **`preis_veraltet`-Prototyp gebaut (Topf A):** additiver
+  `preis_status`-computed_field auf Branch
+  `prototype/preis-status-nie-bestaetigt` (Commit `2a83d3d`, lokal, nicht
+  gepusht), 747/747 Tests grün auf dem Branch, `main` unverändert bei 740 —
+  Ben muss nur noch Ja (mergen) oder Nein (verwerfen) sagen, Details s.
+  „Offene Punkte". Nur Doku-Commit auf `main` + ein lokaler Prototyp-Branch —
+  keine Rechenlogik auf `main` geändert.
 - **2026-08-19** — Tages-Check-in (Projektmodus). PyPI ≡ Repo bei **0.8.6** (erneut
   verifiziert), `git status` sauber. Externen `chore(data)`-Refresh vom 19.08.
   gepullt (`131dd09`, 03:55 UTC, ff-only — Tarif-Katalog + Netz-MANIFEST +

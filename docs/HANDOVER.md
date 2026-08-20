@@ -193,7 +193,7 @@
       die Unterscheidung zeigen soll.
 - [ ] **`preis_veraltet` dritte Ausprägung — Prototyp jetzt Code, nicht mehr nur
       Schätzung (Topf A, dieser Lauf 20.08.), Entscheidung weiterhin bei Ben.**
-      Branch `prototype/preis-status-nie-bestaetigt`, Commit `2a83d3d`, **lokal,
+      Branch `prototype/preis-status-nie-bestaetigt`, Commit `a7164f4`, **lokal,
       nicht gepusht, nicht auf `main`.** Umgesetzt genau wie am 19.08. skizziert:
       `computed_field preis_status: Literal["frisch","veraltet","nie_bestaetigt"]`
       auf `CatalogTariff` (Property) und `Tariff` (computed_field, geht über
@@ -362,7 +362,7 @@
   Repo public, `CREDITS.md` deckt Herkunft sauber — trägt die Zusage (Beleg s.
   „Offene Punkte"). **`preis_veraltet`-Prototyp gebaut (Topf A):** additiver
   `preis_status`-computed_field auf Branch
-  `prototype/preis-status-nie-bestaetigt` (Commit `2a83d3d`, lokal, nicht
+  `prototype/preis-status-nie-bestaetigt` (Commit `a7164f4`, lokal, nicht
   gepusht), 747/747 Tests grün auf dem Branch, `main` unverändert bei 740 —
   Ben muss nur noch Ja (mergen) oder Nein (verwerfen) sagen, Details s.
   „Offene Punkte". Nur Doku-Commit auf `main` + ein lokaler Prototyp-Branch —

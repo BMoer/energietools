@@ -1,6 +1,6 @@
 # HANDOVER — energietools
 
-> Rollierender Stand für die nächste Session. **Stand: 2026-08-17.**
+> Rollierender Stand für die nächste Session. **Stand: 2026-08-21.**
 > Ergänzt [TODO.md](../TODO.md) (bewusst offene inhaltliche Lücken, Stand 2026-06-03).
 > Dieses File hält den *Session-Stand*, TODO.md die *inhaltlichen Entscheidungen*.
 
@@ -345,9 +345,50 @@
       Logik ist Clean-Room, und ein eigener Abschnitt dokumentiert die
       Relizenzierung selbst geschriebener Module von AGPL (gridbert) nach MIT.
       Kein Widerspruch gefunden.
+- [x] **Quellen-Wächter-Meldung 21.08. (5 geändert) gegengeprüft — keine Abweichung,
+      erstmals RIS direkt erreichbar (Topf A, dieser Lauf).** Alle 5 gemeldeten
+      Quellen betreffen `foerderungen.json`/`energiegemeinschaften/fakten.json`:
+      `bmwet.gv.at/.../Zweiter-EAG-Fördercall.html` (neu beobachtet, ist bereits
+      `quellen[]`-Primärquelle von `bund-eag-invest-pv-speicher`) plus die vier
+      bekannten RIS-Gesetzesnummern (20012195, 20005371, 10004873, 20010107).
+      Anders als am 19./20.08. (durchgängig `503`) war RIS heute per WebFetch
+      **erreichbar**: Gesetzesnummer 20005371 bestätigt die tri-ministerielle
+      Zuständigkeit (BMLUK/BMIMI/BMWET+BMF) exakt wie in `foerderstelle` hinterlegt;
+      Gesetzesnummer 20010107 bestätigt § 5 Abs. 1a SNE-VO 2018 mit **57/28/64 %**
+      — identisch zu `eeg_lokal`/`eeg_regional` in `fakten.json`; die
+      Bmwet-Pressemeldung (Stand 14.06.2026 laut Seite) bestätigt Call 1
+      (40→70 Mio. €, 29.000 Anträge, 135 Mio. € Nachfrage), Call 2 (12 Mio. €,
+      16.–30.06.) und Call 3 (8 Mio. €, 08.–22.10.) wortgleich zu
+      `bund-eag-invest-pv-speicher.status_detail`. Gesetzesnummer 10004873
+      (Nullsteuersatz-Übergang) lieferte nur das Inhaltsverzeichnis, § 28 Abs. 62
+      selbst war für den Fetch zu lang — keine Bestätigung, aber auch kein
+      Widerspruch zum hinterlegten `bund-pv-nullsteuersatz`-Stand. Kein Katalog-
+      oder Codefehler gefunden, keine Änderung nötig.
 
 ## Session-Log (letzte 3)
 
+- **2026-08-21** — Tages-Check-in (Projektmodus; Ben Fr–So privat weg, Mo im
+  Voith-x-TTTech-Workshop, vor Di 25.08. nachmittags keine Bewegung von seiner
+  Seite erwartet). PyPI ≡ Repo bei **0.8.6** (erneut verifiziert), `git status`
+  sauber, aktueller Branch `feat/lastgang-ereignisse` (nicht `main`) mit **846
+  Tests grün** (bisheriger Höchststand, davor 740 auf `main` — 5 Commits,
+  4 bereits gepusht, der jüngste `3273d7d` lokal). `main` selbst unverändert,
+  liegt einen automatisierten `chore(data)`-Commit (`dce7de7`, 03:58 UTC,
+  Tarif-/Netz-/EEG-Refresh) hinter `origin/main` zurück — unkritisch, reiner
+  Datenrefresh, nicht Teil dieser Session. Katalog nachgemessen: 119 Tarife,
+  weiterhin **2 `nie_bestaetigt`** (`energie_graz`), 0 über 14 Tage alt, 117
+  frisch — deckt sich mit 19./20.08. TODO.md unverändert (20 offene Punkte).
+  **Außenwirkung geprüft (Anlass: Repo gestern von Ben gegenüber engicloud als
+  offener Rechenkern verlinkt):** README (beide Code-Beispiele smoke-getestet,
+  laufen fehlerfrei), LICENSE (MIT), alle intern verlinkten Dateien
+  (METHODIK.md, NETZKOSTEN_UND_GEBUEHREN.md, CREDITS.md, TODO.md,
+  wiki/netz/netzentgelte.md) vorhanden, `gh repo view` bestätigt Description/
+  Topics/Homepage weiterhin gesetzt — nichts zu reparieren. **Quellen-Wächter
+  21.08. (5 geändert) gegengeprüft, s. „Offene Punkte":** keine Abweichung,
+  RIS heute erstmals erreichbar statt `503`. Einziger offener Punkt bleibt die
+  `preis_status`-Design-Entscheidung (Prototyp seit 20.08. fertig, wartet auf
+  Ben, ausdrücklich ohne Zeitdruck) — kein neuer Fund, keine Codeänderung auf
+  `main`.
 - **2026-08-20** — Tages-Check-in (Projektmodus, letzter Werktag vor Bens
   Voith-Workshop). PyPI ≡ Repo bei **0.8.6** (erneut verifiziert), `git
   status`/unpushed sauber, 740 Tests grün, TODO.md unverändert (20 offene

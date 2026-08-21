@@ -110,7 +110,12 @@ _HEISSE_TAGE = range(120, 160)  # 40 Tage über der Basis
 
 
 def _temp_kuehlen(i: int) -> float:
-    return 24.0 + 0.05 * (i - 140) if i in _HEISSE_TAGE else 8.0
+    # Zentrum bei T_BASIS_KUEHLEN + 3,0 °C (vor der Anhebung auf 25 °C stand
+    # hier fest "24.0" = 21 + 3 — bewusst relativ zur Konstante, damit die
+    # Fixture nicht erneut hinterherhinkt, falls die Basis sich nochmal
+    # ändert): dieselbe Spannweite und dieselben Gradtage wie vorher, nur um
+    # den Betrag der Basis-Anhebung verschoben.
+    return T_BASIS_KUEHLEN + 3.0 + 0.05 * (i - 140) if i in _HEISSE_TAGE else 8.0
 
 
 def _kwh_kuehlen(i: int) -> float:
@@ -179,7 +184,7 @@ def test_rechenweg_ist_nicht_leer_und_nennt_die_basistemperatur():
     )
     assert ergebnis is not None
     assert ergebnis.rechenweg
-    assert any("21" in zeile for zeile in ergebnis.rechenweg)
+    assert any("25" in zeile for zeile in ergebnis.rechenweg)
 
 
 # --- Basistemperatur ist FEST, kein Overfitting (Nachtrag 6) --------------------

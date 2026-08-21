@@ -27,10 +27,35 @@ nächste Schritt wäre, ``T_basis`` nach dem besten R² zu suchen. Genau das ist
 Overfitting an die Stichprobe: an Bens Serie verändert allein die Wahl von
 ``T_basis`` (16 °C vs. 24 °C) das Kühlungs-Ergebnis um den Faktor 2 (94,7 kWh
 vs. 49,5 kWh), ohne dass sich am zugrundeliegenden Verbrauch etwas geändert
-hätte. ``T_BASIS_KUEHLEN = 21,0`` °C Tagesmittel (rund 27 °C Maximum, die
-übliche Schwelle, ab der in Wohnungen gekühlt wird) ist deshalb eine
-Konstante, keine gesuchte Zahl. Wer ``t_basis`` explizit übergibt, tut das
-bewusst — die Konstante bleibt trotzdem der Default.
+hätte. ``T_BASIS_KUEHLEN`` ist deshalb eine Konstante, keine gesuchte Zahl.
+Wer ``t_basis`` explizit übergibt, tut das bewusst — die Konstante bleibt
+trotzdem der Default.
+
+**``T_BASIS_KUEHLEN = 25,0`` °C (Bens Entscheidung 21.08.2026, vorher 21,0 °C
+— NICHT das beste R², s. o.).** Bens Begründung wörtlich: „grenze 25 grad
+macht sinn. wir kuehlen selten." Das ist keine Vermutung, sondern deckt sich
+mit der segmentweisen Regression an seiner Serie: zwischen 21 °C und 25 °C
+Tagesmittel ist KEINE Kühlreaktion messbar (Steigung +0,302 kWh/Grad, t =
+1,35 — nicht signifikant), zwischen 25 °C und 40 °C schlägt sie klar durch
+(Steigung +0,889 kWh/Grad, t = 4,61). Das SSE-Minimum über alle Basen liegt
+bei 26,5 °C; R² steigt von 0,24 (Basis 21) auf 0,33 (Basis 26). 25 °C liegt
+also sowohl an Bens eigener Einschätzung seines Kühlverhaltens als auch am
+gemessenen Umschlagpunkt.
+
+Das ist eine bewusste Abweichung von der Overfitting-Regel oben: die Zahl
+25 wurde nicht gesucht, weil sie das beste R² liefert — Ben hat sie aus
+seinem Kühlverhalten heraus entschieden, und die Statistik bestätigt sie im
+Nachhinein, statt sie geliefert zu haben. Der Unterschied zur verworfenen
+Overfitting-Suche: dort hätte die Zahl 16 °C oder 24 °C gewinnen können, je
+nachdem, welches R² gerade am größten ist, ohne dass irgendetwas an Bens
+tatsächlichem Verhalten dafür spricht. Hier steht die Entscheidung VOR der
+Zahl, die Statistik danach.
+
+**Ehrlich gesagt: an EINEM Haushalt kalibriert.** 25 °C ist Bens Grenze,
+gemessen an Bens einer Serie. Ob sie für andere Haushalte genauso gilt
+(anderes Kühlverhalten, andere Wohnungslage, andere Geräte), ist offen — bei
+mehr Haushalten in der Datenbasis muss die Basistemperatur neu bewertet
+werden, nicht stillschweigend weitergeführt.
 
 **Abwesenheitstage werden ausgeschlossen, mit denselben Kriterien wie die
 Erkennung** (``rueckschau._markiere_abwesenheit`` — nicht neu geschrieben,
@@ -98,15 +123,19 @@ Autokorrelation ist NICHT die Ursache (ρ = 0,033, Durbin-Watson 1,92) —
 reine Varianz-Heterogenität.
 
 **Spezifikationsunsicherheit der Basistemperatur (Review 20.08.2026, Linse
-Zahlen Befund 1).** ``T_BASIS_KUEHLEN`` bleibt fest bei 21 °C (kein
-Overfitting, s.o.) — aber an Bens Serie zeigt eine segmentweise Regression,
-dass zwischen 21 °C und 25 °C KEINE Kühlreaktion messbar ist (t = 1,35),
-sie erst ab ~25 °C durchschlägt (t = 4,61); das SSE-Minimum über alle Basen
-liegt bei 26,5 °C. Die Bänder bei Basis 21 (56,0–81,2 kWh) und Basis 25
-(38,2–52,5 kWh) ÜBERLAPPEN NICHT — die Wahl der Basis bewegt das Ergebnis
-(±40–50 %) STÄRKER als die Sampling-Unsicherheit, die das Band zeigt. Der
-Rechenweg weist das aus (s. ``_rechenweg``), damit niemand das ausgegebene
-Band für die vollständige Unsicherheit hält.
+Zahlen Befund 1; Konstante seit 21.08.2026 auf 25 °C gehoben, s.o.).**
+``T_BASIS_KUEHLEN`` bleibt fest — jetzt bei 25 °C statt vorher 21 °C — kein
+Overfitting, s.o. Zum Vergleich rechnet der Rechenweg dieselbe Regression
+bei der VORHERIGEN Basis (21 °C, ``ALT_BASIS_OFFSET_C = -4,0``, s. dort für
+die Begründung der Richtung). An Bens Serie (Mai–August 2026) ergibt das:
+Basis 25 (primär) 34,0–56,7 kWh, Basis 21 (Vergleich) 51,2–85,9 kWh — diese
+beiden Bänder ÜBERLAPPEN (56,7 ≥ 51,2), anders als der frühere Vergleich
+(Basis 21 primär gegen Basis 25, der NICHT überlappte). Das ist plausibel:
+25 °C liegt jetzt selbst am gemessenen Umschlagpunkt, ein Vergleich mit der
+alten, zu niedrigen Basis zieht also weniger stark auseinander als der
+umgekehrte Fall. Der Rechenweg weist das trotzdem für jeden Aufruf einzeln
+aus (s. ``_rechenweg``) — ob die Bänder überlappen, hängt vom Fenster ab,
+und wird nicht als generelle Aussage behauptet.
 
 **Was diese Regression NICHT trennt.** Sie misst alles, was mit der Außen-
 temperatur zusammenhängt — auch Ventilator, häufigeres Zuhausesein, ein
@@ -138,9 +167,14 @@ HEIZEN = "heizen"
 RICHTUNGEN: tuple[str, ...] = (KUEHLEN, HEIZEN)
 
 # Feste Basistemperaturen (Tagesmittel °C) — NICHT nach bestem R² gesucht,
-# siehe Modul-Docstring. 21 °C entspricht rund 27 °C Maximum (Kühlung); 15 °C
-# ist die in der Heizgradtag-Praxis übliche Basis (Heizgrenztemperatur).
-T_BASIS_KUEHLEN = 21.0
+# siehe Modul-Docstring. 25 °C ist Bens Entscheidung (21.08.2026, vorher
+# 21 °C) über sein eigenes Kühlverhalten — "wir kuehlen selten" — gestützt
+# durch die segmentweise Regression an seiner Serie (keine Reaktion bis
+# 25 °C, t = 1,35; klare Reaktion danach, t = 4,61; SSE-Minimum 26,5 °C). An
+# EINEM Haushalt kalibriert, bei mehr Haushalten neu bewerten. 15 °C ist die
+# in der Heizgradtag-Praxis übliche Basis (Heizgrenztemperatur) — unverändert,
+# Bens Entscheidung betraf nur die Kühlgrenze.
+T_BASIS_KUEHLEN = 25.0
 T_BASIS_HEIZEN = 15.0
 
 # Signifikanz-Gate (Nachtrag 6 + Review 20.08.2026): DREI Bedingungen müssen
@@ -170,13 +204,16 @@ MIN_ABDECKUNG_TAGE_SAISON = 60
 MIN_PUNKTE = 3
 
 # Für die Spezifikationsunsicherheit (Review 20.08.2026, Linse Zahlen Befund
-# 1): eine zweite, um dieses Grad höhere Basis wird zum VERGLEICH gerechnet
-# (NICHT als Ersatz — T_BASIS_KUEHLEN bleibt fest, s. Modul-Docstring). An
-# Bens Serie ist 4 °C genau der Abstand zwischen der festen Basis (21 °C) und
-# der Basis, ab der die segmentweise Regression eine echte Kühlreaktion
-# zeigt (25 °C, t = 4,61) — bei diesem Abstand überlappen die Bänder bereits
-# nicht mehr.
-ALT_BASIS_OFFSET_C = 4.0
+# 1; Vorzeichen gedreht 21.08.2026, als T_BASIS_KUEHLEN von 21 auf 25 °C
+# stieg): eine zweite Basis wird zum VERGLEICH gerechnet (NICHT als Ersatz —
+# T_BASIS_KUEHLEN bleibt fest, s. Modul-Docstring). Der Offset geht jetzt
+# NACH UNTEN (zur alten Basis 21 °C), nicht mehr nach oben: eine Basis 4 °C
+# ÜBER der neuen (29 °C) hat an Bens Serie im Fenster Mai-August 2026 nach
+# Abwesenheits-Ausschluss nur noch 6 Tage über der Basis (t = 2,44, Band
+# 10,9-26,0 kWh) — zu dünn für einen ehrlichen Vergleich, das wäre reines
+# Rauschen. Die alte Basis 21 °C hat dagegen genug Tage (95 Tage im Fenster,
+# 56 davon über 21 °C) für einen stabilen Vergleichswert.
+ALT_BASIS_OFFSET_C = -4.0
 
 _GRANULARITAET_FEHLER = (
     "Kühl-/Heizgradtag-Regression braucht Q15-Auflösung; "
@@ -245,7 +282,7 @@ def gradtag_regression(
             (z.B. die aktuelle Jahreszeit), dieses Modul rechnet nur.
         richtung: ``KUEHLEN`` (Standard) oder ``HEIZEN`` — kehrt um, ob
             Gradtage über oder unter der Basistemperatur gezählt werden.
-        t_basis: Basistemperatur °C (Default je Richtung: 21,0 °C Kühlen,
+        t_basis: Basistemperatur °C (Default je Richtung: 25,0 °C Kühlen,
             15,0 °C Heizen — s. Modul-Docstring, NICHT nach bestem R² suchen).
         interval_minutes: Mess-Intervall (Q15 = 15).
         arbeitspreis_ct_kwh: ohne diesen Wert entstehen keine Euro-Felder.

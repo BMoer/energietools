@@ -173,7 +173,7 @@ KANDIDATEN: tuple[_Kandidat, ...] = (
     ),
     _Kandidat(
         label="pumpe",
-        text="Eine Pumpe — Aquarium, Pool, Zirkulation oder Umwälzung",
+        text="Eine Pumpe, Aquarium, Pool, Zirkulation oder Umwälzung",
         typen=_DAUER,
         watt_von=60,
         watt_bis=1000,
@@ -183,7 +183,7 @@ KANDIDATEN: tuple[_Kandidat, ...] = (
     ),
     _Kandidat(
         label="technik",
-        text="Technik im Dauerbetrieb — Server, NAS, PC oder Netzwerkgeräte",
+        text="Technik im Dauerbetrieb, Server, NAS, PC oder Netzwerkgeräte",
         typen=_DAUER,
         watt_von=50,
         watt_bis=500,
@@ -235,7 +235,7 @@ KANDIDATEN: tuple[_Kandidat, ...] = (
     ),
     _Kandidat(
         label="feiertag",
-        text="Der Feiertag selbst — Besuch, Kochen, alle den Tag über zu Hause",
+        text="Der Feiertag selbst, Besuch, Kochen, alle den Tag über zu Hause",
         typen=(VERBRAUCH_HOCH,),
         watt_von=80,
         watt_bis=6000,
@@ -243,7 +243,7 @@ KANDIDATEN: tuple[_Kandidat, ...] = (
     ),
     _Kandidat(
         label="besuch",
-        text="Besuch — mehr Menschen im Haushalt als sonst",
+        text="Besuch, mehr Menschen im Haushalt als sonst",
         typen=(VERBRAUCH_HOCH,),
         watt_von=100,
         watt_bis=4000,
@@ -332,14 +332,14 @@ MAX_OPTIONEN = 4
 _FRAGEN = {
     DAUERLAST_NACHT: (
         "{Zeitraum} sind nachts durchgehend rund {watt} W mehr gelaufen als "
-        "sonst — üblich sind bei dir etwa {basis} W. Was war das?"
+        "sonst. Üblich sind bei dir etwa {basis} W. Was war das?"
     ),
     VERBRAUCH_HOCH: (
         "{Zeitraum} lag dein Verbrauch bei {kwh_tag} kWh am Tag statt der "
         "üblichen {basis_kwh} kWh, {stunden_text}. Was war da los?"
     ),
     NEUE_SPITZE: (
-        "{Zeitraum} gab es um {stunde} Uhr eine Spitze von {peak} kW — mehr "
+        "{Zeitraum} gab es um {stunde} Uhr eine Spitze von {peak} kW, mehr "
         "als je zuvor gemessen (bisher höchstens {basis_peak} kW). Was war das?"
     ),
     ABWESENHEIT: (

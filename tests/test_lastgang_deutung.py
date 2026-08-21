@@ -10,7 +10,7 @@ eine einmal gegebene Antwort beim nächsten gleichartigen Ereignis wirkt.
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -135,6 +135,107 @@ def test_frueheres_ereignis_anderer_art_wird_nicht_uebertragen():
         )
     ]
     assert deute(_nachtlast(w=180), gedaechtnis=frueher).quelle != "gedaechtnis"
+
+
+# --- Kein Gedankenstrich in echtem Nutzertext (VOICE.md, Befund Linse Text 2) --
+
+
+def test_echte_deute_ausgabe_enthaelt_keinen_gedankenstrich():
+    """Prüft die ECHTE ``deute()``-Ausgabe (Frage, Erklärung, Optionstexte) auf
+    „—" — nicht nur handgeschriebenen Testtext (der bestehende Dash-Guard in
+    ``tests/unit/test_lastgang_auffaelligkeit_mail.py`` bei Gridbert prüft nur
+    Letzteres und hat deshalb ``deutung.py:176,186,238,246,335,342`` nicht
+    gefangen). Die Frage-/Options-Texte landen unverändert über alle drei
+    Kanäle beim Nutzer (Mail, Web-Auswahlseite, Chat-Tool `list_open_lastgang_
+    questions`), deshalb wird hier direkt gegen ``deute()`` geprüft, nicht
+    gegen eine Attrappe."""
+    holiday = date(2025, 12, 24)  # Weihnachten -> freier Tag (feiertag-Kandidat)
+    werktag = date(2026, 6, 24)  # Mittwoch, kein Feiertag
+    sommer = date(2026, 8, 8)
+    winter = date(2026, 1, 20)
+
+    texte: list[str] = []
+
+    def _sammle(d) -> None:
+        if d.frage:
+            texte.append(d.frage)
+        if d.erklaerung:
+            texte.append(d.erklaerung)
+        texte.extend(o.text for o in d.optionen)
+        texte.extend(d.kontext)
+
+    # dauerlast_nacht: deckt technik (186) und pumpe (176) als Optionen ab,
+    # und das Frage-Template selbst (335).
+    for w in (100, 150, 180, 300, 400, 900, 2300, 5000, 20000):
+        for von in (winter, sommer):
+            e = Ereignis(
+                typ=DAUERLAST_NACHT,
+                von=von,
+                bis=von,
+                tage=1,
+                stunden=(0, 1, 2, 3, 4),
+                zusatz_leistung_w=w,
+                zusatz_kwh=round(w / 1000 * 5, 2),
+                kwh_tag=5.6,
+                baseline_kwh_tag=4.84,
+                staerke=20.2,
+            )
+            _sammle(deute(e))
+
+    # verbrauch_hoch: deckt feiertag (238), besuch (246) und kochen ab.
+    for w, von, stunden in (
+        (150, holiday, (12,)),
+        (3500, werktag, (15,)),
+        (1500, werktag, (12,)),
+        (500, sommer, (18,)),
+    ):
+        e = Ereignis(
+            typ=VERBRAUCH_HOCH,
+            von=von,
+            bis=von,
+            tage=1,
+            stunden=stunden,
+            zusatz_leistung_w=w,
+            zusatz_kwh=round(w / 1000 * 2, 2),
+            kwh_tag=10.0,
+            baseline_kwh_tag=5.0,
+            staerke=6.0,
+        )
+        _sammle(deute(e))
+
+    # neue_spitze: deckt das Spitzen-Frage-Template ab (342).
+    e = Ereignis(
+        typ=NEUE_SPITZE,
+        von=sommer,
+        bis=sommer,
+        tage=1,
+        stunden=(17,),
+        zusatz_leistung_w=0,
+        peak_kw=3.5,
+        baseline_peak_kw=1.75,
+        kwh_tag=5.0,
+        baseline_kwh_tag=4.0,
+        staerke=4.0,
+    )
+    _sammle(deute(e))
+
+    # abwesenheit: eigener Frage-Zweig (_deute_abwesenheit).
+    e = Ereignis(
+        typ=ABWESENHEIT,
+        von=sommer,
+        bis=sommer + timedelta(days=2),
+        tage=3,
+        stunden=(),
+        zusatz_leistung_w=0,
+        kwh_tag=1.0,
+        baseline_kwh_tag=5.0,
+        staerke=5.0,
+    )
+    _sammle(deute(e, arbeitspreis_ct_kwh=25.0))
+
+    assert texte  # der Test prüft etwas, kein leerer Lauf
+    verstoesse = [t for t in texte if "—" in t]
+    assert not verstoesse, verstoesse
 
 
 # --- Kalender-Kontext ---------------------------------------------------------
